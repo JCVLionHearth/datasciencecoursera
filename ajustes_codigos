@@ -1,3 +1,7 @@
+\lrc_env\Lib\site-packages\scipy\stats\_distn_infrastructure.py", line 1096, in rvs  
+    raise ValueError(message)
+ValueError: Domain error in arguments. The `scale` parameter must be positive for all distributions, and many distributions have restrictions on shape parameters. Please see the `scipy.stats.triang` documentation for details.
+
 Hola quiero hacer una aplicacion en python, pero tengo el siguiente codigo en R, ayudame con lo siguiente:
 1. la idea es que desde la aplicación se pueda cargar el archivo excel llamado Riesgos.xlsx, solcite el número de expuestos y este valor por defecto tenga el valor 1, solicite el valor del presupuesto.
 2. tambien debe solicitar como entrada el factor de riesgos (factor_riesgo), factor de gastos (factor_gastos), factor legal (factor_legal), estos factores deben ser porcentajes, pero al momento de utilizarlos deben estar sumados con el 100% es decir si ingresan %5 para el factor de riesgos, el factor_riesgo será 1.05.
