@@ -1,0 +1,225 @@
+Aquí tienes una implementación inicial de tu aplicación en Flask que debería satisfacer los requerimientos descritos:
+
+1. Cargar el archivo Excel y solicitar el número de expuestos y el presupuesto.
+2. Solicitar los factores de riesgos, gastos y legal.
+3. Realizar la simulación de Monte Carlo utilizando una distribución triangular.
+4. Mostrar los valores más relevantes y la curva de percentiles.
+5. Proveer una opción para realizar un análisis de sensibilidad.
+6. Permitir la descarga de un PDF con los resultados.
+
+A continuación, te proporciono un ejemplo de código para la aplicación:
+
+```python
+from flask import Flask, request, render_template, send_file
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import base64
+from scipy.stats import triang
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    df = pd.read_excel(file)
+    return render_template('form.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    df = pd.DataFrame(request.form.getlist('data'))
+    num_expuestos = int(request.form['num_expuestos'])
+    presupuesto = float(request.form['presupuesto'])
+    factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = row['P_min'], row['P_esp'], row['P_max']
+        I_min, I_esp, I_max = row['I_min'], row['I_esp'], row['I_max']
+        Frecuencia = row['frecuencia']
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+    suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+    
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(0, 101))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(suma_asegurada_ajustada, bins=50, kde=True)
+    plt.axvline(mean_suma_asegurada, color='r', linestyle='--')
+    plt.axvline(median_suma_asegurada, color='g', linestyle='--')
+    plt.title('Distribución de la Suma Asegurada Ajustada')
+    plt.xlabel('Suma Asegurada Ajustada')
+    plt.ylabel('Frecuencia')
+    fig = plt.gcf()
+    img = io.BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+
+    return render_template('results.html', mean_suma_asegurada=mean_suma_asegurada,
+                           median_suma_asegurada=median_suma_asegurada, sd_suma_asegurada=sd_suma_asegurada,
+                           plot_url=plot_url)
+
+@app.route('/sensitivity', methods=['POST'])
+def sensitivity():
+    df = pd.DataFrame(request.form.getlist('data'))
+    num_expuestos = int(request.form['num_expuestos'])
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = row['P_min'], row['P_esp'], row['P_max']
+        I_min, I_esp, I_max = row['I_min'], row['I_esp'], row['I_max']
+        Frecuencia = row['frecuencia']
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+
+    factor_ranges = {
+        'factor_riesgo': np.arange(1.0, 1.4, 0.1),
+        'factor_gastos': np.arange(1.0, 1.2, 0.05),
+        'factor_legal': np.arange(1.0, 1.1, 0.02)
+    }
+    
+    results = []
+    
+    for factor_riesgo in factor_ranges['factor_riesgo']:
+        for factor_gastos in factor_ranges['factor_gastos']:
+            for factor_legal in factor_ranges['factor_legal']:
+                suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+                mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+                results.append((factor_riesgo, factor_gastos, factor_legal, mean_suma_asegurada))
+    
+    results_df = pd.DataFrame(results, columns=['FactorRiesgo', 'FactorGastos', 'FactorLegal', 'Promedio'])
+    fig = px.scatter_3d(results_df, x='FactorRiesgo', y='FactorGastos', z='Promedio', color='FactorLegal')
+    graph_json = fig.to_json()
+    
+    return render_template('sensitivity.html', graph_json=graph_json)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+A continuación, se proporciona una descripción de los archivos HTML necesarios:
+
+1. `index.html`: Página principal para cargar el archivo Excel.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cargar Archivo</title>
+</head>
+<body>
+    <h1>Cargar Archivo Riesgos</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx">
+        <button type="submit">Cargar</button>
+    </form>
+</body>
+</html>
+```
+
+2. `form.html`: Formulario para ingresar los parámetros.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Parámetros</title>
+</head>
+<body>
+    <h1>Ingrese los Parámetros</h1>
+    <form action="/simulate" method="post">
+        <input type="hidden" name="data" value="{{ data }}">
+        <label for="num_expuestos">Número de Expuestos:</label>
+        <input type="number" name="num_expuestos" value="1" required>
+        <label for="presupuesto">Presupuesto:</label>
+        <input type="number" name="presupuesto" value="1000000" required>
+        <label for="factor_riesgo">Factor de Riesgo (%):</label>
+        <input type="number" name="factor_riesgo" value="20" required>
+        <label for="factor_gastos">Factor de Gastos (%):</label>
+        <input type="number" name="factor_gastos" value="10" required>
+        <label for="factor_legal">Factor Legal (%):</label>
+        <input type="number" name="factor_legal" value="5" required>
+        <label for="n_sim">Número de Simulaciones:</label>
+        <input type="number" name="n_sim" value="10000" required>
+        <label for="seed">Semilla:</label>
+        <input type="number" name="seed" value="12345" required>
+        <button type="submit">Simular</button>
+    </form>
+</body>
+</html>
+```
+
+3. `results.html`: Mostrar los resultados de la simulación.
+
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados de la Simulación</title>
+</head>
+<body>
+    <h1>Resultados de la Simulación</h1>
+    <p>Promedio de la Suma Asegurada: {{ mean_suma_asegurada }}</p>
+    <p>Mediana de la Suma Asegurada: {{ median_suma_asegurada }}</p>
+    <p>Desviación Estándar de la Suma Asegurada: {{ sd_suma_asegurada }}</p>
+    <img src="data:image/png;base64,{{ plot_url }}">
+</body>
+</html>
+```
+
+4. `sensitivity.html`: Análisis de sensibilidad.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Análisis de Sensibilidad</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Análisis de Sensibilidad</h1>
+    <div id="graph"></div>
+    <script>
+        var graph_json = {{ graph_json|safe }};
+        Plotly.newPlot('graph', graph_json.data, graph_json.layout);
+    </script>
+</body>
+</html>
+```
+
+Asegúrate de ajustar los nombres de las columnas y los parámetros de acuerdo a tu archivo Excel y tus necesidades específicas. Con esta estructura, la aplicación debería cubrir los requerimientos establecidos.
