@@ -1,0 +1,145 @@
+Hola quiero hacer una aplicacion en python, pero tengo el siguiente codigo en R, ayudame con lo siguiente:
+1. la idea es que desde la aplicación se pueda cargar el archivo excel llamado Riesgos.xlsx, solcite el número de expuestos y este valor por defecto tenga el valor 1, solicite el valor del presupuesto.
+2. tambien debe solicitar como entrada el factor de riesgos (factor_riesgo), factor de gastos (factor_gastos), factor legal (factor_legal), estos factores deben ser porcentajes, pero al momento de utilizarlos deben estar sumados con el 100% es decir si ingresan %5 para el factor de riesgos, el factor_riesgo será 1.05.
+3. La aplicación debe utilizar simulación montecarlo de una distribución triangular para determinar la suma asegurada o limite de responsabilidad a partir de un escenario pesimista, probable y optimista (tal como se hizo en R); entonces se debe solicitar tambien el numero de simulaciones (por defecto 10000) y tambien solicitar la semilla
+4. quiero que la aplicación muestre los valores mas relevantes (valor esperado, mediana...etc), muestre la curva de percentiles indicando los valores de sumas aseguradas para cada percentil y que estos se muestren de manera dinamica.
+5. Adicionalmente se hace un análisis de sensibilidad a partir de modificaciones de los tre factores de riesgo, gastos y legal, diseña una opcion en la que esta posibilidad se pueda visualizar en otra ventaja u hoja, yo hice un grafico en plotly para mostrar en 3d las variaciones de la suma asegurada a partir de las combinaciones de los factores.
+6. Quiero que analices este codigo y lo reinterprtes en python, utiliza flask, y diferentes paginas html para que el diseño, resultados y formularios se vean de manera profesional y util.
+7. al final poder descargar un pdf con los resultados mas importantes, curva de percentiles, numero de simulaciones hechas, semilla utilizada, un reporte ejecutivo.
+
+if(!require(triangle)) install.packages("triangle", dependencies=TRUE)
+if(!require(ggplot2)) install.packages("ggplot2", dependencies=TRUE)
+library(triangle)
+library(ggplot2)
+library('xlsx')
+library('writexl')
+library("readxl")
+library(dplyr)
+# Establecer la semilla para la reproducibilidad
+set.seed(12345)
+# Definir parámetros para cada cobertura
+# coberturas <- list(
+#   list(P_min = 0.01, P_esp = 0.05, P_max = 0.10, I_min = 10000, I_prob = 50000, I_max = 100000,Frecuencia=2),
+#   list(P_min = 0.02, P_esp = 0.06, P_max = 0.12, I_min = 20000, I_prob = 60000, I_max = 120000,Frecuencia=1),
+#   list(P_min = 0.03, P_esp = 0.07, P_max = 0.14, I_min = 30000, I_prob = 70000, I_max = 140000,Frecuencia=3),
+#   list(P_min = 0.04, P_esp = 0.08, P_max = 0.16, I_min = 40000, I_prob = 80000, I_max = 160000,Frecuencia=2),
+#   list(P_min = 0.05, P_esp = 0.09, P_max = 0.18, I_min = 50000, I_prob = 90000, I_max = 180000,Frecuencia=4)
+# )
+
+setwd('/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Proyectos Analitica/Limite_Responsabilidad')
+
+coberturas_df <- read_excel("Riesgos.xlsx")
+coberturas_df <- coberturas_df %>% dplyr::select(colnames(coberturas_df)[2:8])
+coberturas<-apply(coberturas_df,1,as.list)
+
+# Número de expuestos
+num_expuestos <- 1
+Presupuesto<-1000000
+# Número de simulaciones
+n_sim <- 10000
+# Factores adicionales
+factor_riesgo <- 1.2  # Por ejemplo, un 20% adicional por riesgo
+factor_gastos <- 1.1  # Por ejemplo, un 10% adicional por gastos
+factor_legal <- 1.05  # Por ejemplo, un 5% adicional por implicaciones legales
+# Función para generar sumas aseguradas por cobertura
+generar_sumas_aseguradas <- function(cobertura) {
+  prob_sim <- rtriangle(n_sim, cobertura$P_min, cobertura$P_max, cobertura$P_esp)
+  impact_sim <- rtriangle(n_sim, cobertura$I_min*cobertura$Frecuencia, cobertura$I_max*cobertura$Frecuencia, cobertura$I_esp*cobertura$Frecuencia)
+  return(prob_sim * impact_sim)
+}
+# Generar sumas aseguradas para cada cobertura y sumar
+suma_asegurada_total <- rowSums(sapply(coberturas, generar_sumas_aseguradas))
+# Multiplicar por el número de expuestos
+suma_asegurada_final <- suma_asegurada_total * num_expuestos
+# Aplicar factores adicionales
+suma_asegurada_ajustada <- suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+# Generar percentiles
+percentiles <- quantile(suma_asegurada_ajustada, probs = seq(0, 1, 0.01))
+# Análisis adicional
+mean_suma_asegurada <- mean(suma_asegurada_ajustada)
+median_suma_asegurada <- median(suma_asegurada_ajustada)
+sd_suma_asegurada <- sd(suma_asegurada_ajustada)
+# Percentiles específicos para las líneas horizontales
+percentil_75 <- quantile(suma_asegurada_ajustada, 0.75)
+percentil_90 <- quantile(suma_asegurada_ajustada, 0.90)
+# Mostrar resultados de análisis
+print(paste("Promedio de la Suma Asegurada Ajustada: ", mean_suma_asegurada))
+print(paste("Mediana de la Suma Asegurada Ajustada: ", median_suma_asegurada))
+print(paste("Desviación Estándar de la Suma Asegurada Ajustada: ", sd_suma_asegurada))
+print(paste("Porcentaje aceptable: ", mean_suma_asegurada/Presupuesto))
+# Gráfica de la distribución de la suma asegurada ajustada con líneas verticales y leyenda
+ggplot(data.frame(suma_asegurada_ajustada), aes(x=suma_asegurada_ajustada)) +
+  geom_histogram(binwidth=1000, fill="blue", color="black", alpha=0.7) +
+  geom_vline(aes(xintercept=mean_suma_asegurada), color="red", linetype="dashed", size=1, show.legend=TRUE) +
+  #geom_vline(aes(xintercept=median_suma_asegurada), color="green", linetype="dashed", size=1, show.legend=TRUE) +
+  labs(title="Distribución de la Suma Asegurada Ajustada",
+       x="Suma Asegurada Ajustada",
+       y="Frecuencia") +
+  theme_minimal() +
+  theme(legend.position="top") +
+  scale_color_manual(name="Líneas de Referencia", values=c("Promedio"="red", "Mediana"="green")) +
+  guides(color=guide_legend(override.aes=list(linetype=c("dashed", "dashed"), size=c(1, 1))))
+
+# Gráfica de los percentiles con línea horizontal en el percentil 50 (mediana)
+percentiles_df <- data.frame(Percentiles = seq(0, 100, 1), Suma_Asegurada = percentiles)
+ggplot(percentiles_df, aes(x=Percentiles, y=Suma_Asegurada)) +
+  geom_line(color="blue") +
+  #geom_hline(aes(yintercept=median_suma_asegurada), color="red", linetype="dashed", size=1, show.legend=TRUE) +
+  geom_hline(aes(yintercept=percentil_75), color="green", linetype="dashed", size=1, show.legend=TRUE) +
+  geom_hline(aes(yintercept=percentil_90), color="purple", linetype="dashed", size=1, show.legend=TRUE) +
+  labs(title="Curva de Percentiles de la Suma Asegurada Ajustada",
+       x="Percentil",
+       y="Suma Asegurada") +
+  theme_minimal() +
+  theme(legend.position="top") +
+  scale_color_manual(name="Líneas de Referencia", values=c("Mediana"="red", "Percentil 25"="green", "Percentil 75"="purple")) +
+  guides(color=guide_legend(override.aes=list(linetype=c("dashed", "dashed", "dashed"), size=c(1, 1, 1))))
+
+# Boxplot para visualizar la dispersión de la suma asegurada ajustada con línea horizontal en el promedio
+ggplot(data.frame(suma_asegurada_ajustada), aes(x="", y=suma_asegurada_ajustada)) +
+  geom_boxplot(fill="blue", alpha=0.7) +
+  #geom_hline(aes(yintercept=mean_suma_asegurada), color="red", linetype="dashed", size=1, show.legend=TRUE) +
+  labs(title="Boxplot de la Suma Asegurada Ajustada",
+       y="Suma Asegurada Ajustada") +
+  theme_minimal() +
+  theme(legend.position="top") +
+  scale_color_manual(name="Líneas de Referencia", values=c("Promedio"="red")) +
+  guides(color=guide_legend(override.aes=list(linetype="dashed", size=1)))
+
+# Analisis sensibilidad de los factores
+########################
+
+# Definir rangos para los factores de sensibilidad
+factor_riesgo_rango <- seq(1.0, 1.4, by=0.1)
+factor_gastos_rango <- seq(1.0, 1.2, by=0.05)
+factor_legal_rango <- seq(1.0, 1.1, by=0.02)
+# Crear una combinación de todos los factores
+combinaciones <- expand.grid(factor_riesgo_rango, factor_gastos_rango, factor_legal_rango)
+colnames(combinaciones) <- c("FactorRiesgo", "FactorGastos", "FactorLegal")
+# Función para calcular la suma asegurada ajustada para una combinación de factores
+calcular_suma_asegurada_ajustada <- function(factor_riesgo, factor_gastos, factor_legal) {
+  suma_asegurada_ajustada <- suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+  mean_suma <- mean(suma_asegurada_ajustada)
+  median_suma <- median(suma_asegurada_ajustada)
+  sd_suma <- sd(suma_asegurada_ajustada)
+  percentiles <- quantile(suma_asegurada_ajustada, probs = c(0.75,0.8,0.9,0.95))
+  return(c(mean_suma, median_suma, sd_suma, percentiles[1], percentiles[2],percentiles[3],percentiles[4]))
+}
+
+
+# Aplicar la función a cada combinación de factores y almacenar los resultados
+resultados <- t(apply(combinaciones, 1, function(x) calcular_suma_asegurada_ajustada(x[1], x[2], x[3])))
+# Añadir los resultados al DataFrame de combinaciones
+resultados_df <- cbind(combinaciones, resultados)
+colnames(resultados_df) <- c("FactorRiesgo", "FactorGastos", "FactorLegal", "Promedio", "Mediana", "DesviacionEstandar", "Percentil_75", "Percentil_80","Percentil_90","Percentil_95")
+# Mostrar el DataFrame de resultados
+print(resultados_df)
+
+# **Gráficas 3D:** Para una visualización más completa de la relación entre los tres factores y los resultados.
+library(plotly)
+plot_ly(data = resultados_df, x = ~FactorRiesgo, y = ~FactorGastos, z = ~Promedio, color = ~FactorLegal, colors = colorRamp(c("blue", "red")),
+        type = "scatter3d", mode = "markers") %>%
+  layout(title = "Análisis de Sensibilidad 3D del Promedio",
+         scene = list(xaxis = list(title = "Factor Riesgo"),
+                      yaxis = list(title = "Factor Gastos"),
+                      zaxis = list(title = "Promedio")))
