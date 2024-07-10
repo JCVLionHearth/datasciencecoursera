@@ -1,0 +1,218 @@
+Para llevar este código de R a una aplicación web en Python utilizando Flask, primero traduciremos el código de R a Python y luego crearemos una estructura de Flask para gestionar las interacciones y mostrar los resultados. 
+
+Aquí está un plan detallado:
+
+1. **Configuración de la Aplicación Flask:**
+   - Crear el proyecto Flask.
+   - Configurar las rutas para cargar el archivo Excel, solicitar entradas y mostrar resultados.
+
+2. **Traducción del Código R a Python:**
+   - Utilizar bibliotecas como `pandas`, `numpy`, `scipy`, `plotly`, `flask`, y `matplotlib`.
+   - Implementar funciones para la simulación Monte Carlo y la generación de gráficos.
+
+3. **Creación de Páginas HTML:**
+   - Crear páginas HTML para cargar datos, ingresar parámetros y mostrar resultados.
+   - Utilizar Bootstrap para estilizar las páginas y plotly para gráficos interactivos.
+
+4. **Generación de Reporte PDF:**
+   - Utilizar `reportlab` o `weasyprint` para generar el PDF con los resultados.
+
+5. **Despliegue de la Aplicación:**
+   - Desplegar la aplicación en un servicio como Heroku o Render.com.
+
+A continuación, presento el código para cada parte de la aplicación:
+
+### 1. Configuración de la Aplicación Flask
+
+**Estructura del Proyecto:**
+```
+my_flask_app/
+├── app.py
+├── templates/
+│   ├── index.html
+│   ├── resultados.html
+│   ├── sensibilidad.html
+├── static/
+│   ├── css/
+│   ├── js/
+```
+
+**Archivo `app.py`:**
+
+```python
+from flask import Flask, render_template, request, redirect, url_for
+import pandas as pd
+import numpy as np
+from scipy.stats import triang
+import plotly.express as px
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/resultados', methods=['POST'])
+def resultados():
+    # Leer archivo y parámetros
+    file = request.files['file']
+    df = pd.read_excel(file)
+    num_expuestos = int(request.form.get('num_expuestos', 1))
+    presupuesto = float(request.form['presupuesto'])
+    factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form.get('n_sim', 10000))
+    seed = int(request.form.get('seed', 12345))
+
+    # Configurar la semilla
+    np.random.seed(seed)
+
+    # Función para generar sumas aseguradas
+    def generar_sumas_aseguradas(cobertura):
+        P_min, P_esp, P_max, I_min, I_prob, I_max, Frecuencia = cobertura
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_prob - I_min) / (I_max - I_min), loc=I_min, scale=I_max - I_min, size=n_sim) * Frecuencia
+        return prob_sim * impact_sim
+
+    # Generar sumas aseguradas para cada cobertura y sumar
+    coberturas = df.values
+    suma_asegurada_total = np.sum([generar_sumas_aseguradas(cobertura) for cobertura in coberturas], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+    suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+
+    # Calcular estadísticas y percentiles
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(101))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+    percentil_75 = np.percentile(suma_asegurada_ajustada, 75)
+    percentil_90 = np.percentile(suma_asegurada_ajustada, 90)
+
+    # Crear gráficos
+    hist_fig = px.histogram(suma_asegurada_ajustada, nbins=50, title="Distribución de la Suma Asegurada Ajustada")
+    percentil_fig = go.Figure()
+    percentil_fig.add_trace(go.Scatter(x=np.arange(101), y=percentiles, mode='lines', name='Percentiles'))
+    percentil_fig.add_hline(y=percentil_75, line=dict(color='green', dash='dash'), name='Percentil 75')
+    percentil_fig.add_hline(y=percentil_90, line=dict(color='purple', dash='dash'), name='Percentil 90')
+    percentil_fig.update_layout(title="Curva de Percentiles de la Suma Asegurada Ajustada")
+
+    return render_template('resultados.html',
+                           mean_suma_asegurada=mean_suma_asegurada,
+                           median_suma_asegurada=median_suma_asegurada,
+                           sd_suma_asegurada=sd_suma_asegurada,
+                           hist_fig=hist_fig.to_html(full_html=False),
+                           percentil_fig=percentil_fig.to_html(full_html=False))
+
+@app.route('/sensibilidad')
+def sensibilidad():
+    # Implementar análisis de sensibilidad
+    pass
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### 2. Páginas HTML
+
+**Archivo `index.html`:**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <title>Simulación Monte Carlo</title>
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Simulación Monte Carlo para Suma Asegurada</h1>
+    <form action="{{ url_for('resultados') }}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Cargar archivo Excel:</label>
+            <input type="file" class="form-control-file" id="file" name="file" required>
+        </div>
+        <div class="form-group">
+            <label for="num_expuestos">Número de Expuestos (default: 1):</label>
+            <input type="number" class="form-control" id="num_expuestos" name="num_expuestos" value="1">
+        </div>
+        <div class="form-group">
+            <label for="presupuesto">Presupuesto:</label>
+            <input type="number" class="form-control" id="presupuesto" name="presupuesto" required>
+        </div>
+        <div class="form-group">
+            <label for="factor_riesgo">Factor de Riesgos (%):</label>
+            <input type="number" class="form-control" id="factor_riesgo" name="factor_riesgo" required>
+        </div>
+        <div class="form-group">
+            <label for="factor_gastos">Factor de Gastos (%):</label>
+            <input type="number" class="form-control" id="factor_gastos" name="factor_gastos" required>
+        </div>
+        <div class="form-group">
+            <label for="factor_legal">Factor Legal (%):</label>
+            <input type="number" class="form-control" id="factor_legal" name="factor_legal" required>
+        </div>
+        <div class="form-group">
+            <label for="n_sim">Número de Simulaciones (default: 10000):</label>
+            <input type="number" class="form-control" id="n_sim" name="n_sim" value="10000">
+        </div>
+        <div class="form-group">
+            <label for="seed">Semilla (default: 12345):</label>
+            <input type="number" class="form-control" id="seed" name="seed" value="12345">
+        </div>
+        <button type="submit" class="btn btn-primary">Simular</button>
+    </form>
+</div>
+</body>
+</html>
+```
+
+**Archivo `resultados.html`:**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <title>Resultados de la Simulación</title>
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Resultados de la Simulación</h1>
+    <p>Promedio de la Suma Asegurada Ajustada: {{ mean_suma_asegurada }}</p>
+    <p>Mediana de la Suma Asegurada Ajustada: {{ median_suma_asegurada }}</p>
+    <p>Desviación Estándar de la Suma Asegurada Ajustada: {{ sd_suma_asegurada }}</p>
+
+    <div class="mt-5">
+        <h3>Distribución de la Suma Asegurada Ajustada</h3>
+        {{ hist_fig|safe }}
+    </div>
+    <div class="mt-5">
+        <h3>Curva de Percentiles de la Suma Asegurada Ajustada</h3>
+        {{ percentil_fig|safe }}
+    </div>
+</div>
+</body>
+</html>
+```
+
+### 3. Despliegue de la Aplicación
+
+1. Crear un archivo `requirements.txt`:
+```
+flask
+pandas
+numpy
+scipy
+plotly
+```
+
+2. Seguir las instrucciones de despliegue para Heroku o Render.com.
+
+Esto proporciona una base sólida para tu aplicación web. Puedes expandirla agregando más análisis y personalizaciones según sea necesario.
