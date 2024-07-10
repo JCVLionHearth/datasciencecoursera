@@ -1,0 +1,126 @@
+Para mejorar la visualización de los campos del formulario y asegurarte de que no estén pegados al borde izquierdo, puedes aplicar algunas clases de Bootstrap y añadir CSS personalizado para espaciar y estilizar los elementos del formulario.
+
+### Archivo HTML (form.html)
+
+Ajusta tu archivo HTML para incluir clases de Bootstrap en los elementos del formulario y envuélvelos en contenedores adecuados para espaciar mejor:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parametros-LRC-Simulación Monte Carlo</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center align-items-center h-100">
+            <div class="col-md-8">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h1>Parametros-LRC-Simulación Monte Carlo</h1>
+                    </div>
+                    <div class="card-body">
+                        <form action="/simulate" method="post">
+                            <div class="form-group">
+                                <label for="num_expuestos">Número de Expuestos:</label>
+                                <input type="number" class="form-control" id="num_expuestos" name="num_expuestos" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="presupuesto">Presupuesto:</label>
+                                <input type="number" class="form-control" id="presupuesto" name="presupuesto" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="factor_riesgo">Factor de Riesgo (%):</label>
+                                <input type="number" class="form-control" id="factor_riesgo" name="factor_riesgo" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="factor_gastos">Factor de Gastos (%):</label>
+                                <input type="number" class="form-control" id="factor_gastos" name="factor_gastos" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="factor_legal">Factor Legal (%):</label>
+                                <input type="number" class="form-control" id="factor_legal" name="factor_legal" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="n_sim">Número de Simulaciones:</label>
+                                <input type="number" class="form-control" id="n_sim" name="n_sim" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="seed">Semilla (Seed):</label>
+                                <input type="number" class="form-control" id="seed" name="seed" required>
+                            </div>
+                            <input type="hidden" name="data" value="{{ data }}">
+                            <button type="submit" class="btn btn-success btn-block">Simular</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+```
+
+### Archivo CSS (styles.css)
+
+Añade el siguiente CSS para ajustar el espaciado y mejorar la apariencia del formulario:
+
+```css
+/* styles.css */
+body, html {
+    height: 100%;
+    background-color: #f8f9fa;
+}
+
+.container {
+    height: 100%;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 0;
+    padding: 1rem 1.5rem;
+    text-align: center;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-control {
+    margin-bottom: 1rem;
+    border-radius: 5px;
+}
+
+.btn-block {
+    border-radius: 25px;
+    font-size: 1.1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+```
+
+### Explicación
+
+- **HTML:**
+  - Envuélvelos cada campo del formulario en un `div` con la clase `form-group`.
+  - Agrega la clase `form-control` a cada `input` para aplicar el estilo de Bootstrap.
+  - Incrementa el ancho de la columna contenedora a `col-md-8` para proporcionar más espacio.
+
+- **CSS:**
+  - Ajusta el espaciado y la apariencia de los elementos del formulario con las clases personalizadas.
+  - La clase `.form-control` se asegura de que los elementos del formulario tengan un margen inferior adecuado para evitar que se peguen al borde.
+
+Con estos cambios, tu formulario se verá más espacioso y estéticamente agradable.
