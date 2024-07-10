@@ -216,3 +216,108 @@ plotly
 2. Seguir las instrucciones de despliegue para Heroku o Render.com.
 
 Esto proporciona una base sólida para tu aplicación web. Puedes expandirla agregando más análisis y personalizaciones según sea necesario.
+
+from flask import Flask, render_template, request, redirect, url_for
+import pandas as pd
+import numpy as np
+from scipy.stats import triang
+import plotly.express as px
+import plotly.graph_objects as go
+import logging
+
+app = Flask(__name__)
+
+# Configurar logging para depuración
+logging.basicConfig(level=logging.DEBUG)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/resultados', methods=['POST'])
+def resultados():
+    try:
+        # Leer archivo y parámetros
+        file = request.files['file']
+        df = pd.read_excel(file)
+        logging.debug(f"Archivo cargado con éxito: {df.head()}")
+        
+        num_expuestos = int(request.form.get('num_expuestos', 1))
+        presupuesto = float(request.form['presupuesto'])
+        factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+        factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+        factor_legal = 1 + float(request.form['factor_legal']) / 100
+        n_sim = int(request.form.get('n_sim', 10000))
+        seed = int(request.form.get('seed', 12345))
+
+        # Configurar la semilla
+        np.random.seed(seed)
+
+        # Función para generar sumas aseguradas
+        def generar_sumas_aseguradas(cobertura):
+            P_min, P_esp, P_max, I_min, I_prob, I_max, Frecuencia = cobertura
+
+            # Verificar y corregir valores de los parámetros
+            if P_max == P_min:
+                P_max += 0.01
+            if I_max == I_min:
+                I_max += 0.01
+
+            logging.debug(f"P_min: {P_min}, P_esp: {P_esp}, P_max: {P_max}, I_min: {I_min}, I_prob: {I_prob}, I_max: {I_max}, Frecuencia: {Frecuencia}")
+
+            # Calcular parámetros para la distribución triangular
+            c_prob = (P_esp - P_min) / (P_max - P_min)
+            scale_prob = P_max - P_min
+
+            c_impact = (I_prob - I_min) / (I_max - I_min)
+            scale_impact = I_max - I_min
+
+            logging.debug(f"c_prob: {c_prob}, scale_prob: {scale_prob}, c_impact: {c_impact}, scale_impact: {scale_impact}")
+
+            # Generar simulaciones
+            prob_sim = triang.rvs(c_prob, loc=P_min, scale=scale_prob, size=n_sim)
+            impact_sim = triang.rvs(c_impact, loc=I_min, scale=scale_impact, size=n_sim) * Frecuencia
+
+            return prob_sim * impact_sim
+
+        # Generar sumas aseguradas para cada cobertura y sumar
+        coberturas = df.values
+        suma_asegurada_total = np.sum([generar_sumas_aseguradas(cobertura) for cobertura in coberturas], axis=0)
+        suma_asegurada_final = suma_asegurada_total * num_expuestos
+        suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+
+        # Calcular estadísticas y percentiles
+        percentiles = np.percentile(suma_asegurada_ajustada, np.arange(101))
+        mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+        median_suma_asegurada = np.median(suma_asegurada_ajustada)
+        sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+        percentil_75 = np.percentile(suma_asegurada_ajustada, 75)
+        percentil_90 = np.percentile(suma_asegurada_ajustada, 90)
+
+        logging.debug(f"Estadísticas calculadas: Media={mean_suma_asegurada}, Mediana={median_suma_asegurada}, SD={sd_suma_asegurada}")
+
+        # Crear gráficos
+        hist_fig = px.histogram(suma_asegurada_ajustada, nbins=50, title="Distribución de la Suma Asegurada Ajustada")
+        percentil_fig = go.Figure()
+        percentil_fig.add_trace(go.Scatter(x=np.arange(101), y=percentiles, mode='lines', name='Percentiles'))
+        percentil_fig.add_hline(y=percentil_75, line=dict(color='green', dash='dash'), name='Percentil 75')
+        percentil_fig.add_hline(y=percentil_90, line=dict(color='purple', dash='dash'), name='Percentil 90')
+        percentil_fig.update_layout(title="Curva de Percentiles de la Suma Asegurada Ajustada")
+
+        return render_template('resultados.html',
+                               mean_suma_asegurada=mean_suma_asegurada,
+                               median_suma_asegurada=median_suma_asegurada,
+                               sd_suma_asegurada=sd_suma_asegurada,
+                               hist_fig=hist_fig.to_html(full_html=False),
+                               percentil_fig=percentil_fig.to_html(full_html=False))
+    except Exception as e:
+        logging.error(f"Error en la simulación: {e}")
+        return str(e)
+
+@app.route('/sensibilidad')
+def sensibilidad():
+    # Implementar análisis de sensibilidad
+    pass
+
+if __name__ == '__main__':
+    app.run(debug=True)
