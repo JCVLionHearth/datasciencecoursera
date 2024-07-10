@@ -1,0 +1,139 @@
+El error `KeyError: 'P_min'` sugiere que el DataFrame no tiene una columna con el nombre `P_min`, o que el nombre de la columna no coincide exactamente con lo que se espera (por ejemplo, puede haber espacios adicionales, diferencias en mayúsculas/minúsculas, etc.).
+
+Vamos a verificar los nombres de las columnas del DataFrame para asegurarnos de que son correctos. También ajustaremos la forma en que se maneja el DataFrame cuando se pasa a la función `simulate`.
+
+1. Primero, vamos a asegurarnos de que los nombres de las columnas son correctos y están bien definidos.
+2. Vamos a imprimir los nombres de las columnas del DataFrame para verificar.
+
+Aquí tienes una versión actualizada del código que incluye una verificación y una impresión de los nombres de las columnas del DataFrame:
+
+```python
+from flask import Flask, request, render_template, send_file
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import base64
+from scipy.stats import triang
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    df = pd.read_excel(file)
+    # Verifica los nombres de las columnas
+    print(df.columns.tolist())
+    return render_template('form.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    # Recupera y convierte los datos de la forma
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    # Verifica los nombres de las columnas
+    print(df.columns.tolist())
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    presupuesto = float(request.form['presupuesto'])
+    factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+    suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+    
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(0, 101))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(suma_asegurada_ajustada, bins=50, kde=True)
+    plt.axvline(mean_suma_asegurada, color='r', linestyle='--')
+    plt.axvline(median_suma_asegurada, color='g', linestyle='--')
+    plt.title('Distribución de la Suma Asegurada Ajustada')
+    plt.xlabel('Suma Asegurada Ajustada')
+    plt.ylabel('Frecuencia')
+    fig = plt.gcf()
+    img = io.BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+
+    return render_template('results.html', mean_suma_asegurada=mean_suma_asegurada,
+                           median_suma_asegurada=median_suma_asegurada, sd_suma_asegurada=sd_suma_asegurada,
+                           plot_url=plot_url)
+
+@app.route('/sensitivity', methods=['POST'])
+def sensitivity():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+
+    factor_ranges = {
+        'factor_riesgo': np.arange(1.0, 1.4, 0.1),
+        'factor_gastos': np.arange(1.0, 1.2, 0.05),
+        'factor_legal': np.arange(1.0, 1.1, 0.02)
+    }
+    
+    results = []
+    
+    for factor_riesgo in factor_ranges['factor_riesgo']:
+        for factor_gastos in factor_ranges['factor_gastos']:
+            for factor_legal in factor_ranges['factor_legal']:
+                suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+                mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+                results.append((factor_riesgo, factor_gastos, factor_legal, mean_suma_asegurada))
+    
+    results_df = pd.DataFrame(results, columns=['FactorRiesgo', 'FactorGastos', 'FactorLegal', 'Promedio'])
+    fig = px.scatter_3d(results_df, x='FactorRiesgo', y='FactorGastos', z='Promedio', color='FactorLegal')
+    graph_json = fig.to_json()
+    
+    return render_template('sensitivity.html', graph_json=graph_json)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+Además, asegúrate de que el archivo Excel tiene los nombres de columna exactos que estás esperando (`Riesgo`, `I_min`, `P_min`, `I_esp`, `P_esp`, `I_max`, `P_max`, `frecuencia`).
+
+Por último, verifica que los nombres de las columnas del archivo Excel coinciden exactamente con los nombres que estás utilizando en tu código. Esto incluye asegurarse de que no hay espacios adicionales o diferencias en mayúsculas/minúsculas.
