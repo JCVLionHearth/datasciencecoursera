@@ -1,0 +1,536 @@
+Para abordar tus requerimientos, aquí tienes una serie de pasos y modificaciones para mejorar tu aplicación:
+
+### 1. Diseño con Bootstrap
+
+Primero, asegúrate de incluir los enlaces a Bootstrap en todas tus páginas HTML. 
+
+### 2. Estilizar Resultados y Formato de Moneda
+
+Puedes usar Bootstrap para estilizar las tablas y los gráficos. Utiliza `locale` para formatear las cifras como moneda.
+
+### 3. Descargar la Tabla de Sensibilidades en Excel
+
+Agregaremos la funcionalidad para descargar esta tabla en Excel.
+
+### 4. Valores Predeterminados en el Formulario
+
+Estableceremos los valores predeterminados en el formulario.
+
+### 5. Mejores Gráficos de Sensibilidad
+
+Usaremos Plotly para gráficos más dinámicos.
+
+### Modificaciones en el Código
+
+**`app.py`**
+
+```python
+from flask import Flask, request, render_template, send_file, make_response
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import base64
+from scipy.stats import triang
+import xlsxwriter
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    df = pd.read_excel(file)
+    return render_template('form.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    presupuesto = float(request.form['presupuesto'])
+    factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+    suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+    
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(0, 101))
+    percentiles_df = np.percentile(suma_asegurada_ajustada, np.arange(0, 101,5))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+    percentil_90 = np.percentile(suma_asegurada_ajustada, 90)
+
+    # Gráfico de la distribución de la suma asegurada ajustada
+    plt.figure(figsize=(10, 6))
+    sns.histplot(suma_asegurada_ajustada, bins=50, kde=True)
+    plt.axvline(mean_suma_asegurada, color='r', linestyle='--', label=f'Mean: {mean_suma_asegurada:,.2f}')
+    plt.axvline(median_suma_asegurada, color='g', linestyle='--', label=f'Median: {median_suma_asegurada:,.2f}')
+    plt.title('Distribución de la Suma Asegurada Ajustada')
+    plt.xlabel('Suma Asegurada Ajustada')
+    plt.ylabel('Frecuencia')
+    plt.legend()
+    fig = plt.gcf()
+    img = io.BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+
+    # Gráfico de percentiles
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x=np.arange(0, 101), y=percentiles)
+    plt.title('Percentiles de la Suma Asegurada Ajustada')
+    plt.xlabel('Percentiles')
+    plt.ylabel('Suma Asegurada Ajustada')
+    plt.axhline(y=percentil_90,color='red')
+    fig = plt.gcf()
+    img = io.BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    percentiles_plot_url = base64.b64encode(img.getvalue()).decode()
+
+    percentiles_table = pd.DataFrame({'Percentil': np.arange(0, 101,5), 'Value': percentiles_df})
+
+    # Convertir tablas a HTML
+    percentiles_table_html = percentiles_table.to_html(index=False, classes='table table-striped')
+    df_table_html = pd.DataFrame(suma_asegurada_ajustada, columns=['Simulaciones']).to_html(index=False, classes='table table-striped')
+
+    return render_template('results.html', mean_suma_asegurada=mean_suma_asegurada,
+                           median_suma_asegurada=median_suma_asegurada, sd_suma_asegurada=sd_suma_asegurada,
+                           plot_url=plot_url, percentiles_plot_url=percentiles_plot_url,
+                           percentiles_table=percentiles_table_html, df_table=df_table_html,
+                           data=df.to_dict(orient='records'), percentiles_table_data=percentiles_table.to_dict(orient='records'), suma_asegurada_ajustada_data=suma_asegurada_ajustada.tolist())
+
+@app.route('/sensitivity', methods=['POST'])
+def sensitivity():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+
+    factor_ranges = {
+        'factor_riesgo': np.arange(1.0, 1.4, 0.1),
+        'factor_gastos': np.arange(1.0, 1.2, 0.05),
+        'factor_legal': np.arange(1.0, 1.1, 0.02)
+    }
+    
+    results = []
+    
+    for factor_riesgo in factor_ranges['factor_riesgo']:
+        for factor_gastos in factor_ranges['factor_gastos']:
+            for factor_legal in factor_ranges['factor_legal']:
+                suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+                mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+                results.append((factor_riesgo, factor_gastos, factor_legal, mean_suma_asegurada))
+    
+    results_df = pd.DataFrame(results, columns=['FactorRiesgo', 'FactorGastos', 'FactorLegal', 'Promedio'])
+    fig = px.scatter_3d(results_df, x='FactorRiesgo', y='FactorGastos', z='Promedio', color='FactorLegal')
+    graph_json = fig.to_json()
+
+    return render_template('sensitivity.html', graph_json=graph_json, table=results_df.to_html(index=False, classes='table table-striped'))
+
+@app.route('/download', methods
+
+=['POST'])
+def download():
+    percentiles_data = request.form.getlist('percentiles_table_data')
+    suma_asegurada_data = request.form.getlist('suma_asegurada_ajustada_data')
+
+    percentiles_df = pd.DataFrame(eval(percentiles_data[0]))
+    suma_asegurada_df = pd.DataFrame(eval(suma_asegurada_data[0]), columns=['Simulaciones'])
+    
+    with io.BytesIO() as output:
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            percentiles_df.to_excel(writer, sheet_name='Percentiles', index=False)
+            suma_asegurada_df.to_excel(writer, sheet_name='Simulaciones', index=False)
+        output.seek(0)
+        response = make_response(output.read())
+        response.headers['Content-Disposition'] = 'attachment; filename=tabla_sensibilidades.xlsx'
+        response.headers['Content-type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        return response
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### `templates/index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Simulación de Suma Asegurada</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Simulación de Suma Asegurada</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="file" class="form-label">Subir archivo Excel</label>
+                <input class="form-control" type="file" name="file" id="file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Cargar archivo</button>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+### `templates/form.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Parámetros de Simulación</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Parámetros de Simulación</h1>
+        <form action="/simulate" method="post">
+            <div class="mb-3">
+                <label for="num_expuestos" class="form-label">Número de Expuestos</label>
+                <input class="form-control" type="number" name="num_expuestos" id="num_expuestos" value="10" required>
+            </div>
+            <div class="mb-3">
+                <label for="presupuesto" class="form-label">Presupuesto</label>
+                <input class="form-control" type="number" name="presupuesto" id="presupuesto" value="1000000" required>
+            </div>
+            <div class="mb-3">
+                <label for="factor_riesgo" class="form-label">Factor de Riesgo (%)</label>
+                <input class="form-control" type="number" step="0.01" name="factor_riesgo" id="factor_riesgo" value="5" required>
+            </div>
+            <div class="mb-3">
+                <label for="factor_gastos" class="form-label">Factor de Gastos (%)</label>
+                <input class="form-control" type="number" step="0.01" name="factor_gastos" id="factor_gastos" value="5" required>
+            </div>
+            <div class="mb-3">
+                <label for="factor_legal" class="form-label">Factor Legal (%)</label>
+                <input class="form-control" type="number" step="0.01" name="factor_legal" id="factor_legal" value="5" required>
+            </div>
+            <div class="mb-3">
+                <label for="n_sim" class="form-label">Número de Simulaciones</label>
+                <input class="form-control" type="number" name="n_sim" id="n_sim" value="10000" required>
+            </div>
+            <div class="mb-3">
+                <label for="seed" class="form-label">Semilla Aleatoria</label>
+                <input class="form-control" type="number" name="seed" id="seed" value="42" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Simular</button>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+### `templates/results.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Resultados de Simulación</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Resultados de Simulación</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Estadísticas</h3>
+                <p><strong>Promedio:</strong> {{ "{:,.2f}".format(mean_suma_asegurada) }}</p>
+                <p><strong>Mediana:</strong> {{ "{:,.2f}".format(median_suma_asegurada) }}</p>
+                <p><strong>Desviación Estándar:</strong> {{ "{:,.2f}".format(sd_suma_asegurada) }}</p>
+            </div>
+            <div class="col-md-6">
+                <h3>Distribución de la Suma Asegurada Ajustada</h3>
+                <img src="data:image/png;base64,{{ plot_url }}" class="img-fluid">
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h3>Percentiles de la Suma Asegurada Ajustada</h3>
+                <img src="data:image/png;base64,{{ percentiles_plot_url }}" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <h3>Tabla de Percentiles</h3>
+                {{ percentiles_table|safe }}
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3>Simulaciones</h3>
+                {{ df_table|safe }}
+            </div>
+        </div>
+        <form action="/download" method="post">
+            <input type="hidden" name="percentiles_table_data" value="{{ percentiles_table_data }}">
+            <input type="hidden" name="suma_asegurada_ajustada_data" value="{{ suma_asegurada_ajustada_data }}">
+            <button type="submit" class="btn btn-success mt-3">Descargar Tabla de Sensibilidades en Excel</button>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+### `templates/sensitivity.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Tabla de Sensibilidad</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Tabla de Sensibilidad</h1>
+        <div id="graph" style="width:100%; height:600px;"></div>
+        <script>
+            var graph_json = {{ graph_json | safe }};
+            Plotly.newPlot('graph', graph_json.data, graph_json.layout);
+        </script>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3>Resultados de Sensibilidad</h3>
+                {{ table|safe }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+### Consideraciones Finales
+
+- **Mejora Continua:** Asegúrate de realizar pruebas exhaustivas para verificar que todas las funcionalidades trabajan como se espera.
+- **Seguridad:** Considera la sanitización de inputs para evitar ataques como la inyección SQL.
+- **Performance:** Para grandes cantidades de datos o simulaciones complejas, evalúa optimizar la carga y procesamiento.
+
+Con estos cambios, tu aplicación Flask debería tener una apariencia más profesional y ofrecer una mejor experiencia de usuario.
+
+Para aplicar las modificaciones y mejoras visuales mencionadas anteriormente, aquí tienes un ejemplo de archivo CSS personalizado que complementa Bootstrap. Este archivo CSS no es obligatorio, pero te permitirá ajustar el diseño según tus necesidades específicas.
+
+### `static/styles.css`
+
+```css
+/* Asegúrate de que todos los elementos tengan un margen y relleno cero */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estiliza el cuerpo con un fondo claro y una tipografía agradable */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+/* Mejora el aspecto de los formularios */
+form {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Agrega un margen inferior a todos los inputs y selects dentro de un formulario */
+form input,
+form select {
+    margin-bottom: 15px;
+}
+
+/* Estiliza los botones */
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Mejora la apariencia de las tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Mejora el aspecto de los gráficos */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Centra el contenedor principal */
+.container {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+/* Estiliza los encabezados */
+h1 {
+    margin-bottom: 20px;
+    font-size: 2em;
+    color: #007bff;
+}
+
+h3 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+/* Espaciado adicional para las filas */
+.row {
+    margin-bottom: 20px;
+}
+
+/* Ajusta la imagen del gráfico para ser responsiva */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Estiliza las alertas */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Personalización adicional */
+.custom-file-label::after {
+    content: 'Buscar';
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 0 0.25rem 0.25rem 0;
+    padding: 0.375rem 0.75rem;
+}
+```
+
+### Incluir el CSS en tus plantillas
+
+Asegúrate de que todas tus plantillas HTML incluyan el archivo CSS. Puedes agregar la siguiente línea en la sección `<head>` de cada plantilla:
+
+```html
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+```
+
+### Ejemplo de inclusión en `templates/index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Simulación de Suma Asegurada</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Simulación de Suma Asegurada</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="file" class="form-label">Subir archivo Excel</label>
+                <input class="form-control" type="file" name="file" id="file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Cargar archivo</button>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+### Resumen
+
+Este archivo CSS complementa Bootstrap con estilos personalizados para formularios, tablas, botones, alertas y otros elementos, mejorando la apariencia general de tu aplicación. Asegúrate de actualizar y probar tus plantillas HTML para verificar que los estilos se apliquen correctamente.
