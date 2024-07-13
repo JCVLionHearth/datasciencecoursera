@@ -1,0 +1,3 @@
+Hola tengo el siguiente error, no veo cambios con mi codigo anterior, pero ahora me sale este error:
+line 29, in simulate
+    df = pd.DataFrame(eval(df_data[0]))
