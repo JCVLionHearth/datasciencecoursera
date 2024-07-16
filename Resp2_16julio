@@ -1,0 +1,258 @@
+Para hacer las gráficas de curva de percentiles y distribución interactivas, puedes utilizar Plotly, que permite crear gráficos interactivos y dinámicos con facilidad. A continuación, te muestro cómo puedes adaptar tu código para lograr esto.
+
+### 1. Modificaciones en `app.py`
+
+Debes importar `plotly.graph_objs as go` y usar Plotly para crear las gráficas. Luego, puedes pasar los gráficos como JSON a las plantillas HTML para renderizarlas usando Plotly.js.
+
+```python
+from flask import Flask, request, render_template, send_file, make_response
+import pandas as pd
+import numpy as np
+import plotly.graph_objs as go
+import plotly.express as px
+import io
+from scipy.stats import triang
+import json
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    df = pd.read_excel(file)
+    return render_template('form.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+    suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+    
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(0, 101))
+    percentiles_df = np.percentile(suma_asegurada_ajustada, np.arange(0, 101, 5))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+    percentil_90 = np.percentile(suma_asegurada_ajustada, 90)
+
+    # Gráfico de la distribución de la suma asegurada ajustada
+    fig_dist = px.histogram(suma_asegurada_ajustada, nbins=50, title='Distribución de la Suma Asegurada Ajustada')
+    fig_dist.add_vline(x=mean_suma_asegurada, line_dash='dash', line_color='red', annotation_text=f'Mean: {mean_suma_asegurada:.2f}')
+    fig_dist.add_vline(x=median_suma_asegurada, line_dash='dash', line_color='green', annotation_text=f'Median: {median_suma_asegurada:.2f}')
+    dist_plot_json = json.dumps(fig_dist, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # Gráfico de percentiles
+    fig_percentiles = go.Figure(data=go.Scatter(x=np.arange(0, 101), y=percentiles))
+    fig_percentiles.update_layout(title='Percentiles de la Suma Asegurada Ajustada', xaxis_title='Percentiles', yaxis_title='Suma Asegurada Ajustada')
+    fig_percentiles.add_hline(y=percentil_90, line_dash='dash', line_color='red')
+    percentiles_plot_json = json.dumps(fig_percentiles, cls=plotly.utils.PlotlyJSONEncoder)
+    
+    percentiles_table = pd.DataFrame({'Percentil': np.arange(0, 101, 5), 'Value': percentiles_df})
+
+    # Convertir tablas a HTML
+    percentiles_table_html = percentiles_table.to_html(index=False)
+    df_table_html = pd.DataFrame(suma_asegurada_ajustada, columns=['Simulaciones']).to_html(index=False)
+
+    return render_template('results.html', mean_suma_asegurada=mean_suma_asegurada,
+                           median_suma_asegurada=median_suma_asegurada, sd_suma_asegurada=sd_suma_asegurada,
+                           dist_plot_json=dist_plot_json, percentiles_plot_json=percentiles_plot_json,
+                           percentiles_table=percentiles_table_html, df_table=df_table_html,
+                           data=df.to_dict(orient='records'), percentiles_table_data=percentiles_table.to_dict(orient='records'),suma_asegurada_ajustada_data=suma_asegurada_ajustada.tolist())
+
+@app.route('/sensitivity', methods=['POST'])
+def sensitivity():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    num_expuestos = int(request.form['num_expuestos'])
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    suma_asegurada_final = suma_asegurada_total * num_expuestos
+
+    factor_ranges = {
+        'factor_riesgo': np.arange(1.0, 1.4, 0.1),
+        'factor_gastos': np.arange(1.0, 1.2, 0.05),
+        'factor_legal': np.arange(1.0, 1.1, 0.02)
+    }
+    
+    results = []
+    
+    for factor_riesgo in factor_ranges['factor_riesgo']:
+        for factor_gastos in factor_ranges['factor_gastos']:
+            for factor_legal in factor_ranges['factor_legal']:
+                suma_asegurada_ajustada = suma_asegurada_final * factor_riesgo * factor_gastos * factor_legal
+                mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+                results.append((factor_riesgo, factor_gastos, factor_legal, mean_suma_asegurada))
+    
+    results_df = pd.DataFrame(results, columns=['FactorRiesgo', 'FactorGastos', 'FactorLegal', 'Promedio'])
+    fig = px.scatter_3d(results_df, x='FactorRiesgo', y='FactorGastos', z='Promedio', color='FactorLegal')
+    graph_json = fig.to_json()
+
+    return render_template('sensitivity.html', graph_json=graph_json, table=results_df.to_html(index=False),sensibilidad_table_data=results_df.to_dict(orient='records'))
+
+@app.route('/download', methods=['POST'])
+def download_file():
+    df_data = request.form.getlist('data')
+    percentiles_table_data = request.form.getlist('percentiles_table_data')
+    suma_asegurada_ajustada_data = request.form.getlist('suma_asegurada_ajustada_data')
+
+    df = pd.DataFrame(eval(df_data[0]))
+    percentiles_table = pd.DataFrame(eval(percentiles_table_data[0]))
+    suma_asegurada_ajustada = pd.DataFrame(eval(suma_asegurada_ajustada_data[0]), columns=['Suma Asegurada Ajustada'])
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Input Data')
+        percentiles_table.to_excel(writer, index=False, sheet_name='Percentiles')
+        suma_asegurada_ajustada.to_excel(writer, index=False, sheet_name='Simulaciones')
+
+    output.seek(0)
+    response = make_response(send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name='simulaciones.xlsx'))
+    return response
+
+@app.route('/results')
+def results():
+    return render_template('results.html')
+
+@app.route('/sensitivity')
+def sensitivity():
+    return render_template('sensitivity.html')
+
+@app.route('/reportes')
+def reportes():
+    return render_template('reportes.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### 2. Modificaciones en `results.html`
+
+En tu plantilla HTML `results.html`, debes incluir Plotly.js y luego cargar los gráficos interactivos.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Simulación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Resultados de Simulación</h1>
+        <p><strong>Media:</strong> {{ mean_suma_asegurada }}</p>
+        <p><strong>Mediana:</strong> {{ median_suma_asegurada }}</p>
+        <p><strong>Desviación Estándar:</strong> {{ sd_suma_asegurada }}</p>
+        
+        <h2>Distribución de la Suma Asegurada Ajustada</h2>
+        <div id="dist_plot"></div>
+        
+        <h2>Percentiles de la Suma Asegurada Ajustada</h2>
+        <div id="percentiles_plot"></div>
+
+        <h2>Tabla de Percentiles</h2>
+        {{ percentiles_table | safe }}
+        
+        <h2>Datos de Simulación</h2>
+        {{ df_table | safe }}
+
+        <form action="/download" method="post">
+            <input type="hidden" name="data" value="{{ data }}">
+            <input type="hidden" name="percentiles_table_data" value="{{ percentiles_table_data }}">
+            <input type="hidden" name="suma_asegurada_ajustada_data" value="{{ suma_asegurada_ajustada_data }}">
+            <button type="submit" class="btn btn-primary">Descargar Resultados</button>
+        </form>
+    </div>
+
+    <script>
+        var dist_plot_json = {{ dist_plot_json | tojson }};
+        Plotly.newPlot('dist_plot', dist_plot_json);
+
+        var percentiles_plot_json = {{ percentiles_plot_json | tojson }};
+        Plotly.newPlot('percentiles_plot', percentiles_plot_json);
+    </script>
+</body>
+</html>
+```
+
+### 3. Modificaciones en `sensitivity.html`
+
+Similar a `results.html`, debes incluir Plotly.js y luego cargar el gráfico interactivo.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Sensibilidad</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Análisis de Sensibilidad</h1>
+        
+        <h2>Gráfico 3D de Sensibilidad</h2>
+        <div id="sensitivity_plot"></div>
+
+        <h2>Tabla de Resultados</h2>
+        {{ table | safe }}
+    </div>
+
+    <script>
+        var graph_json = {{ graph_json | tojson }};
+        Plotly.newPlot('sensitivity_plot', graph_json);
+    </script>
+</body>
+</html>
+```
+
+### Notas Finales
+
+Asegúrate de tener instaladas las bibliotecas necesarias:
+
+```bash
+pip install flask pandas numpy plotly scipy openpyxl
+```
+
+Este enfoque te permitirá tener gráficos interactivos y dinámicos en tu aplicación Flask, mejorando significativamente la experiencia del usuario.
