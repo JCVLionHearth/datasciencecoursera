@@ -1,0 +1,163 @@
+Claro, a continuación te proporciono los códigos completos de los archivos `app.py`, `results.html`, `sensitivity.html` y `reportes.html` integrando las mejoras mencionadas.
+
+### `app.py`
+```python
+from flask import Flask, render_template, request
+import pandas as pd
+import numpy as np
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/results', methods=['POST'])
+def results():
+    num_simulations = int(request.form['num_simulations'])
+    factor_riesgo = float(request.form['factor_riesgo'])
+    expuestos = int(request.form['expuestos'])
+
+    # Realizar simulaciones de Monte Carlo
+    simulations = np.random.normal(loc=expuestos * factor_riesgo, scale=5, size=num_simulations)
+    df = pd.DataFrame(simulations, columns=['Simulations'])
+
+    percentiles = np.percentile(simulations, [5, 50, 95])
+    
+    # Crear gráficas interactivas con Plotly
+    fig = make_subplots(rows=1, cols=2, subplot_titles=('Curva de Percentiles', 'Distribución'))
+
+    # Gráfica de Curva de Percentiles
+    fig.add_trace(go.Scatter(x=[5, 50, 95], y=percentiles, mode='lines+markers', name='Percentiles'), row=1, col=1)
+
+    # Gráfica de Distribución
+    fig.add_trace(go.Histogram(x=simulations, name='Distribución'), row=1, col=2)
+
+    fig.update_layout(title_text='Resultados de las Simulaciones de Monte Carlo')
+
+    # Convertir la figura a JSON
+    graph_json = fig.to_json()
+
+    return render_template('results.html', graph_json=graph_json, percentiles=percentiles)
+
+@app.route('/sensitivity', methods=['POST'])
+def sensitivity():
+    num_simulations = int(request.form['num_simulations'])
+    factor_riesgo = float(request.form['factor_riesgo'])
+    expuestos = int(request.form['expuestos'])
+
+    # Realizar simulaciones de Monte Carlo
+    simulations = np.random.normal(loc=expuestos * factor_riesgo, scale=5, size=num_simulations)
+    df = pd.DataFrame(simulations, columns=['Simulations'])
+
+    percentiles = np.percentile(simulations, [5, 50, 95])
+
+    # Crear gráficas interactivas con Plotly
+    fig = make_subplots(rows=1, cols=2, subplot_titles=('Curva de Percentiles', 'Distribución'))
+
+    # Gráfica de Curva de Percentiles
+    fig.add_trace(go.Scatter(x=[5, 50, 95], y=percentiles, mode='lines+markers', name='Percentiles'), row=1, col=1)
+
+    # Gráfica de Distribución
+    fig.add_trace(go.Histogram(x=simulations, name='Distribución'), row=1, col=2)
+
+    fig.update_layout(title_text='Análisis de Sensibilidad')
+
+    # Convertir la figura a JSON
+    sensitivity_graph_json = fig.to_json()
+
+    return render_template('sensitivity.html', sensitivity_graph_json=sensitivity_graph_json)
+
+@app.route('/reportes')
+def reportes():
+    return render_template('reportes.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### `results.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Resultados de las Simulaciones de Monte Carlo</h1>
+        <div id="graph" class="my-4"></div>
+        <script>
+            var graph_json = {{ graph_json|safe }};
+            Plotly.react('graph', graph_json.data, graph_json.layout);
+        </script>
+        <div class="row">
+            <div class="col">
+                <h2>Percentiles</h2>
+                <p><strong>5%:</strong> {{ percentiles[0] }}</p>
+                <p><strong>50%:</strong> {{ percentiles[1] }}</p>
+                <p><strong>95%:</strong> {{ percentiles[2] }}</p>
+            </div>
+        </div>
+        <a href="/" class="btn btn-primary mt-3">Volver</a>
+    </div>
+</body>
+</html>
+```
+
+### `sensitivity.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensibilidad</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Análisis de Sensibilidad</h1>
+        <div id="sensitivity-graph" class="my-4"></div>
+        <script>
+            var sensitivity_graph_json = {{ sensitivity_graph_json|safe }};
+            Plotly.react('sensitivity-graph', sensitivity_graph_json.data, sensitivity_graph_json.layout);
+        </script>
+        <a href="/" class="btn btn-primary mt-3">Volver</a>
+    </div>
+</body>
+</html>
+```
+
+### `reportes.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Descarga de Reportes</h1>
+        <div class="list-group">
+            <a href="/path/to/report1" class="list-group-item list-group-item-action">Reporte 1</a>
+            <a href="/path/to/report2" class="list-group-item list-group-item-action">Reporte 2</a>
+            <a href="/path/to/report3" class="list-group-item list-group-item-action">Reporte 3</a>
+        </div>
+        <a href="/" class="btn btn-primary mt-3">Volver</a>
+    </div>
+</body>
+</html>
+```
+
+Estos códigos incluyen el uso de Plotly para gráficas interactivas, un diseño mejorado con Bootstrap, y una nueva página para la descarga de reportes. Asegúrate de ajustar las rutas de los reportes según sea necesario en tu aplicación.
