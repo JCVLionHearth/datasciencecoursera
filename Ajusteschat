@@ -1,0 +1,291 @@
+Para agregar un botón que permita enviar el contenido del chat por correo, podemos utilizar un formulario que envíe una solicitud a una ruta específica en el servidor Flask. Esta ruta luego manejará el envío del correo.
+
+### Paso 1: Configurar Flask para enviar correos electrónicos
+
+Primero, necesitamos configurar Flask para enviar correos electrónicos. Podemos usar la extensión `Flask-Mail` para esto.
+
+#### Instalación de Flask-Mail
+
+Instala `Flask-Mail` si aún no lo has hecho:
+
+```sh
+pip install Flask-Mail
+```
+
+#### Configuración de Flask-Mail en `app2.py`
+
+Actualiza `app2.py` para incluir la configuración y el manejo del envío de correos electrónicos:
+
+```python
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask_mail import Mail, Message
+import json
+import datetime
+import re
+import unicodedata
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import utils
+
+app = Flask(__name__)
+
+# Configuración de Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.your-email-provider.com'  # Actualiza esto
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@example.com'  # Actualiza esto
+app.config['MAIL_PASSWORD'] = 'your-email-password'  # Actualiza esto
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@example.com'  # Actualiza esto
+
+mail = Mail(app)
+
+# ... (resto de tu código existente)
+
+@app.route('/send_email', methods=['POST'])
+def send_email():
+    recipient_email = request.form['email']
+    chat_content = format_chat_history_for_email()
+    
+    msg = Message('Historial del Chat', recipients=[recipient_email])
+    msg.body = chat_content
+
+    with app.open_resource("chat_history.pdf") as pdf:
+        msg.attach("chat_history.pdf", "application/pdf", pdf.read())
+
+    try:
+        mail.send(msg)
+        return jsonify({"status": "success", "message": "Correo enviado exitosamente"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+def format_chat_history_for_email():
+    global chat_history
+    chat_content = "Historia del Chat\n\n"
+    chat_content += datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n"
+    
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' ', text)
+
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        chat_content += f"{sender}: {clean_message}\n"
+    
+    return chat_content
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### Paso 2: Actualizar `index2.html` para incluir el formulario de correo electrónico
+
+Añade un formulario y un botón para enviar el contenido del chat por correo:
+
+#### `index2.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style2.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Asistente de Consultas y Dilemas
+        </div>
+        <div id="chatbox">
+            <div id="chatlog"></div>
+            <div class="typing-indicator" id="typingIndicator">
+                <i class="fas fa-robot"></i>
+                <span>Escribiendo...</span>
+            </div>
+        </div>
+        <input id="userInput" type="text" name="msg" placeholder="Escribe tu mensaje aquí..." autofocus>
+        <button id="sendButton" onclick="sendMessage()">Enviar</button>
+        <button id="downloadButton" onclick="downloadChat()">Descargar PDF</button>
+        <button id="emailButton" onclick="showEmailModal()">Enviar por correo</button>
+    </div>
+    <!-- Modal de Configuración -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Personaliza tu experiencia</h2>
+            <label for="userName">Nombre:</label>
+            <input type="text" id="userName">
+            <label for="userAvatar">Selecciona un avatar:</label>
+            <div id="avatarSelection">
+                <i class="fas fa-user-circle avatar-option" onclick="selectAvatar('fa-user-circle')"></i>
+                <i class="fas fa-user-ninja avatar-option" onclick="selectAvatar('fa-user-ninja')"></i>
+                <i class="fas fa-user-astronaut avatar-option" onclick="selectAvatar('fa-user-astronaut')"></i>
+                <i class="fas fa-user-tie avatar-option" onclick="selectAvatar('fa-user-tie')"></i>
+                <i class="fas fa-user-secret avatar-option" onclick="selectAvatar('fa-user-secret')"></i>
+                <i class="fas fa-mars avatar-option" onclick="selectAvatar('fa-mars')"></i>
+                <i class="fas fa-venus avatar-option" onclick="selectAvatar('fa-venus')"></i>
+                <!-- Añade más íconos de Font Awesome aquí -->
+            </div>
+            <button onclick="saveSettings()">Guardar</button>
+        </div>
+    </div>
+    <!-- Modal para enviar correo -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <h2>Enviar historial de chat por correo</h2>
+            <label for="email">Correo electrónico:</label>
+            <input type="email" id="email" name="email">
+            <button onclick="sendEmail()">Enviar</button>
+        </div>
+    </div>
+    <script>
+        var userName = localStorage.getItem('userName') || 'User';
+        var userAvatar = localStorage.getItem('userAvatar') || 'fas fa-user-circle';
+
+        $(document).ready(function () {
+            $('#settingsModal').show();
+            $('#userInput').focus();
+
+            $('#userInput').keypress(function (e) {
+                if (e.which == 13) {
+                    sendMessage();
+                }
+            });
+        });
+
+        function sendMessage(message = null) {
+            let userMessage = message || $('#userInput').val();
+            if (userMessage.trim() == '') {
+                return;
+            }
+
+            $('#chatlog').append(`<div class="chat user"><i class="${userAvatar}"></i><span>${userName}: ${userMessage}</span></div>`);
+            $('#userInput').val('');
+
+            $.get("/get", { msg: userMessage, user: userName }).done(function (data) {
+                $('#typingIndicator').show();
+
+                setTimeout(function () {
+                    $('#typingIndicator').hide();
+                    $('#chatlog').append(`<div class="chat bot"><i class="fas fa-robot"></i><span>${data}</span></div>`);
+                    $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
+                }, 1000);
+            });
+        }
+
+        function downloadChat() {
+            window.location.href = "/download";
+        }
+
+        function saveSettings() {
+            userName = $('#userName').val() || 'User';
+            userAvatar = selectedAvatar || 'fas fa-user-circle';
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userAvatar', userAvatar);
+            $('#settingsModal').hide();
+            sendMessage('hola');
+        }
+
+        function selectAvatar(avatarClass) {
+            selectedAvatar = avatarClass;
+            $('.avatar-option').removeClass('selected');
+            $(`.${avatarClass}`).addClass('selected');
+        }
+
+        function showEmailModal() {
+            $('#emailModal').show();
+        }
+
+        function sendEmail() {
+            let email = $('#email').val();
+            $.post('/send_email', { email: email }).done(function (data) {
+                alert(data.message);
+                $('#emailModal').hide();
+            });
+        }
+    </script>
+</body>
+</html>
+```
+
+#### `style2.css`
+Añade estilos para el nuevo modal de correo electrónico:
+
+```css
+/* ... (tu CSS existente) ... */
+
+#emailButton {
+    border: none;
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 5px;
+    align-self: center;
+}
+
+#emailButton:hover {
+    background-color: #357ab8;
+}
+
+/* Estilos para el modal de correo electrónico */
+#emailModal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#emailModal .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+#emailModal .modal-content h2 {
+    margin: 0 0 20px;
+}
+
+#emailModal .modal-content label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#emailModal .modal-content input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#emailModal .modal-content button {
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#emailModal .modal-content button:hover {
+    background-color: #357ab8;
+}
+```
+
+Con estas actualizaciones, ahora tendrás un botón en tu interfaz que abrirá un modal para ingresar un correo electrónico y enviar el contenido del chat.
