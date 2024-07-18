@@ -1,0 +1,308 @@
+Tengo el siguiente chatbot con intenciones, quisiera hacer ajustes para que la información pueda ser guardada en al aguna base de datos, de las interacciones de los usuarios para así poder hacer análisis de datos futuros:
+
+# 1 index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chatbot</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="chat-container">
+<div class="chat-header">
+           Pregúntale a Ethos
+</div>
+<div id="chatbox">
+<div id="chatlog"></div>
+<div class="typing-indicator" id="typingIndicator">
+<i class="fas fa-robot"></i>
+<span>Escribiendo...</span>
+</div>
+</div>
+<input id="userInput" type="text" name="msg" placeholder="Escribe tu mensaje aquí..." autofocus>
+<button id="sendButton" onclick="sendMessage()">Enviar</button>
+<button id="downloadButton" onclick="downloadChat()">Descargar PDF</button>
+</div>
+
+<!-- Modal de Configuración -->
+<div id="settingsModal" class="modal">
+<div class="modal-content">
+<h2>Personaliza tu experiencia</h2>
+<label for="userName">Nombre:</label>
+<input type="text" id="userName">
+<label for="userAvatar">Selecciona un avatar:</label>
+<div id="avatarSelection">
+<i class="fas fa-user-circle avatar-option" onclick="selectAvatar('fa-user-circle')"></i>
+<i class="fas fa-user-ninja avatar-option" onclick="selectAvatar('fa-user-ninja')"></i>
+<i class="fas fa-user-astronaut avatar-option" onclick="selectAvatar('fa-user-astronaut')"></i>
+<i class="fas fa-user-tie avatar-option" onclick="selectAvatar('fa-user-tie')"></i>
+<i class="fas fa-user-secret avatar-option" onclick="selectAvatar('fa-user-secret')"></i>
+<i class="fas fa-mars avatar-option" onclick="selectAvatar('fa-mars')"></i>
+<i class="fas fa-venus avatar-option" onclick="selectAvatar('fa-venus')"></i>
+<!-- Añade más íconos de Font Awesome aquí -->
+</div>
+<button onclick="saveSettings()" id="saveSettings">Guardar</button>
+</div>
+</div>
+
+    <!-- Modal de Configuración -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Personaliza tu experiencia</h2>
+            <label for="userName">Nombre:</label>
+            <input type="text" id="userName">
+            <label for="userAvatar">Selecciona un avatar:</label>
+            <div id="avatarSelection">
+                <i class="fas fa-user-circle avatar-option" onclick="selectAvatar('fa-user-circle')"></i>
+                <i class="fas fa-user-ninja avatar-option" onclick="selectAvatar('fa-user-ninja')"></i>
+                <i class="fas fa-user-astronaut avatar-option" onclick="selectAvatar('fa-user-astronaut')"></i>
+                <i class="fas fa-user-tie avatar-option" onclick="selectAvatar('fa-user-tie')"></i>
+                <i class="fas fa-user-secret avatar-option" onclick="selectAvatar('fa-user-secret')"></i>
+                <i class="fas fa-mars avatar-option" onclick="selectAvatar('fa-mars')"></i>
+                <i class="fas fa-venus avatar-option" onclick="selectAvatar('fa-venus')"></i>
+                <!-- Añade más íconos de Font Awesome aquí -->
+            </div>
+            <button onclick="saveSettings()">Guardar</button>
+        </div>
+    </div>
+
+<script>
+    var userName = localStorage.getItem('userName') || 'User';
+    var userAvatar = 'fa-user-circle';
+    
+    function appendMessage(role, message) {
+        var messageClass = role === 'User' ? 'user-message' : 'bot-message';
+        var avatarClass = role === 'User' ? userAvatar : 'fa-robot';
+        $("#chatlog").append('<div class="' + messageClass + '"><i class="fas ' + avatarClass + '"></i> <span>' + message + '</span></div>');
+        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+    }
+    function displayTypingIndicator() {
+        $("#typingIndicator").show();
+        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+    }
+    function hideTypingIndicator() {
+        $("#typingIndicator").hide();
+    }
+    function sendMessage(userInput = null) {
+        if (!userInput) {
+            userInput = $("#userInput").val();
+        }
+        appendMessage('User', userInput);
+        $("#userInput").val('');
+        displayTypingIndicator();
+        setTimeout(function() {
+            $.get("/get", { msg: userInput }).done(function(data) {
+                hideTypingIndicator();
+                appendMessage('Bot', data);
+            });
+        }, 1000);  // Delay de 1 segundo para simular que el bot está escribiendo
+    }
+    function downloadChat() {
+        window.location.href = "/download";
+    }
+    function openSettings() {
+        document.getElementById('settingsModal').style.display = 'block';
+    }
+    function closeSettings() {
+        document.getElementById('settingsModal').style.display = 'none';
+    }
+    function selectAvatar(avatarClass) {
+        userAvatar = avatarClass;
+        $('.avatar-option').removeClass('selected');
+        $("." + avatarClass).addClass('selected');
+    }
+    function saveSettings() {
+        userName = $("#userName").val() || 'Usuario';
+        closeSettings();
+        var initialGreeting = `Hola ${userName}, soy <b>Ethos</b> tu asistente Virtual de consultas y dilemas 👨‍💻. ¿En qué puedo ayudarte? <button class='option-button' onclick="sendMessage('Tengo una consulta')">Tengo una Consulta</button> <button class='option-button' onclick="sendMessage('Tengo un dilema')">Tengo un Dilema</button> <button class='option-button' onclick="sendMessage('Con quienes me puedo contactar')">Con quienes me puedo contactar</button>`;
+        appendMessage('Bot', initialGreeting);
+    }
+
+    $(document).ready(function() {
+        // Mostrar modal de configuración al cargar la página
+        openSettings();
+        $("#userInput").keypress(function(event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
+# app.py
+
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+import json
+import datetime
+import re
+import unicodedata
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import utils
+
+app = Flask(__name__)
+
+# Load intents
+with open('intents.json', 'r', encoding='utf-8') as file:
+   intents = json.load(file)
+# Initialize chat history
+chat_history = []
+# Define patterns for greetings and farewells (normalized)
+greeting_patterns = re.compile(r'\b(hola|hi|buenos dias|buenas tardes|buenas noches|saludos)\b', re.IGNORECASE)
+farewell_patterns = re.compile(r'\b(adios|hasta luego|nos vemos|chau|bye|hasta pronto|gracias|muchas gracias)\b', re.IGNORECASE)
+def normalize_text(text):
+   # Normalize text to remove accents and convert to lowercase
+   return ''.join(
+       c for c in unicodedata.normalize('NFD', text)
+       if unicodedata.category(c) != 'Mn'
+   ).lower()
+def get_bot_response(user_input, user_name):
+    global chat_history
+    # Normalize user input
+    normalized_input = normalize_text(user_input)
+    
+    # Check for greeting patterns
+    if greeting_patterns.search(normalized_input):
+        initial_greeting = (f"😊Hola!!, con ¿Cuál opción puedo ayudarte? "
+                            "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consulta</button>"
+                            "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilema</button>"
+                            "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+        chat_history.append(('Bot', initial_greeting))
+        return initial_greeting
+    
+    # Check for farewell patterns
+    if farewell_patterns.search(normalized_input):
+        farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+        chat_history.append(('Bot', farewell_message))
+        return farewell_message
+    
+    # Check for yes/no responses
+    if normalized_input == 'si':
+        return get_initial_greeting(user_name)
+    if normalized_input == 'no':
+        return get_farewell_message()
+    
+    for intent in intents['intents']:
+        if normalized_input == normalize_text(intent['tag']):
+            responses = intent.get('responses', [])
+            if responses:
+                response = responses[0]
+            else:
+                response = ""
+            
+            options = intent.get('options', [])
+            if options:
+                response += "<br><br>👨‍🏫Encontré estas opciones: " + "".join(
+                    f'<button class="option-button" onclick="sendMessage(\'{opt}\')">{opt}</button>' for opt in options)
+            else:
+                response += "<br><br> ¿Puedo ayudarte con algo más? " \
+                            "<br><button class='option-button green' onclick=\"sendMessage('SI')\">SI</button> " \
+                            "<button class='option-button green' onclick=\"sendMessage('NO')\">NO</button>"
+            chat_history.append(('Bot', response))
+            return response
+    
+    return "Lo siento, No te entiendo. 😅"
+def get_initial_greeting(user_name):
+   initial_greeting = (f"¿Con cuál opción puedo ayudarte? 👩‍💻"
+                       "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consultas</button>"
+                       "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilemas</button>"
+                       "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+   chat_history.append(('Bot', initial_greeting))
+   return initial_greeting
+def get_farewell_message():
+   farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+   chat_history.append(('Bot', farewell_message))
+   return farewell_message
+@app.route("/")
+def home():
+   return render_template("index.html")
+@app.route("/get")
+def get_bot_response_endpoint():
+   user_text = request.args.get('msg')
+   user_name = request.args.get('user')
+   chat_history.append(('User', user_text))
+   return jsonify(get_bot_response(user_text, user_name))
+@app.route('/download')
+def download_chat():
+   global chat_history
+   buffer = BytesIO()
+   c = canvas.Canvas(buffer, pagesize=letter)
+   width, height = letter
+   c.setFont("Helvetica", 12)
+   c.drawString(200, height - 40, "Historia del Chat")
+   c.drawString(200, height - 60, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+   y = height - 100
+   max_width = width - 60  # Reduce the width to avoid cutting off the text
+   def draw_text(text_object, text, max_width):
+       lines = utils.simpleSplit(text, text_object._fontname, text_object._fontsize, max_width)
+       for line in lines:
+           text_object.textLine(line)
+   text_object = c.beginText(30, y)
+   text_object.setFont("Helvetica", 12)
+   def clean_html(text):
+       clean = re.compile('<.*?>')
+       return re.sub(clean, ' / ', text)
+   for sender, message in chat_history:
+       clean_message = clean_html(message).replace('\n', ' ')
+       text = f"{sender}: {clean_message}"
+       if text_object.getY() < 40:
+           c.drawText(text_object)
+           c.showPage()
+           text_object = c.beginText(30, height - 40)
+           text_object.setFont("Helvetica", 12)
+       draw_text(text_object, text, max_width)
+       text_object.moveCursor(0, 14)
+   c.drawText(text_object)
+   c.save()
+   buffer.seek(0)
+   return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+
+if __name__ == "__main__":
+   app.run(debug=True)
+
+# intents.json
+
+{
+    "intents": [
+        {
+            "tag": "Tengo una consulta",
+            "options": ["Debida diligencia de contraparte con señal de alerta por jurisdicción"],
+            "responses": ["De acuerdo...intentaré responder tu consulta..."]
+        },
+        {
+            "tag": "Tengo un dilema",
+            "options": ["Conflicto de interés","Conflicto Ético"],
+            "responses": ["Ok...intentaré responder tu dilema..."]
+        },
+        {
+            "tag": "Con quienes me puedo contactar",
+            "responses": ["Puedes contactarte con: <br>La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a> <br>📱Línea telefónica Nacional <b>018009121013</b>. <br>📱Línea Nacional en Bogotá <b>3103158600</b> <br>Extensión <b>43900</b>"]
+        },
+        {
+            "comentario":"// Consulta 1",
+            "tag": "Debida diligencia de contraparte con señal de alerta por jurisdicción",
+            "options": ["Jurisdicción Restringida", "Jurisdicción de Alto Riesgo","Jurisdicción de Riesgo Medio","No conozco el Nivel de Riesgo de la Jurisdicción de la contraparte"],
+            "responses": ["Esta dependerá del nivel de riesgo país de la contraparte con la que se hace la diligencia, de acuerdo con esto, la contraparte opera en una:"]
+        },
+        {
+            "comentario":"// Consulta 1.1",
+            "tag": "Jurisdicción Restringida",
+            "responses": ["Te informo que de acuerdo con lo establecido en el <b>numeral 1.4.2.2 del Manual para el Sistema de Autocontrol y Gestión del Riesgo Integral de Lavado de Activos, Financiamiento del Terrorismo y Financiamiento de la Proliferación de Armas de Destrucción Masiva -SCI-M-002-</b>, <i>No se establecerán relaciones jurídicas o comerciales con entidades que se encuentren ubicadas en jurisdicciones clasificadas como “Restringidas” de acuerdo con el “Reporte periódico de las jurisdicciones restringidas o de mayor riesgo para LAFT/FPADM” </i> elaborado por la Vicepresidencia Corporativa de Cumplimiento. <br><br> Por tanto, en caso de que la contraparte sobre la cual tenga duda opere en una jurisdicción calificada como <b>restringida</b> de acuerdo con el último reporte de riesgo emitido por la Dirección Corporativo de Cumplimiento, te informo que <b>no</b> se podrá entablar relacionamiento comercial, ni adelantar ningún tipo de gestión con dicha contraparte."]
+        },
+        {
+            "tag": "Jurisdicción de Alto Riesgo",
+            "options": ["La contraparte presenta otra señal de alerta de alerta distinta a operar en una jurisdicción de Alto Riesgo", "La contraparte no presenta señales de alerta diferentes a operar en una jurisdicción de Alto Riesgo"],
+            "responses": ["Acerca de tu consulta..."]
+        }
+    ]
+ }
