@@ -1,0 +1,31 @@
+from flask import Flask, request, jsonify, send_file
+import pandas as pd
+
+app = Flask(__name__)
+
+# Ruta para manejar las intenciones del chatbot
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    data = request.json
+    user_message = data.get('message')
+    intent = get_intent(user_message)
+    
+    if intent == 'get_excel_list':
+        return send_file('path/to/your/listado.xlsx', as_attachment=True)
+    else:
+        response = handle_other_intents(intent)
+        return jsonify(response)
+
+def get_intent(message):
+    # Aquí iría tu lógica para determinar la intención del usuario basada en el mensaje
+    if "no conozco el listado" in message:
+        return 'get_excel_list'
+    else:
+        return 'other_intent'
+
+def handle_other_intents(intent):
+    # Manejar otras intenciones
+    return {"response": "Esta es una respuesta para otra intención."}
+
+if __name__ == '__main__':
+    app.run(debug=True)
