@@ -355,3 +355,153 @@ def get_bot_response(user_text, user_name):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+Para guardar las interacciones de los usuarios en una base de datos y realizar análisis de datos futuros, puedes seguir estos pasos:
+
+### 1. Configuración de la Base de Datos
+
+Primero, elige una base de datos. Puedes usar SQLite para algo simple o PostgreSQL/MySQL para algo más robusto.
+
+Aquí usaremos SQLite para simplicidad:
+
+```python
+# Crear una nueva base de datos e inicializar la tabla de interacciones
+import sqlite3
+
+conn = sqlite3.connect('chatbot.db')
+cursor = conn.cursor()
+
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS interactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user TEXT,
+    message TEXT,
+    response TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+''')
+
+conn.commit()
+conn.close()
+```
+
+### 2. Modificar el Código del Chatbot
+
+Integra el almacenamiento de las interacciones en la base de datos en tu código Flask:
+
+```python
+# app.py
+
+import sqlite3
+
+# ... Resto de tu código
+
+def log_interaction(user, message, response):
+    conn = sqlite3.connect('chatbot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO interactions (user, message, response)
+        VALUES (?, ?, ?)
+    ''', (user, message, response))
+    conn.commit()
+    conn.close()
+
+@app.route("/get")
+def get_bot_response_endpoint():
+    user_text = request.args.get('msg')
+    user_name = request.args.get('user', 'Anonimo')  # Default to 'Anonimo' if no user provided
+    chat_history.append(('User', user_text))
+    response = get_bot_response(user_text, user_name)
+    chat_history.append(('Bot', response))
+    log_interaction(user_name, user_text, response)
+    return jsonify(response)
+
+# ... Resto de tu código
+```
+
+### 3. Crear Función de Consulta
+
+Añade una función para consultar la base de datos y analizar los datos:
+
+```python
+# app.py
+
+@app.route("/analytics")
+def show_analytics():
+    conn = sqlite3.connect('chatbot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT user, message, response, timestamp
+        FROM interactions
+    ''')
+    interactions = cursor.fetchall()
+    conn.close()
+
+    # Aquí puedes procesar los datos como desees, por ejemplo, agrupar por usuario, contar interacciones, etc.
+    # Para simplificar, solo devolveremos los datos en formato HTML
+
+    return render_template("analytics.html", interactions=interactions)
+
+# ... Resto de tu código
+```
+
+### 4. Crear una Página de Análisis
+
+Crea una página HTML para mostrar los datos analíticos:
+
+```html
+<!-- analytics.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Interacciones del Chatbot</h1>
+    <table border="1">
+        <tr>
+            <th>Usuario</th>
+            <th>Mensaje</th>
+            <th>Respuesta</th>
+            <th>Timestamp</th>
+        </tr>
+        {% for interaction in interactions %}
+        <tr>
+            <td>{{ interaction[0] }}</td>
+            <td>{{ interaction[1] }}</td>
+            <td>{{ interaction[2] }}</td>
+            <td>{{ interaction[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+```
+
+### 5. Iniciar la Aplicación
+
+Corre tu aplicación Flask y asegúrate de que las interacciones se están guardando en la base de datos y se pueden consultar en la página de análisis.
+
+```bash
+flask run
+```
+
+### Análisis de Datos
+
+Con los datos guardados, puedes usar librerías como pandas y matplotlib para realizar análisis y visualizaciones adicionales. Por ejemplo, puedes exportar los datos a un CSV y analizarlos en Jupyter Notebook:
+
+```python
+# Exportar datos a CSV
+import pandas as pd
+import sqlite3
+
+conn = sqlite3.connect('chatbot.db')
+df = pd.read_sql_query("SELECT * FROM interactions", conn)
+df.to_csv('interactions.csv', index=False)
+conn.close()
+```
+
+Esto te permitirá realizar análisis más complejos y crear visualizaciones útiles para entender mejor cómo los usuarios interactúan con tu chatbot.
