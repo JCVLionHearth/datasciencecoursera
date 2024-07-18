@@ -1,0 +1,319 @@
+Para guardar las interacciones del usuario en una base de datos, puedes utilizar SQLAlchemy, que es una herramienta poderosa y flexible para trabajar con bases de datos en aplicaciones Flask. Te mostraré cómo hacerlo paso a paso.
+
+### Paso 1: Configurar SQLAlchemy
+
+1. **Instala SQLAlchemy**:
+   ```sh
+   pip install sqlalchemy
+   pip install flask_sqlalchemy
+   ```
+
+2. **Configura tu aplicación Flask para usar SQLAlchemy**:
+   En tu archivo `app.py`, agrega la configuración para SQLAlchemy.
+
+### Paso 2: Configurar la base de datos
+
+1. **Configura la conexión a la base de datos en `app.py`**:
+   ```python
+   from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+   from flask_sqlalchemy import SQLAlchemy
+   import json
+   import datetime
+   import re
+   import unicodedata
+   from io import BytesIO
+   from reportlab.lib.pagesizes import letter
+   from reportlab.pdfgen import canvas
+   from reportlab.lib import utils
+
+   app = Flask(__name__)
+   app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///interactions.db'  # Puedes cambiar sqlite por otra base de datos si prefieres
+   app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+   db = SQLAlchemy(app)
+   ```
+
+2. **Define el modelo para almacenar las interacciones del usuario**:
+   ```python
+   class Interaction(db.Model):
+       id = db.Column(db.Integer, primary_key=True)
+       username = db.Column(db.String(100), nullable=False)
+       user_input = db.Column(db.String(500), nullable=False)
+       response = db.Column(db.String(500), nullable=False)
+       timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+       def __repr__(self):
+           return f'<Interaction {self.username} - {self.user_input}>'
+
+   # Crear la base de datos y las tablas
+   with app.app_context():
+       db.create_all()
+   ```
+
+3. **Actualiza la función `get_bot_response` para guardar las interacciones en la base de datos**:
+   ```python
+   def get_bot_response(user_input, user_name):
+       global chat_history
+       # Normalize user input
+       normalized_input = normalize_text(user_input)
+       
+       # Check for greeting patterns
+       if greeting_patterns.search(normalized_input):
+           initial_greeting = (f"😊Hola!!, con ¿Cuál opción puedo ayudarte? "
+                               "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consulta</button>"
+                               "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilema</button>"
+                               "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+           chat_history.append(('Bot', initial_greeting))
+           save_interaction(user_name, user_input, initial_greeting)  # Guardar en la base de datos
+           return initial_greeting
+       
+       # Check for farewell patterns
+       if farewell_patterns.search(normalized_input):
+           farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+           chat_history.append(('Bot', farewell_message))
+           save_interaction(user_name, user_input, farewell_message)  # Guardar en la base de datos
+           return farewell_message
+       
+       # Check for specific response that requires sending an Excel file
+       if normalized_input == normalize_text('No conozco el nivel de riesgo de la jurisdicción de la contraparte'):
+           response = "Aquí está el listado con el nivel de riesgo de la jurisdicción de la contraparte: " \
+                      "<a href='/download_excel' target='_blank'>Descargar listado</a>"
+           chat_history.append(('Bot', response))
+           save_interaction(user_name, user_input, response)  # Guardar en la base de datos
+           return response
+       
+       # Check for yes/no responses
+       if normalized_input == 'si':
+           response = get_initial_greeting(user_name)
+           save_interaction(user_name, user_input, response)  # Guardar en la base de datos
+           return response
+       if normalized_input == 'no':
+           response = get_farewell_message()
+           save_interaction(user_name, user_input, response)  # Guardar en la base de datos
+           return response
+       
+       for intent in intents['intents']:
+           if normalized_input == normalize_text(intent['tag']):
+               responses = intent.get('responses', [])
+               if responses:
+                   response = responses[0]
+               else:
+                   response = ""
+               
+               options = intent.get('options', [])
+               if options:
+                   response += "<br><br>👨‍🏫Encontré estas opciones: " + "".join(
+                       f'<button class="option-button" onclick="sendMessage(\'{opt}\')">{opt}</button>' for opt in options)
+               else:
+                   response += "<br><br> ¿Puedo ayudarte con algo más? " \
+                               "<br><button class='option-button green' onclick=\"sendMessage('SI')\">SI</button> " \
+                               "<button class='option-button green' onclick=\"sendMessage('NO')\">NO</button>"
+               chat_history.append(('Bot', response))
+               save_interaction(user_name, user_input, response)  # Guardar en la base de datos
+               return response
+       
+       response = "Lo siento, No te entiendo. 😅"
+       chat_history.append(('Bot', response))
+       save_interaction(user_name, user_input, response)  # Guardar en la base de datos
+       return response
+   ```
+
+4. **Define la función `save_interaction` para guardar las interacciones en la base de datos**:
+   ```python
+   def save_interaction(username, user_input, response):
+       interaction = Interaction(username=username, user_input=user_input, response=response)
+       db.session.add(interaction)
+       db.session.commit()
+   ```
+
+### Código completo de `app.py` actualizado:
+
+```python
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+import json
+import datetime
+import re
+import unicodedata
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import utils
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///interactions.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Define the Interaction model
+class Interaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    user_input = db.Column(db.String(500), nullable=False)
+    response = db.Column(db.String(500), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Interaction {self.username} - {self.user_input}>'
+
+# Create the database and tables
+with app.app_context():
+    db.create_all()
+
+# Load intents
+with open('intents.json', 'r', encoding='utf-8') as file:
+    intents = json.load(file)
+
+# Initialize chat history
+chat_history = []
+
+# Define patterns for greetings and farewells (normalized)
+greeting_patterns = re.compile(r'\b(hola|hi|buenos dias|buenas tardes|buenas noches|saludos)\b', re.IGNORECASE)
+farewell_patterns = re.compile(r'\b(adios|hasta luego|nos vemos|chau|bye|hasta pronto|gracias|muchas gracias)\b', re.IGNORECASE)
+
+def normalize_text(text):
+    # Normalize text to remove accents and convert to lowercase
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', text)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
+
+def save_interaction(username, user_input, response):
+    interaction = Interaction(username=username, user_input=user_input, response=response)
+    db.session.add(interaction)
+    db.session.commit()
+
+def get_bot_response(user_input, user_name):
+    global chat_history
+    # Normalize user input
+    normalized_input = normalize_text(user_input)
+    
+    # Check for greeting patterns
+    if greeting_patterns.search(normalized_input):
+        initial_greeting = (f"😊Hola!!, con ¿Cuál opción puedo ayudarte? "
+                            "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consulta</button>"
+                            "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilema</button>"
+                            "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+        chat_history.append(('Bot', initial_greeting))
+        save_interaction(user_name, user_input, initial_greeting)
+        return initial_greeting
+    
+    # Check for farewell patterns
+    if farewell_patterns.search(normalized_input):
+        farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+        chat_history.append(('Bot', farewell_message))
+        save_interaction(user_name, user_input, farewell_message)
+        return farewell_message
+    
+    # Check for specific response that requires sending an Excel file
+    if normalized_input == normalize_text('No conozco el nivel de riesgo de la jurisdicción de la contraparte'):
+        response = "Aquí está el listado con el nivel de riesgo de la jurisdicción de la contraparte: " \
+                   "<a href='/download_excel' target='_blank'>Descargar listado</a>"
+        chat_history.append(('Bot', response))
+        save_interaction(user_name, user_input, response)
+        return response
+    
+    # Check for yes/no responses
+    if normalized_input == 'si':
+        response = get_initial_greeting(user_name)
+        save_interaction(user_name, user_input, response)
+        return response
+    if normalized_input == 'no':
+        response = get_farewell_message()
+        save_interaction(user_name, user_input, response)
+        return response
+    
+    for intent in intents['intents']:
+        if normalized_input == normalize_text(intent['tag']):
+            responses = intent.get('responses', [])
+            if responses:
+                response = responses[0]
+            else:
+                response = ""
+            
+            options = intent.get('options', [])
+            if options:
+                response += "<br><br>👨‍🏫Encontré estas opciones: " + "".join(
+                    f'<button class="option-button" onclick="sendMessage(\'{opt}\')">{opt}</button>' for opt in options)
+            else:
+                response += "<br><br> ¿Puedo ayudarte con algo más? " \
+                            "<br><button class='option-button green' onclick=\"sendMessage('SI')\">SI</button> " \
+                            "<button class='option-button green' onclick=\"sendMessage('NO')\">NO</button>"
+            chat_history.append(('Bot', response))
+            save_interaction(user_name, user_input, response)
+            return response
+    
+    response = "Lo siento, No te entiendo. 😅"
+    chat_history.append(('Bot', response))
+    save_interaction(user_name, user_input, response)
+    return response
+
+def get_initial_greeting(user_name):
+    initial_greeting = (f"¿Con cuál opción puedo ayudarte? 👩‍💻"
+                        "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consultas</button>"
+                        "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilemas</button>"
+                        "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+    chat_history.append(('Bot', initial_greeting))
+    return initial_greeting
+
+def get_farewell_message():
+    farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+    chat_history.append(('Bot', farewell_message))
+    return farewell_message
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/get")
+def get_bot_response_endpoint():
+    user_text = request.args.get('msg')
+    user_name = request.args.get('user')
+    chat_history.append(('User', user_text))
+    return jsonify(get_bot_response(user_text, user_name))
+
+@app.route('/download_excel')
+def download_excel():
+    return send_file('nivel_riesgo_jurisdiccion.xlsx', as_attachment=True, download_name='nivel_riesgo_jurisdiccion.xlsx')
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    c.setFont("Helvetica", 12)
+    c.drawString(200, height - 40, "Historia del Chat")
+    c.drawString(200, height - 60, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    y = height - 100
+    max_width = width - 60  # Reduce the width to avoid cutting off the text
+    def draw_text(text_object, text, max_width):
+        lines = utils.simpleSplit(text, text_object._fontname, text_object._fontsize, max_width)
+        for line in lines:
+            text_object.textLine(line)
+    text_object = c.beginText(30, y)
+    text_object.setFont("Helvetica", 12)
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"{sender}: {clean_message}"
+        if text_object.getY() < 40:
+            c.drawText(text_object)
+            c.showPage()
+            text_object = c.beginText(30, height - 40)
+            text_object.setFont("Helvetica", 12)
+        draw_text(text_object, text, max_width)
+        text_object.moveCursor(0, 14)
+    c.drawText(text_object)
+    c.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+Con esta configuración, las interacciones del usuario se guardarán en la base de datos `interactions.db`, lo que te permitirá realizar análisis y estadísticas más adelante.
