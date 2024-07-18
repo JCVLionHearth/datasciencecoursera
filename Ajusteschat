@@ -289,3 +289,69 @@ Añade estilos para el nuevo modal de correo electrónico:
 ```
 
 Con estas actualizaciones, ahora tendrás un botón en tu interfaz que abrirá un modal para ingresar un correo electrónico y enviar el contenido del chat.
+
+# app.py
+
+import sqlite3
+from flask import Flask, request, jsonify, render_template
+
+app = Flask(__name__)
+
+# Crear la base de datos e inicializar la tabla de interacciones
+def init_db():
+    conn = sqlite3.connect('chatbot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS interactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user TEXT,
+        message TEXT,
+        response TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Llamar a la función para inicializar la base de datos
+init_db()
+
+# Función para guardar las interacciones en la base de datos
+def log_interaction(user, message, response):
+    conn = sqlite3.connect('chatbot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO interactions (user, message, response)
+        VALUES (?, ?, ?)
+    ''', (user, message, response))
+    conn.commit()
+    conn.close()
+
+@app.route("/get")
+def get_bot_response_endpoint():
+    user_text = request.args.get('msg')
+    user_name = request.args.get('user', 'Anonimo')  # Default to 'Anonimo' if no user provided
+    response = get_bot_response(user_text, user_name)
+    log_interaction(user_name, user_text, response)
+    return jsonify(response)
+
+@app.route("/analytics")
+def show_analytics():
+    conn = sqlite3.connect('chatbot.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT user, message, response, timestamp
+        FROM interactions
+    ''')
+    interactions = cursor.fetchall()
+    conn.close()
+
+    return render_template("analytics.html", interactions=interactions)
+
+def get_bot_response(user_text, user_name):
+    # Aquí va tu lógica para generar la respuesta del bot
+    response = f"Respuesta a {user_text} para {user_name}"
+    return response
+
+if __name__ == "__main__":
+    app.run(debug=True)
