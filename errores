@@ -1,3 +1,8 @@
 Hola tengo el siguiente error, no veo cambios con mi codigo anterior, pero ahora me sale este error:
 line 29, in simulate
     df = pd.DataFrame(eval(df_data[0]))
+
+sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: interaction.username
+[SQL: INSERT INTO interaction (username, user_input, response, timestamp) VALUES (?, ?, ?, ?)]
+[parameters: (None, 'Tengo una consulta', 'De acuerdo...intentaré responder tu consulta...<br><br>👨\u200d🏫Encontré estas opciones: <button class="option-button" onclick="sendMessage(\'Debida diligencia de contraparte con señal de alerta por jurisdicción\')">Debida diligencia de contraparte con señal de alerta por jurisdicción</button>', '2024-07-18 21:36:57.504467')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
