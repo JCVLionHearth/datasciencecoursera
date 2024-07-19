@@ -1,0 +1,156 @@
+Claro, vamos a proceder paso a paso para implementar todas las funcionalidades que necesitas.
+
+### 1. Crear Enlace "Administrador" en `index.html`
+
+Primero, agrega un enlace en tu archivo `index.html` que dirija al usuario a la página de administración:
+
+```html
+<!-- Agrega esto en tu archivo index.html -->
+<a href="/admin" id="adminLink">Administrador</a>
+```
+
+### 2. Crear la Página de Inicio de Sesión para Administradores
+
+Añadiremos una nueva ruta en `app.py` que mostrará un formulario para el inicio de sesión del administrador. También necesitamos agregar una ruta para manejar el inicio de sesión y la verificación de las credenciales.
+
+```python
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash
+
+# Agregar configuraciones de login_manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Crear una clase User que extiende UserMixin para manejar el login
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Nombre de usuario o contraseña incorrectos')
+    return render_template('admin_login.html')
+
+@app.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    return render_template('admin_dashboard.html')
+```
+
+### 3. Crear los Tres Usuarios Administradores
+
+Vamos a agregar tres usuarios administradores a la base de datos. Puedes hacerlo desde un script separado o desde el shell de Python:
+
+```python
+from werkzeug.security import generate_password_hash
+from app import db, User
+
+# Crear usuarios administradores
+admin1 = User(username='admin1', password=generate_password_hash('password1'), is_admin=True)
+admin2 = User(username='admin2', password=generate_password_hash('password2'), is_admin=True)
+admin3 = User(username='admin3', password=generate_password_hash('password3'), is_admin=True)
+
+# Añadir usuarios a la base de datos
+db.session.add(admin1)
+db.session.add(admin2)
+db.session.add(admin3)
+db.session.commit()
+```
+
+### 4. Funcionalidades en el Panel de Administrador
+
+Vamos a permitir la descarga y el borrado de la tabla de interacciones. Primero, crea una plantilla `admin_dashboard.html` con las opciones necesarias:
+
+```html
+<!-- admin_dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel de Administrador</title>
+</head>
+<body>
+    <h1>Panel de Administrador</h1>
+    <form action="/admin/download_interactions" method="post">
+        <button type="submit">Descargar Interacciones</button>
+    </form>
+    <form action="/admin/clear_interactions" method="post">
+        <input type="password" name="admin_password" placeholder="Contraseña Administrador" required>
+        <button type="submit">Limpiar Interacciones</button>
+    </form>
+</body>
+</html>
+```
+
+A continuación, agrega las rutas correspondientes en `app.py`:
+
+```python
+@app.route('/admin/download_interactions', methods=['POST'])
+@login_required
+def download_interactions():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    # Generar el archivo CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Username', 'User Input', 'Timestamp'])
+    interactions = Interaction.query.all()
+    for interaction in interactions:
+        writer.writerow([interaction.id, interaction.username, interaction.user_input, interaction.timestamp])
+    output.seek(0)
+    return send_file(output, as_attachment=True, download_name='interactions.csv')
+
+@app.route('/admin/clear_interactions', methods=['POST'])
+@login_required
+def clear_interactions():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    admin_password = request.form['admin_password']
+    if check_password_hash(current_user.password, admin_password):
+        Interaction.query.delete()
+        db.session.commit()
+        flash('Interacciones limpiadas exitosamente')
+    else:
+        flash('Contraseña incorrecta')
+    return redirect(url_for('admin_dashboard'))
+```
+
+### 5. Actualizar `index.html` con los Cambios
+
+Modifica `index.html` para incluir un enlace al panel de administración:
+
+```html
+<a href="/admin" id="adminLink">Administrador</a>
+```
+
+### 6. Relación entre `username` de `Interaction` y `User`
+
+Como mencionaste, las tablas `Interaction` y `User` no se relacionarán directamente, así que no necesitas hacer cambios adicionales en los modelos para reflejar esto.
+
+### Resumen
+
+1. **Agregar el enlace "Administrador"**: Añadido en `index.html`.
+2. **Crear formulario de inicio de sesión**: Añadido en `admin_login.html`.
+3. **Crear usuarios administradores**: Script para insertar usuarios.
+4. **Panel de administración**: Página con opciones de descarga y limpieza.
+5. **Rutas adicionales**: Para manejar descargas y limpieza de interacciones.
+
+Con estos cambios, tu aplicación Flask debería tener una funcionalidad administrativa básica. Si necesitas más detalles o ajustes, no dudes en pedir ayuda.
