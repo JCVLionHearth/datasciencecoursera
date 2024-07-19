@@ -1,0 +1,294 @@
+Para lograr esto, seguiremos estos pasos:
+
+1. **Implementar la autenticación con Flask-Login**.
+2. **Crear rutas protegidas para el administrador**.
+3. **Agregar un enlace en la interfaz gráfica del chatbot para el acceso del administrador**.
+4. **Implementar la funcionalidad de descargar el CSV y limpiar la base de datos para el administrador**.
+
+### Paso 1: Implementar la autenticación con Flask-Login
+
+Primero, necesitamos instalar las librerías necesarias:
+
+```bash
+pip install flask-login
+```
+
+Luego, crea el modelo de usuario y configura Flask-Login.
+
+#### Actualiza tu modelo de usuario:
+
+```python
+from flask_login import UserMixin
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+```
+
+#### Configura Flask-Login en `app.py`:
+
+```python
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Inicializar Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Crear una ruta para crear un usuario administrador
+@app.route('/create_admin', methods=['GET', 'POST'])
+def create_admin():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_admin = User(username=username, password=hashed_password, is_admin=True)
+        db.session.add(new_admin)
+        db.session.commit()
+        return 'Admin created'
+    return render_template('create_admin.html')
+
+# Crear una ruta para el login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('admin_dashboard'))
+        return 'Invalid credentials'
+    return render_template('login.html')
+
+# Crear una ruta para el logout
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+```
+
+### Paso 2: Crear rutas protegidas para el administrador
+
+#### Ruta para el dashboard del administrador:
+
+```python
+@app.route('/admin_dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    return render_template('admin_dashboard.html')
+```
+
+#### Rutas para descargar CSV y limpiar la base de datos:
+
+```python
+@app.route('/download_csv')
+@login_required
+def download_csv():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    interactions = Interaction.query.all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['ID', 'Username', 'User Input', 'Response', 'Timestamp'])
+    for interaction in interactions:
+        writer.writerow([interaction.id, interaction.username, interaction.user_input, interaction.response, interaction.timestamp])
+
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode('utf-8')), 
+                     mimetype='text/csv', 
+                     as_attachment=True, 
+                     download_name='interactions.csv')
+
+@app.route('/clear_db')
+@login_required
+def clear_db():
+    if not current_user.is_admin:
+        return redirect(url_for('home'))
+    
+    try:
+        num_rows_deleted = Interaction.query.delete()
+        db.session.commit()
+        return f'Base de datos limpiada. {num_rows_deleted} filas eliminadas.'
+    except Exception as e:
+        db.session.rollback()
+        return f'Error al limpiar la base de datos: {e}'
+```
+
+### Paso 3: Agregar un enlace en la interfaz gráfica del chatbot para el acceso del administrador
+
+#### Actualiza tu archivo HTML principal para incluir el enlace al login del administrador:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chat-container">
+        <!-- Tu código de chatbot existente -->
+    </div>
+    <a href="{{ url_for('login') }}">Administrador</a>
+</body>
+</html>
+```
+
+### Paso 4: Implementar la funcionalidad de descargar el CSV y limpiar la base de datos para el administrador
+
+#### Crea una plantilla HTML para el dashboard del administrador:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <a href="{{ url_for('download_csv') }}">Descargar CSV</a>
+    <a href="{{ url_for('clear_db') }}">Limpiar Base de Datos</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>
+```
+
+#### Crea una plantilla HTML para la página de login:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username">
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+        <br>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+```
+
+#### Crea una plantilla HTML para la creación del administrador:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Admin</title>
+</head>
+<body>
+    <h1>Create Admin</h1>
+    <form method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username">
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+        <br>
+        <button type="submit">Create Admin</button>
+    </form>
+</body>
+</html>
+```
+
+Con estos cambios, tendrás un enlace en tu chatbot que permitirá a los administradores autenticarse. Una vez autenticados, tendrán acceso a un dashboard donde pueden descargar el CSV de las interacciones y limpiar la base de datos. Solo los usuarios con privilegios de administrador podrán acceder a estas funcionalidades.
+
+Tienes razón, la creación de un administrador mediante una pantalla HTML abierta a todos implica un riesgo de seguridad, ya que cualquiera podría acceder a ella y crear un nuevo administrador. 
+
+Para mitigar este riesgo, aquí hay algunas estrategias:
+
+1. **Eliminar la ruta de creación de administrador después de crear el primer administrador**:
+   - Crea el primer administrador manualmente y luego elimina la ruta de creación de administrador.
+
+2. **Proteger la ruta de creación de administrador con una contraseña maestra**:
+   - Solo aquellos con la contraseña maestra podrán acceder a la creación de un nuevo administrador.
+
+3. **Utilizar una invitación basada en tokens**:
+   - Genera tokens de invitación que permitan la creación de un administrador solo si se posee el token correcto.
+
+Aquí te muestro cómo podrías implementar la segunda opción, la protección con una contraseña maestra:
+
+### Implementación de protección con contraseña maestra
+
+#### Modificación en `app.py`:
+
+1. **Configura una contraseña maestra en el archivo de configuración de la aplicación o en el código (para propósitos de prueba)**:
+
+   ```python
+   MASTER_PASSWORD = "super_secret_master_password"
+   ```
+
+2. **Protege la ruta de creación de administrador**:
+
+   ```python
+   @app.route('/create_admin', methods=['GET', 'POST'])
+   def create_admin():
+       if request.method == 'POST':
+           master_password = request.form['master_password']
+           if master_password != MASTER_PASSWORD:
+               return 'Contraseña maestra incorrecta'
+
+           username = request.form['username']
+           password = request.form['password']
+           hashed_password = generate_password_hash(password, method='sha256')
+           new_admin = User(username=username, password=hashed_password, is_admin=True)
+           db.session.add(new_admin)
+           db.session.commit()
+           return 'Admin creado'
+       return render_template('create_admin.html')
+   ```
+
+3. **Actualiza la plantilla HTML para solicitar la contraseña maestra**:
+
+   ```html
+   <!DOCTYPE html>
+   <html>
+   <head>
+       <title>Crear Admin</title>
+   </head>
+   <body>
+       <h1>Crear Admin</h1>
+       <form method="post">
+           <label for="master_password">Contraseña Maestra:</label>
+           <input type="password" id="master_password" name="master_password" required>
+           <br>
+           <label for="username">Nombre de usuario:</label>
+           <input type="text" id="username" name="username" required>
+           <br>
+           <label for="password">Contraseña:</label>
+           <input type="password" id="password" name="password" required>
+           <br>
+           <button type="submit">Crear Admin</button>
+       </form>
+   </body>
+   </html>
+   ```
+
+### Proceso completo para la creación del primer administrador
+
+1. **Despliega la aplicación con la ruta de creación de administrador protegida**.
+2. **Accede a la ruta `/create_admin` y utiliza la contraseña maestra para crear el primer administrador**.
+3. **Elimina o comenta la ruta de creación de administrador en `app.py`** después de haber creado el primer administrador.
+
+Este enfoque asegura que solo alguien con la contraseña maestra pueda crear un administrador, añadiendo una capa adicional de seguridad. Una vez que el primer administrador está creado, puedes gestionar futuros administradores desde la base de datos directamente o mediante una interfaz de administración segura.
