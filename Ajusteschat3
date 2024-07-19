@@ -1,0 +1,137 @@
+Entiendo, agregar botones ocultos para descargar y limpiar la base de datos puede ser una solución práctica para mantener y administrar la base de datos sin necesidad de un acceso administrativo complejo. A continuación, te muestro cómo puedes implementar esto en tu aplicación Flask.
+
+### Paso 1: Crear Rutas para Descargar y Limpiar la Base de Datos
+
+Agregaremos dos nuevas rutas en tu archivo `app.py` para manejar la descarga de la base de datos en formato CSV y para limpiar la base de datos.
+
+#### Descargar la Base de Datos en CSV
+
+```python
+@app.route('/download_csv')
+def download_csv():
+    interactions = Interaction.query.all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['ID', 'Username', 'User Input', 'Response', 'Timestamp'])
+    for interaction in interactions:
+        writer.writerow([interaction.id, interaction.username, interaction.user_input, interaction.response, interaction.timestamp])
+
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode('utf-8')), 
+                     mimetype='text/csv', 
+                     as_attachment=True, 
+                     download_name='interactions.csv')
+```
+
+#### Limpiar la Base de Datos
+
+```python
+@app.route('/clear_db')
+def clear_db():
+    try:
+        num_rows_deleted = Interaction.query.delete()
+        db.session.commit()
+        return f'Base de datos limpiada. {num_rows_deleted} filas eliminadas.'
+    except Exception as e:
+        db.session.rollback()
+        return f'Error al limpiar la base de datos: {e}'
+```
+
+### Paso 2: Agregar Botones Ocultos en la Página HTML
+
+Vamos a añadir botones en tu página HTML que estarán ocultos y solo serán visibles para administradores o cuando sea necesario.
+
+#### Botones en `index.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .admin-buttons {
+            display: none;
+        }
+    </style>
+    <script>
+        function showAdminButtons() {
+            document.querySelector('.admin-buttons').style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Chatbot</h1>
+        <div id="chatbox">
+            <!-- Chat content goes here -->
+        </div>
+        <button class="btn btn-primary admin-buttons" onclick="location.href='/download_csv'">Descargar BD en CSV</button>
+        <button class="btn btn-danger admin-buttons" onclick="location.href='/clear_db'">Limpiar BD</button>
+        <button class="btn btn-info" onclick="showAdminButtons()">Mostrar Botones de Admin</button>
+    </div>
+</body>
+</html>
+```
+
+### Paso 3: Asegurar las Rutas
+
+Para evitar que cualquier usuario acceda a estas funciones administrativas, deberías agregar algún tipo de autenticación. Aquí hay un ejemplo simple usando un parámetro secreto en la URL.
+
+#### Asegurar las Rutas
+
+```python
+@app.route('/download_csv')
+def download_csv():
+    secret_key = request.args.get('key')
+    if secret_key != 'your_secret_key':
+        return 'Unauthorized', 401
+
+    interactions = Interaction.query.all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['ID', 'Username', 'User Input', 'Response', 'Timestamp'])
+    for interaction in interactions:
+        writer.writerow([interaction.id, interaction.username, interaction.user_input, interaction.response, interaction.timestamp])
+
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode('utf-8')), 
+                     mimetype='text/csv', 
+                     as_attachment=True, 
+                     download_name='interactions.csv')
+
+@app.route('/clear_db')
+def clear_db():
+    secret_key = request.args.get('key')
+    if secret_key != 'your_secret_key':
+        return 'Unauthorized', 401
+
+    try:
+        num_rows_deleted = Interaction.query.delete()
+        db.session.commit()
+        return f'Base de datos limpiada. {num_rows_deleted} filas eliminadas.'
+    except Exception as e:
+        db.session.rollback()
+        return f'Error al limpiar la base de datos: {e}'
+```
+
+#### Actualizar los Botones en `index.html`
+
+```html
+<button class="btn btn-primary admin-buttons" onclick="location.href='/download_csv?key=your_secret_key'">Descargar BD en CSV</button>
+<button class="btn btn-danger admin-buttons" onclick="location.href='/clear_db?key=your_secret_key'">Limpiar BD</button>
+```
+
+### Paso 4: Probar la Funcionalidad
+
+Asegúrate de probar bien estas funcionalidades para verificar que los datos se descargan correctamente en CSV y que la base de datos se puede limpiar sin problemas.
+
+### Consideraciones Finales
+
+- **Seguridad**: El uso de una clave secreta en la URL es una solución simple y no muy segura. Para entornos de producción, considera implementar autenticación y autorización más robustas, como OAuth o JWT.
+- **Accesibilidad**: Asegúrate de que solo usuarios autorizados tengan acceso a los botones administrativos.
+- **Monitoreo**: Implementa alguna forma de monitoreo para saber cuándo se realizan descargas o limpiezas de la base de datos.
+
+Si necesitas más ayuda o tienes alguna otra pregunta, ¡no dudes en preguntar!
