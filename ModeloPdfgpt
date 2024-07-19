@@ -1,0 +1,284 @@
+Para crear un proyecto en Visual Studio Code usando Flask para interactuar con el modelo preentrenado que lee PDFs en inglés o español, sigue estos pasos:
+
+### 1. Configurar el Entorno
+
+Primero, crea un entorno virtual y activa el entorno:
+
+```bash
+python -m venv env
+source env/bin/activate  # Para Windows usa `env\Scripts\activate`
+```
+
+Instala las bibliotecas requeridas:
+
+```bash
+pip install flask torch transformers PyMuPDF
+```
+
+### 2. Estructura del Proyecto
+
+Organiza tu proyecto con la siguiente estructura:
+
+```
+my_flask_app/
+│
+├── app.py
+├── requirements.txt
+├── static/
+│   └── style.css
+├── templates/
+│   └── index.html
+├── extract_text.py
+├── preprocess_text.py
+├── fine_tune_model.py
+└── ask_question.py
+```
+
+### 3. `extract_text.py`
+
+Este script extrae texto de los archivos PDF:
+
+```python
+import fitz  # PyMuPDF
+import os
+
+def extract_text_from_pdfs(folder_path):
+    text_data = ""
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".pdf"):
+            pdf_path = os.path.join(folder_path, filename)
+            with fitz.open(pdf_path) as pdf:
+                for page in pdf:
+                    text_data += page.get_text()
+    return text_data
+
+if __name__ == "__main__":
+    folder_path = "."  # Carpeta raíz del proyecto
+    text_data = extract_text_from_pdfs(folder_path)
+    with open("corpus.txt", "w") as f:
+        f.write(text_data)
+```
+
+### 4. `preprocess_text.py`
+
+Este script limpia y preprocesa el texto:
+
+```python
+import re
+
+def preprocess_text(text):
+    text = re.sub(r'\W', ' ', text)
+    text = re.sub(r'\d', '', text)
+    text = text.lower()
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+if __name__ == "__main__":
+    with open("corpus.txt", "r") as f:
+        text_data = f.read()
+    clean_text = preprocess_text(text_data)
+    with open("clean_corpus.txt", "w") as f:
+        f.write(clean_text)
+```
+
+### 5. `fine_tune_model.py`
+
+Este script realiza el fine-tuning del modelo preentrenado:
+
+```python
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
+
+def fine_tune_model():
+    with open("clean_corpus.txt", "r") as f:
+        texts = f.read()
+    with open("dataset.txt", "w") as f:
+        f.write(texts)
+
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    dataset = TextDataset(
+        tokenizer=tokenizer,
+        file_path="dataset.txt",
+        block_size=128
+    )
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=False
+    )
+
+    training_args = TrainingArguments(
+        output_dir="./results",
+        overwrite_output_dir=True,
+        num_train_epochs=3,
+        per_device_train_batch_size=2,
+        save_steps=10_000,
+        save_total_limit=2,
+    )
+
+    model = GPT2LMHeadModel.from_pretrained("gpt2")
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        data_collator=data_collator,
+        train_dataset=dataset,
+    )
+
+    trainer.train()
+    trainer.save_model("./fine_tuned_gpt2")
+    tokenizer.save_pretrained("./fine_tuned_gpt2")
+
+if __name__ == "__main__":
+    fine_tune_model()
+```
+
+### 6. `ask_question.py`
+
+Este script interactúa con el modelo para responder preguntas:
+
+```python
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, pipeline
+
+def ask_question(question):
+    tokenizer = GPT2Tokenizer.from_pretrained("./fine_tuned_gpt2")
+    model = GPT2LMHeadModel.from_pretrained("./fine_tuned_gpt2")
+    nlp = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    response = nlp(question, max_length=50, num_return_sequences=1)
+    return response[0]['generated_text']
+
+if __name__ == "__main__":
+    question = "¿Cuál es la información más importante del documento?"
+    response = ask_question(question)
+    print(response)
+```
+
+### 7. `app.py`
+
+Este script crea la aplicación Flask para interactuar con el modelo:
+
+```python
+from flask import Flask, render_template, request
+import os
+from ask_question import ask_question
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    response = ""
+    if request.method == 'POST':
+        question = request.form['question']
+        response = ask_question(question)
+    return render_template('index.html', response=response)
+
+if __name__ == '__main__':
+    # Extraer y preprocesar texto al iniciar la aplicación
+    os.system('python extract_text.py')
+    os.system('python preprocess_text.py')
+    os.system('python fine_tune_model.py')
+    app.run(debug=True)
+```
+
+### 8. Plantillas HTML y CSS
+
+Crea `templates/index.html` para la interfaz web:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask GPT-2 Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Flask GPT-2 Chatbot</h1>
+        <form method="post">
+            <label for="question">Pregunta:</label>
+            <input type="text" id="question" name="question" required>
+            <button type="submit">Enviar</button>
+        </form>
+        <div class="response">
+            <h2>Respuesta:</h2>
+            <p>{{ response }}</p>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+Crea `static/style.css` para el estilo:
+
+```css
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 10px;
+}
+
+input[type="text"] {
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.response {
+    margin-top: 20px;
+}
+```
+
+### 9. `requirements.txt`
+
+Guarda las dependencias del proyecto:
+
+```
+flask
+torch
+transformers
+PyMuPDF
+```
+
+### 10. Ejecutar la Aplicación
+
+Finalmente, ejecuta tu aplicación Flask:
+
+```bash
+python app.py
+```
+
+Esto iniciará un servidor web que puedes acceder en `http://127.0.0.1:5000/`. Ahora podrás interactuar con el modelo preentrenado directamente desde el navegador.
+
+¡Buena suerte con tu proyecto! Si tienes más preguntas o necesitas más ayuda, no dudes en consultarme.
