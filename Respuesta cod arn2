@@ -1,0 +1,195 @@
+Para integrar gráficos dinámicos en tu aplicación Flask, puedes usar bibliotecas como Plotly o Bokeh que permiten generar gráficos interactivos. Aquí te muestro cómo hacerlo con Plotly:
+
+1. **Instala Plotly**:
+    ```bash
+    pip install plotly
+    ```
+
+2. **Actualizar el código en `app.py` para usar Plotly**:
+
+    ```python
+    from flask import Flask, request, render_template, redirect, url_for
+    import pandas as pd
+    import numpy as np
+    from pandas.tseries.offsets import MonthEnd
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout
+    import os
+    from werkzeug.utils import secure_filename
+    import plotly.express as px
+    import plotly.graph_objs as go
+    import plotly.io as pio
+
+    app = Flask(__name__)
+    app.config['UPLOAD_FOLDER'] = 'uploads/'
+    app.config['ALLOWED_EXTENSIONS'] = {'xlsx'}
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+    @app.route('/', methods=['GET', 'POST'])
+    def index():
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                return redirect(request.url)
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+
+                regional = request.form['regional']
+                clasificacion = request.form['clasificacion']
+
+                return redirect(url_for('resultados', filename=filename, regional=regional, clasificacion=clasificacion))
+        return render_template('index.html')
+
+    @app.route('/resultados')
+    def resultados():
+        filename = request.args.get('filename')
+        regional = request.args.get('regional')
+        clasificacion = request.args.get('clasificacion')
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        df = pd.read_excel(file_path)
+        df['Fecha'] = pd.to_datetime(df['Fecha de reporte'])
+        columnas = ['Eventos de Entorno: Numeración', 'Fecha', 'Regional', 'Clasificación modalidad del conflicto', 'Temática de Entorno']
+        df = df[columnas]
+        df_analisis = df[(df['Regional'] == regional) & (df['Clasificación modalidad del conflicto'] == clasificacion)]
+        df_analisis = df_analisis.drop_duplicates(subset='Eventos de Entorno: Numeración')
+        df_analisis['año'] = df_analisis['Fecha'].dt.year
+        df_analisis['mes'] = df_analisis['Fecha'].dt.month
+
+        df_agrupado = df_analisis.groupby(['año', 'mes']).size().reset_index(name='conteo')
+        df_agrupado['año_mes'] = df_agrupado['año'].astype(str) + '-' + df_agrupado['mes'].astype(str).str.zfill(2) + '-' + '01'
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'])
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'], format='%Y-%m-%d') + MonthEnd(0)
+
+        df_agrupado = df_agrupado[['año_mes', 'conteo']]
+        df_agrupado['Fecha'] = df_agrupado['año_mes']
+        df_agrupado = df_agrupado[['Fecha', 'conteo']]
+
+        corte_fecha = '2023-12-31'
+        df_futuro = df_agrupado[df_agrupado['Fecha'] > corte_fecha]
+        df_serie = df_agrupado[df_agrupado['Fecha'] <= corte_fecha]
+
+        df_serie = df_serie.sort_values('Fecha')
+        df_futuro = df_futuro.sort_values('Fecha')
+
+        SEQ_LENGTH = 24
+        EPOCHS = 30
+        NEURONAS = 50
+
+        def create_sequences(data, seq_length):
+            xs, ys = [], []
+            for i in range(len(data) - seq_length):
+                x = data[i:i+seq_length]
+                y = data[i+seq_length]
+                xs.append(x)
+                ys.append(y)
+            return np.array(xs), np.array(ys)
+
+        X, y = create_sequences(df_serie['conteo'].values, SEQ_LENGTH)
+        split = int(0.7 * len(X))
+        X_train, X_test = X[:split], X[split:]
+        y_train, y_test = y[:split], y[split:]
+        X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+
+        model = Sequential()
+        model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,)))
+        model.add(Dropout(0.2))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse')
+        history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
+        y_pred = model.predict(X_test)
+        errors = y_test - y_pred.flatten()
+        std_error = np.std(errors)
+        confidence_interval_90 = 1.96 * std_error
+
+        n_months = 12
+        last_sequence = df_serie['conteo'].values[-SEQ_LENGTH:]
+        future_predictions = []
+        future_confidences = []
+        for _ in range(n_months):
+            input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
+            next_pred = model.predict(input_seq)
+            future_predictions.append(next_pred[0, 0])
+            future_confidences.append(confidence_interval_90)
+            last_sequence = np.append(last_sequence[1:], next_pred)
+
+        last_date = df_serie['Fecha'].iloc[-1]
+        future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
+        future_df = pd.DataFrame({
+            'Fecha': future_dates,
+            'Frecuencia_Predicha_conteo': future_predictions,
+            'Limite_Superior_conteo': np.array(future_predictions) + np.array(future_confidences),
+            'Limite_Inferior_conteo': np.array(future_predictions) - np.array(future_confidences)
+        })
+
+        historical_window = 24
+        ventana_total = df_serie['conteo'].tail(historical_window)
+        Q1 = ventana_total.quantile(0.25)
+        Q3 = ventana_total.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1 * IQR
+        upper_bound = Q3 + 1 * IQR
+        filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
+        historical_mean = filtered_data.mean()
+        historical_std = filtered_data.std()
+
+        future_df['promedioUlt24meses_conteo'] = historical_mean
+        threshold0 = historical_mean - 0.524 * historical_std
+        threshold1 = historical_mean + 0.524 * historical_std
+        threshold2 = historical_mean + 1.645 * historical_std
+        future_df['UmbralMin_conteo'] = threshold0
+        future_df['UmbralMax_conteo'] = threshold1
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(x=df_serie['Fecha'], y=df_serie['conteo'], mode='lines', name='Histórico'))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Frecuencia_Predicha_conteo'], mode='lines', name='Predicción Futura'))
+        fig.add_trace(go.Scatter(x=df_futuro['Fecha'], y=df_futuro['conteo'], mode='lines', name='Real', line=dict(dash='dot')))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Limite_Superior_conteo'], mode='lines', fill=None, name='Límite Superior (IC 95%)', line=dict(color='lightgrey')))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Limite_Inferior_conteo'], mode='lines', fill='tonexty', name='Límite Inferior (IC 95%)', line=dict(color='lightgrey')))
+
+        fig.update_layout(title='Predicción futura de la frecuencia de conteo con IC 95% (ARNN)', xaxis_title='Tiempo', yaxis_title='Frecuencia')
+
+        graphJSON = pio.to_json(fig)
+
+        return render_template('resultados.html', graphJSON=graphJSON)
+
+    if __name__ == '__main__':
+        app.run(debug=True)
+    ```
+
+3. **Actualizar `resultados.html` para renderizar el gráfico interactivo**:
+
+    ```html
+    <!doctype html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Resultados</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+      </head>
+      <body>
+        <div class="container">
+          <h1 class="mt-5">Resultados de la Predicción</h1>
+          <div id="graph" style="width:100%;height:600px;"></div>
+          <a href="/" class="btn btn-primary mt-3">Volver</a>
+        </div>
+        <script type="text/javascript">
+          var graph = {{ graphJSON | safe }};
+          Plotly.react('graph', graph.data, graph.layout);
+        </script>
+      </body>
+    </html>
+    ```
+
+Con estos cambios, el gráfico generado será interactivo y se mostrará directamente en tu página de resultados. Esto proporciona una experiencia mucho más dinámica y visualmente atractiva para los usuarios.
