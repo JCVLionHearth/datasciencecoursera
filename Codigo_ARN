@@ -1,0 +1,187 @@
+Hola, actualmente tengo el siguiente código para realizar predicciones, mediante la arquitectura de una red neuronal. pero deseo convertirlo en una aplicación flask. deseo hacer lo siguiente:
+1. actualmente el excel se carga por codigo, quiero hacerlo mediante un formulario.
+2. debe hacer los ajustes para que de acuerdo con los campos definidos en la variable "columnas=[]
+3. debe haber selectores para las variables 'Regional' y 'Clasificación modalidad del conflicto'
+4. construir la serie de acuerdo con los ajustes hechos en el código actual.
+5. la aplicación debe mostrar la grafica con los umbrales y las proyecciones de alertas de acuerdo con lo descrito en el código, esta gráfica debe ser interactiva
+6. además debe mostrar la tabla de predicciones descritas en la gráfica, señalando las alertas.
+
+
+import numpy as np
+import pandas as pd
+from pandas.tseries.offsets import MonthEnd
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout
+import random
+#pip install openpyxl xlsxwriter
+np.random.seed(123)
+tf.random.set_seed(123)
+random.seed(123)
+# Cargar datos desde el archivo Excel
+file_path = 'Datos/EventosEntorno.xlsx'  # Ruta
+df = pd.read_excel(file_path)
+df['Fecha']=pd.to_datetime(df['Fecha de reporte'])
+
+# Columnas especificas
+columnas=['Eventos de Entorno: Numeración','Fecha','Regional','Clasificación modalidad del conflicto','Temática de Entorno']
+df=df[columnas]
+df_analisis=df[(df['Regional']=='Central')&(df['Clasificación modalidad del conflicto']=='Bloqueo')]
+df_analisis=df_analisis.drop_duplicates(subset='Eventos de Entorno: Numeración')
+df_analisis['año']=df_analisis['Fecha'].dt.year
+df_analisis['mes']=df_analisis['Fecha'].dt.month
+
+#Agrupar los datos por año y por mes
+
+df_agrupado=df_analisis.groupby(['año','mes']).size().reset_index(name='conteo')
+#crea la columna año_mes en formato YYYY-MM
+df_agrupado['año_mes']=df_agrupado['año'].astype(str)+'-'+df_agrupado['mes'].astype(str).str.zfill(2)+'-'+'01'
+df_agrupado['año_mes']=pd.to_datetime(df_agrupado['año_mes'])
+df_agrupado['año_mes']=pd.to_datetime(df_agrupado['año_mes'], format='%Y-%m-%d') + MonthEnd(0)
+
+df_agrupado=df_agrupado[['año_mes','conteo']]
+df_agrupado['Fecha']=df_agrupado['año_mes']
+df_agrupado=df_agrupado[['Fecha','conteo']]
+
+#Imputar valores faltantes
+#df_agrupado=df_agrupado.apply(lambda x: x.fillna(x.mean()),axis=0)
+
+# Filtrar fecha de corte
+corte_fecha = '2023-12-31'
+df_futuro = df_agrupado[df_agrupado['Fecha'] > corte_fecha]
+df_serie = df_agrupado[df_agrupado['Fecha'] <= corte_fecha]
+
+# Ordenar el DataFrame por fecha
+df_serie = df_serie.sort_values('Fecha')
+df_futuro = df_futuro.sort_values('Fecha')
+# Función para crear secuencias de entrenamiento y etiquetas
+def create_sequences(data, seq_length):
+   xs, ys = [], []
+   for i in range(len(data) - seq_length):
+       x = data[i:i+seq_length]
+       y = data[i+seq_length]
+       xs.append(x)
+       ys.append(y)
+   return np.array(xs), np.array(ys)
+# Parámetros
+SEQ_LENGTH = 24  # Usar 24 meses para predecir el siguiente mes
+EPOCHS = 30
+NEURONAS=50
+# Crear un archivo Excel para guardar las predicciones
+writer = pd.ExcelWriter('predicciones_series.xlsx', engine='xlsxwriter')
+
+# Crear secuencias de entrenamiento y etiquetas
+X, y = create_sequences(df_serie['conteo'].values, SEQ_LENGTH)
+# Dividir los datos en conjuntos de entrenamiento y prueba
+split = int(0.7 * len(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+# Redimensionar los datos para que sean compatibles con LSTM [samples, time steps, features]
+X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+# Construir el modelo LSTM con Dropout
+model = Sequential()
+model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,))) #capa con # neuronas para capturar la dependencia temporal
+model.add(Dropout(0.2)) #20% Esto ayuda a evitar el sobreajuste
+model.add(Dense(1)) #capa densa con una neurona para producir la predicción para el siguiente paso temporal
+model.compile(optimizer='adam', loss='mse')
+# Entrenar el modelo
+history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
+# Predecir en el conjunto de prueba
+y_pred = model.predict(X_test)
+# Calcular los errores y la desviación estándar
+errors = y_test - y_pred.flatten()
+std_error = np.std(errors)
+# Calcular el intervalo de confianza (IC 95%)
+confidence_interval_90 = 1.96 * std_error
+# Visualizar resultados del conjunto de prueba con intervalo de confianza
+plt.figure(figsize=(10, 6))
+plt.plot(range(len(y_test)), y_test, label='Actual')
+plt.plot(range(len(y_pred)), y_pred, label='Predicted')
+plt.fill_between(range(len(y_pred)),
+                y_pred.flatten() - confidence_interval_90,
+                y_pred.flatten() + confidence_interval_90,
+                color='b', alpha=0.2, label='95% Confidence Interval')
+plt.title(f"Predicción de la frecuencia de conteo con IC 95% (ARNN)")
+plt.xlabel("Tiempo")
+plt.ylabel("Frecuencia")
+plt.legend()
+plt.savefig(f'prediccion_conteo.png')
+plt.show()
+# Predecir los próximos 12 meses con intervalos de confianza
+n_months = 12
+last_sequence = df_serie['conteo'].values[-SEQ_LENGTH:]  # Tomar la última secuencia de longitud SEQ_LENGTH
+future_predictions = []
+future_confidences = []
+for _ in range(n_months):
+    input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
+    next_pred = model.predict(input_seq)
+    future_predictions.append(next_pred[0, 0])
+    future_confidences.append(confidence_interval_90)
+    last_sequence = np.append(last_sequence[1:], next_pred)  # Actualizar la secuencia para la siguiente predicción
+# Crear una lista de fechas para los próximos 12 meses
+last_date = df_serie['Fecha'].iloc[-1]
+future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
+# Crear un DataFrame con las predicciones futuras
+future_df = pd.DataFrame({
+    'Fecha': future_dates,
+    f'Frecuencia_Predicha_conteo': future_predictions,
+    f'Limite_Superior_conteo': np.array(future_predictions) + np.array(future_confidences),
+    f'Limite_Inferior_conteo': np.array(future_predictions) - np.array(future_confidences)
+})
+# Calcular el promedio histórico y la desviación estándar de los últimos 24 meses
+historical_window = 24
+ventana_total=df_serie['conteo'].tail(historical_window)
+# Calcular los cuartiles y el rango intercuartil
+Q1 = ventana_total.quantile(0.25)
+Q3 = ventana_total.quantile(0.75)
+IQR = Q3 - Q1
+# Definir los límites para los valores atípicos
+lower_bound = Q1 - 1* IQR
+upper_bound = Q3 + 1* IQR
+# Filtrar los valores que no son atípicos
+filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
+# Calcular el promedio y la desviación estándar de los datos filtrados
+historical_mean = filtered_data.mean() #historical_mean = df[serie].tail(historical_window).mean()
+historical_std = filtered_data.std()   #historical_std = df[serie].tail(historical_window).std()
+# Añadir el promedio de los ultimos 24 meses al DataFrame
+future_df[f'promedioUlt24meses_conteo'] = historical_mean
+#Umbral
+threshold0 = historical_mean - 0.524*historical_std #-40% de confianza
+threshold1 = historical_mean + 0.524*historical_std #+40% de confianza
+threshold2 = historical_mean + 1.645*historical_std #90% de confianza
+# Añadir el umbral al DataFrame
+future_df[f'UmbralMin_conteo'] = threshold0
+future_df[f'UmbralMax_conteo'] = threshold1
+# Visualizar las predicciones futuras con intervalo de confianza y umbral
+plt.figure(figsize=(10, 6))
+plt.plot(df_serie['Fecha'], df_serie['conteo'], label='Histórico')
+plt.plot(future_df['Fecha'], future_df[f'Frecuencia_Predicha_conteo'], label='Predicción Futura', color='red')
+plt.plot(df_futuro['Fecha'], df_futuro['conteo'], label='Real',color='#008000',linestyle='dotted') #linestyle='-', '--', '-.', ':', 'None', ' ', '', 'solid', 'dashed', 'dashdot', 'dotted'
+plt.fill_between(future_df['Fecha'],
+                future_df[f'Limite_Inferior_conteo'],
+                future_df[f'Limite_Superior_conteo'],
+                color='r', alpha=0.2, label='95% Confidence Interval')
+plt.axhline(y=threshold0, color='orange', linestyle='--', label='Umbral de Alerta Min')
+plt.axhline(y=threshold1, color='red', linestyle='--', label='Umbral de Alerta Max')
+plt.axhline(y=historical_mean, color='green', linestyle='--', label='Promedio ult24m')
+# Marcar alertas
+for date, lstm_pred, lstm_conf in zip(future_df['Fecha'], future_predictions, future_confidences):
+    if threshold0 < lstm_pred <= threshold1:
+        plt.plot(date, lstm_pred, 'o',color='yellow')  # Punto amarillo para predicciones en zona de tolerancia
+    elif lstm_pred > threshold1:
+        plt.plot(date, lstm_pred, 'ro')  # Punto rojo para predicciones en zona extrema
+    elif lstm_pred < threshold0:
+        plt.plot(date, lstm_pred, 'go')  # Punto verde para predicciones por debajo del umbral minimo
+plt.title(f"Predicción futura de la frecuencia de conteo con umbral (ARNN)")
+plt.xlabel("Fecha")
+plt.ylabel("Frecuencia")
+plt.legend()
+plt.savefig(f'prediccion_futura_conteo.png')
+plt.show()
+# Guardar las predicciones futuras en el archivo Excel
+future_df.to_excel(writer, sheet_name=f'Predicciones_conteo', index=False)
+# Guardar y cerrar el archivo Excel
+writer.close()
+print("Archivo Excel generado correctamente.")
