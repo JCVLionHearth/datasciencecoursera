@@ -1,0 +1,190 @@
+library(dplyr) #para manipulacion de datos
+library(caret) #para modelado predictivo
+library(ggplot2) # para visualizaciones
+library(plotly)
+library('xlsx')
+library('writexl')
+library(readxl)
+library(tibble) #para convertir nombres a columnas (rownames_to_column)
+library(pROC) #para las metricas ROC
+library(rsample)
+library(splitstackshape) #para muestras
+library(purrr) # para map y otras operaciones
+library(vcd) #para pruebas de chi-cuadro y coeficiente de contingencia
+library(actuar)
+library(zoo)
+library(lubridate)#para la función year
+library(stats)
+library("factoextra")
+library("fitdistrplus")
+library("knitr")
+library("knitrBootstrap")
+library(kableExtra) #para formatos de tablas
+library(gridExtra)#para crear una grilla en la que puedan ir varios objetos gráficos
+library(Rcpp)
+library(recipes) #para facilitar todavía más el aprendizaje de las transformaciones, únicamente con las observaciones de entrenamiento, y poder aplicarlas después a cualquier conjunto de datos
+library(caret)
+library(psych) #paquete para métricas de correlacion
+library(utf8)
+library(tibble) #para convertir nombres a columnas (rownames_to_column)
+
+Sys.setlocale("LC_CTYPE","en_US.UTF-8")
+
+#Seleccion de archivo Excel
+Ubicacion<-"C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Proyectos Analitica/Perdida_Esperada_Entorno/Datos/"
+tipos_campos<-rep("text",43)
+tipos_campos[c(28,29,30,31,32,35,36)]<-c("numeric","numeric","numeric","numeric","numeric","numeric","date")
+datos<-read_excel(paste(Ubicacion,"PERDIDAS_PROYECTOS2.xlsx",sep="/"),
+                  col_types = c(tipos_campos))
+
+#categorización de variables
+Otras_actividades<-c("MOVILIZACION","NO_DEFINIDA","COMISIONAMIENTO","WORKOVER")
+datos$Tipo_Actividad_H<-ifelse(datos$Tipo_Actividad_H %in% Otras_actividades,"Otras_actividades",datos$Tipo_Actividad_H)
+
+datos_filtrados<-datos %>% filter(WIP_AFECTACION>0)
+datos_filtrados<-datos_filtrados %>% filter(Tipo_Actividad_H!= "ABANDONO_POZO")
+
+#para ajuste de probabilidad
+
+#-----------------------------------------------
+###   Curvas de probabilidad
+#-----------------------------------------------
+library("MASS")
+library("fitdistrplus")
+
+fw<-fitdist(datos_filtrados$WIP_AFECTACION, "weibull")
+fln<-fitdist(datos_filtrados$WIP_AFECTACION, "lnorm")
+
+par(mfrow=c(1,4))
+plot.legend<-c("Weibull","Log-Normal")
+g1<-denscomp(list(fw,fln),legendtext=plot.legend,plotstyle="ggplot",main="FDP: Real vs teórica")
+g2<-qqcomp(list(fw,fln),legendtext=plot.legend,plotstyle="ggplot",fitpch = 8)
+g3<-cdfcomp(list(fw,fln),legendtext=plot.legend,plotstyle="ggplot",main="FAP: Real vs Teórica")
+g4<-ppcomp(list(fw,fln),legendtext=plot.legend,plotstyle="ggplot")
+grid.arrange(g1,g3, ncol = 1)
+grid.arrange(g2,g4, ncol = 1)
+
+#Resultados Perdida esperada
+
+media<-fln$estimate[[1]] #media
+desviacion<-fln$estimate[[2]] #desviacion
+ValorEsperadoLN=exp(media+(desviacion^2)/2)
+VarianzaLN=(exp(desviacion^2)-1)*exp(2*media+(desviacion^2))
+desvLN=sqrt(VarianzaLN)
+
+##### Modelo Predictivo de Pérdida
+
+set.seed(123)
+#datos_filtrados<-datos_filtrados %>% filter(Tipo_Actividad_H!="Otras_actividades")
+
+# Se crean los índices de las observaciones de entrenamiento
+train <- createDataPartition(y = datos_filtrados$WIP_AFECTACION, p = 0.7, list = FALSE, times = 1)
+datos_train <- datos_filtrados[train, ]
+datos_test  <- datos_filtrados[-train, ]
+
+## Formula
+formula<-WIP_AFECTACION~Tipo_Afectacion_Agrupada+GERENCIA_H+Tipo_Actividad_H+Temática_Agrupada
+
+## objeto Recipe
+
+objeto_recipe <- recipe(formula,data =  datos_train)
+
+#Binarizacion de variables (one hot coding) variables dummy
+objeto_recipe <- objeto_recipe %>% step_dummy(all_nominal(), -all_outcomes())
+
+# Se entrena el objeto recipe
+trained_recipe <- prep(objeto_recipe, training = datos_train)
+
+# Se aplican las transformaciones al conjunto de entrenamiento y de test
+datos_train_prep <- bake(trained_recipe, new_data = datos_train)
+datos_test_prep  <- bake(trained_recipe, new_data = datos_test)
+
+## Se aplica el modelo glm
+modelo.glm<- stats::glm(WIP_AFECTACION~., family=Gamma(link="log"), data=datos_train_prep)
+
+# Predicciones del modelo
+datos_test_prep$predicciones<-stats::predict(modelo.glm,newdata=datos_test_prep,type="response")
+
+# Resumen de métricas
+
+Resumen_test<-round(summary(datos_test_prep$WIP_AFECTACION)/1000000,1)
+Resumen_prediccion<-round(summary(datos_test_prep$predicciones)/1000000,1)
+
+
+# Crea un data frame con los estadísticos
+summary_df <- data.frame(
+  "Métrica" = c("Afectación (Real)", "Predicción Pérdida"),
+  "Mínimo" = c(Resumen_test[[1]], Resumen_prediccion[[1]]),
+  "Primer Cuartil" = c(Resumen_test[[2]], Resumen_prediccion[[2]]),
+  Mediana = c(c(Resumen_test[[3]], Resumen_prediccion[[3]])),
+  Media = c(c(Resumen_test[[4]], Resumen_prediccion[[4]])),
+  "Tercer Cuartil" = c(Resumen_test[[5]], Resumen_prediccion[[5]]),
+  "Máximo" = c(Resumen_test[[6]], Resumen_prediccion[[6]])
+)
+
+#Calculo de algunas métricas
+
+# Error Cuadrático Medio (MSE)
+mse <- mean((datos_test_prep$WIP_AFECTACION - datos_test_prep$predicciones)^2)
+
+# R cuadrado (R²)
+r_cuadrado1 <- 1 - sum((datos_test_prep$WIP_AFECTACION - datos_test_prep$predicciones)^2,na.rm = TRUE) / sum((datos_test_prep$WIP_AFECTACION - mean(datos_test_prep$WIP_AFECTACION))^2,na.rm = TRUE)
+
+# Error Absoluto Medio (MAE)
+mae <- mean(abs(datos_test_prep$WIP_AFECTACION - datos_test_prep$predicciones))
+mae
+
+# resumen
+summary(datos_test_prep$WIP_AFECTACION)
+summary(datos_test_prep$predicciones)
+
+#ejemplo para la estimación de la predicción
+
+datos_prediccion<-data.frame(
+  GERENCIA_H=c("GRI","GRI","GRI","GMA","GRB","GRI"),
+  Tipo_Afectacion_Agrupada=c("Bloqueo","Cese","Cese","Bloqueo","Mitin","Bloqueo"),
+  Temática_Agrupada=c("Asuntos_Sindicales","Bienes_Servicios","Mano_Obra_Local","Gestion_Contractual","Daños_a_Terceros","Mano_Obra_Local"),
+  Tipo_Actividad_H=c("PERFORACION","OBRAS","Otras_actividades","OBRAS","Otras_actividades","OBRAS")
+)
+
+datos_para_pred  <- bake(trained_recipe, new_data = datos_prediccion)
+
+predicciones<-predict(modelo.glm,newdata=datos_para_pred ,type="response")
+
+# REsultados de los ejemplos de predicción
+datos_prediccion$Pérdida_Esperada<-format(predicciones,big.mark= ".")
+
+#### Modelo árbol de decisión
+
+library(rpart)
+library(rpart.plot)
+
+formula2<-(WIP_AFECTACION/1000000)~Tipo_Afectacion_Agrupada+Tipo_Actividad_H
+formula3<-(WIP_AFECTACION/1000000)~GERENCIA_H+Temática_Agrupada
+
+# Diseño árbol
+
+set.seed(12345)
+arbol <- rpart(formula2, data = datos_train, method = "anova")
+arbol2 <- rpart(formula3, data = datos_train, method = "anova")
+
+
+# Grafica el árbol
+rpart.plot(arbol,type=1,
+           clip.facs=FALSE,
+           shadow.col = "gray",
+           box.palette = "Greens",
+           main="Árbol decisión Pérdida esperada (Millones COP)",
+           fallen.leaves = FALSE,
+           varlen = 1,#abreviar variables
+           cex=0.6)
+
+rpart.plot(arbol2,type=1,
+           clip.facs=FALSE,
+           shadow.col = "gray",
+           box.palette = "Greens",
+           main="Árbol decisión Pérdida esperada (Millones COP)",
+           fallen.leaves = FALSE,
+           varlen = 1,#abreviar variables
+           cex=0.6)
+
