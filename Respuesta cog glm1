@@ -1,0 +1,133 @@
+Convertir este código R a Python implica utilizar bibliotecas equivalentes y adaptar la lógica. A continuación, se presenta el código Python equivalente utilizando pandas, scikit-learn, statsmodels, y otras bibliotecas comunes.
+
+```python
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+import statsmodels.api as sm
+from scipy.stats import weibull_min, lognorm
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Selección de archivo Excel
+ubicacion = "C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Proyectos Analitica/Perdida_Esperada_Entorno/Datos/PERDIDAS_PROYECTOS2.xlsx"
+datos = pd.read_excel(ubicacion)
+
+# Categorización de variables
+otras_actividades = ["MOVILIZACION", "NO_DEFINIDA", "COMISIONAMIENTO", "WORKOVER"]
+datos['Tipo_Actividad_H'] = np.where(datos['Tipo_Actividad_H'].isin(otras_actividades), "Otras_actividades", datos['Tipo_Actividad_H'])
+
+# Filtrado de datos
+datos_filtrados = datos[(datos['WIP_AFECTACION'] > 0) & (datos['Tipo_Actividad_H'] != "ABANDONO_POZO")]
+
+# Ajuste de probabilidad
+fw_params = weibull_min.fit(datos_filtrados['WIP_AFECTACION'])
+fln_params = lognorm.fit(datos_filtrados['WIP_AFECTACION'], floc=0)
+
+# Gráficas
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+sns.histplot(datos_filtrados['WIP_AFECTACION'], kde=False, stat='density', ax=axes[0], label='Real')
+x = np.linspace(min(datos_filtrados['WIP_AFECTACION']), max(datos_filtrados['WIP_AFECTACION']), 100)
+axes[0].plot(x, weibull_min.pdf(x, *fw_params), label='Weibull')
+axes[0].plot(x, lognorm.pdf(x, *fln_params), label='Log-Normal')
+axes[0].legend()
+axes[0].set_title('FDP: Real vs teórica')
+
+# Q-Q plots
+sm.qqplot(datos_filtrados['WIP_AFECTACION'], weibull_min(*fw_params), line='45', ax=axes[1], label='Weibull')
+sm.qqplot(datos_filtrados['WIP_AFECTACION'], lognorm(*fln_params), line='45', ax=axes[1], label='Log-Normal')
+axes[1].set_title('Q-Q Plot: Real vs teórica')
+
+plt.show()
+
+# Resultados de pérdida esperada
+media, desviacion = fln_params[2], fln_params[0]
+valor_esperado_ln = np.exp(media + (desviacion**2) / 2)
+varianza_ln = (np.exp(desviacion**2) - 1) * np.exp(2 * media + (desviacion**2))
+desv_ln = np.sqrt(varianza_ln)
+
+# Modelo Predictivo de Pérdida
+X = datos_filtrados[['Tipo_Afectacion_Agrupada', 'GERENCIA_H', 'Tipo_Actividad_H', 'Temática_Agrupada']]
+y = datos_filtrados['WIP_AFECTACION']
+
+# Binarización de variables categóricas
+encoder = OneHotEncoder(drop='first')
+X_encoded = encoder.fit_transform(X)
+
+# División del conjunto de datos
+X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.3, random_state=123)
+
+# Ajuste del modelo
+modelo_glm = sm.GLM(y_train, X_train.toarray(), family=sm.families.Gamma(link=sm.families.links.log())).fit()
+
+# Predicciones
+y_pred = modelo_glm.predict(X_test.toarray())
+
+# Resumen de métricas
+resumen_test = y_test.describe()
+resumen_prediccion = pd.Series(y_pred).describe()
+
+summary_df = pd.DataFrame({
+    "Métrica": ["Afectación (Real)", "Predicción Pérdida"],
+    "Mínimo": [resumen_test['min'], resumen_prediccion['min']],
+    "Primer Cuartil": [resumen_test['25%'], resumen_prediccion['25%']],
+    "Mediana": [resumen_test['50%'], resumen_prediccion['50%']],
+    "Media": [resumen_test['mean'], resumen_prediccion['mean']],
+    "Tercer Cuartil": [resumen_test['75%'], resumen_prediccion['75%']],
+    "Máximo": [resumen_test['max'], resumen_prediccion['max']]
+})
+
+# Cálculo de algunas métricas
+mse = np.mean((y_test - y_pred)**2)
+r_cuadrado1 = 1 - np.sum((y_test - y_pred)**2) / np.sum((y_test - np.mean(y_test))**2)
+mae = np.mean(np.abs(y_test - y_pred))
+
+# Resumen
+print(summary_df)
+print(f"MSE: {mse}")
+print(f"R²: {r_cuadrado1}")
+print(f"MAE: {mae}")
+
+# Ejemplo para la estimación de la predicción
+datos_prediccion = pd.DataFrame({
+    "GERENCIA_H": ["GRI", "GRI", "GRI", "GMA", "GRB", "GRI"],
+    "Tipo_Afectacion_Agrupada": ["Bloqueo", "Cese", "Cese", "Bloqueo", "Mitin", "Bloqueo"],
+    "Temática_Agrupada": ["Asuntos_Sindicales", "Bienes_Servicios", "Mano_Obra_Local", "Gestion_Contractual", "Daños_a_Terceros", "Mano_Obra_Local"],
+    "Tipo_Actividad_H": ["PERFORACION", "OBRAS", "Otras_actividades", "OBRAS", "Otras_actividades", "OBRAS"]
+})
+
+datos_para_pred = encoder.transform(datos_prediccion)
+predicciones = modelo_glm.predict(datos_para_pred.toarray())
+datos_prediccion['Pérdida_Esperada'] = predicciones
+
+print(datos_prediccion)
+
+# Modelo de árbol de decisión
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
+from sklearn.tree import plot_tree
+
+formula2 = ['Tipo_Afectacion_Agrupada', 'Tipo_Actividad_H']
+formula3 = ['GERENCIA_H', 'Temática_Agrupada']
+
+# Diseño del árbol
+arbol = DecisionTreeRegressor(random_state=12345)
+arbol.fit(X_train[:, :2], y_train)
+arbol2 = DecisionTreeRegressor(random_state=12345)
+arbol2.fit(X_train[:, 2:], y_train)
+
+# Graficar los árboles
+plt.figure(figsize=(20,10))
+plot_tree(arbol, feature_names=formula2, filled=True)
+plt.title("Árbol decisión Pérdida esperada (Millones COP)")
+plt.show()
+
+plt.figure(figsize=(20,10))
+plot_tree(arbol2, feature_names=formula3, filled=True)
+plt.title("Árbol decisión Pérdida esperada (Millones COP)")
+plt.show()
+```
+
+Este código reemplaza las bibliotecas y funciones de R con sus equivalentes en Python. Asegúrate de instalar todas las bibliotecas necesarias (`pandas`, `numpy`, `scikit-learn`, `statsmodels`, `matplotlib`, `seaborn`, `scipy`) antes de ejecutar el script.
