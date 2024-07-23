@@ -1,0 +1,334 @@
+Para agregar una tabla con las predicciones junto a la gráfica y permitir la descarga de esa tabla en formato Excel, debes seguir estos pasos:
+
+1. **Actualizar `resultados.html` para incluir la tabla y el botón de descarga**:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Resultados de Predicción</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+      </head>
+      <body>
+        <div class="container">
+          <h1 class="mt-5">Resultados de Predicción</h1>
+          <div class="row">
+            <div class="col-md-8">
+              <div id="graph"></div>
+            </div>
+            <div class="col-md-4">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Predicción</th>
+                    <th>Límite Superior</th>
+                    <th>Límite Inferior</th>
+                    <th>Umbral Mín</th>
+                    <th>Umbral Max</th>
+                    <th>Promedio Últ. 24M</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for index, row in future_df.iterrows() %}
+                  <tr>
+                    <td>{{ row['Fecha'] }}</td>
+                    <td>{{ row['Frecuencia_Predicha_conteo'] }}</td>
+                    <td>{{ row['Limite_Superior_conteo'] }}</td>
+                    <td>{{ row['Limite_Inferior_conteo'] }}</td>
+                    <td>{{ row['UmbralMin_conteo'] }}</td>
+                    <td>{{ row['UmbralMax_conteo'] }}</td>
+                    <td>{{ row['promedioUlt24meses_conteo'] }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <form method="post" action="{{ url_for('descargar_excel') }}">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <button type="submit" class="btn btn-primary">Descargar Excel</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <script>
+          var graphJSON = {{ graphJSON | safe }};
+          Plotly.newPlot('graph', graphJSON.data, graphJSON.layout);
+        </script>
+      </body>
+    </html>
+    ```
+
+2. **Actualizar `app.py` para manejar la descarga de la tabla en formato Excel**:
+
+    ```python
+    from flask import Flask, request, render_template, redirect, url_for, send_file
+    import pandas as pd
+    import numpy as np
+    from pandas.tseries.offsets import MonthEnd
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout
+    import os
+    from werkzeug.utils import secure_filename
+    import plotly.graph_objs as go
+    import plotly.io as pio
+    from io import BytesIO
+
+    app = Flask(__name__)
+    app.config['UPLOAD_FOLDER'] = 'uploads/'
+    app.config['ALLOWED_EXTENSIONS'] = {'xlsx'}
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+    @app.route('/', methods=['GET', 'POST'])
+    def index():
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                return redirect(request.url)
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+
+                regional = request.form['regional']
+                clasificacion = request.form['clasificacion']
+                corte_fecha = request.form['corte_fecha']
+
+                return redirect(url_for('resultados', filename=filename, regional=regional, clasificacion=clasificacion, corte_fecha=corte_fecha))
+        return render_template('index.html')
+
+    @app.route('/resultados')
+    def resultados():
+        filename = request.args.get('filename')
+        regional = request.args.get('regional')
+        clasificacion = request.args.get('clasificacion')
+        corte_fecha = request.args.get('corte_fecha')
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        df = pd.read_excel(file_path)
+        df['Fecha'] = pd.to_datetime(df['Fecha de reporte'])
+        columnas = ['Eventos de Entorno: Numeración', 'Fecha', 'Regional', 'Clasificación modalidad del conflicto', 'Temática de Entorno']
+        df = df[columnas]
+        df_analisis = df[(df['Regional'] == regional) & (df['Clasificación modalidad del conflicto'] == clasificacion)]
+        df_analisis = df_analisis.drop_duplicates(subset='Eventos de Entorno: Numeración')
+        df_analisis['año'] = df_analisis['Fecha'].dt.year
+        df_analisis['mes'] = df_analisis['Fecha'].dt.month
+
+        df_agrupado = df_analisis.groupby(['año', 'mes']).size().reset_index(name='conteo')
+        df_agrupado['año_mes'] = df_agrupado['año'].astype(str) + '-' + df_agrupado['mes'].astype(str).str.zfill(2) + '-' + '01'
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'])
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'], format='%Y-%m-%d') + MonthEnd(0)
+
+        df_agrupado = df_agrupado[['año_mes', 'conteo']]
+        df_agrupado['Fecha'] = df_agrupado['año_mes']
+        df_agrupado = df_agrupado[['Fecha', 'conteo']]
+
+        df_futuro = df_agrupado[df_agrupado['Fecha'] > corte_fecha]
+        df_serie = df_agrupado[df_agrupado['Fecha'] <= corte_fecha]
+
+        df_serie = df_serie.sort_values('Fecha')
+        df_futuro = df_futuro.sort_values('Fecha')
+
+        SEQ_LENGTH = 24
+        EPOCHS = 30
+        NEURONAS = 50
+
+        def create_sequences(data, seq_length):
+            xs, ys = [], []
+            for i in range(len(data) - seq_length):
+                x = data[i:i+seq_length]
+                y = data[i+seq_length]
+                xs.append(x)
+                ys.append(y)
+            return np.array(xs), np.array(ys)
+
+        X, y = create_sequences(df_serie['conteo'].values, SEQ_LENGTH)
+        split = int(0.7 * len(X))
+        X_train, X_test = X[:split], X[split:]
+        y_train, y_test = y[:split], y[split:]
+        X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+
+        model = Sequential()
+        model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,)))
+        model.add(Dropout(0.2))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse')
+        history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
+        y_pred = model.predict(X_test)
+        errors = y_test - y_pred.flatten()
+        std_error = np.std(errors)
+        confidence_interval_90 = 1.96 * std_error
+
+        n_months = 12
+        last_sequence = df_serie['conteo'].values[-SEQ_LENGTH:]
+        future_predictions = []
+        future_confidences = []
+        for _ in range(n_months):
+            input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
+            next_pred = model.predict(input_seq)
+            future_predictions.append(next_pred[0, 0])
+            future_confidences.append(confidence_interval_90)
+            last_sequence = np.append(last_sequence[1:], next_pred)
+
+        last_date = df_serie['Fecha'].iloc[-1]
+        future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
+        future_df = pd.DataFrame({
+            'Fecha': future_dates,
+            'Frecuencia_Predicha_conteo': future_predictions,
+            'Limite_Superior_conteo': np.array(future_predictions) + np.array(future_confidences),
+            'Limite_Inferior_conteo': np.array(future_predictions) - np.array(future_confidences)
+        })
+
+        historical_window = 24
+        ventana_total = df_serie['conteo'].tail(historical_window)
+        Q1 = ventana_total.quantile(0.25)
+        Q3 = ventana_total.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1 * IQR
+        upper_bound = Q3 + 1 * IQR
+        filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
+        historical_mean = filtered_data.mean()
+        historical_std = filtered_data.std()
+        future_df['promedioUlt24meses_conteo'] = historical_mean
+
+        threshold0 = historical_mean - 0.524 * historical_std
+        threshold1 = historical_mean + 0.524 * historical_std
+        threshold2 = historical_mean + 1.645 * historical_std
+        future_df['UmbralMin_conteo'] = threshold0
+        future_df['UmbralMax_conteo'] = threshold1
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df_serie['Fecha'], y=df_serie['conteo'], mode='lines', name='Histórico'))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Frecuencia_Predicha_conteo'], mode='lines', name='Predicción Futura', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=df_futuro['Fecha'], y=df_futuro['conteo'], mode='lines+markers', name='Real', line=dict(color='#008000', dash='dot')))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Limite_Superior_conteo'], mode='lines', name='Límite Superior', line=dict(color='rgba(255,0,0,0.2)')))
+        fig.add_trace(go.Scatter(x=future_df['Fecha'], y=future_df['Limite_Inferior_conteo'], mode='lines', name='Límite Inferior', line=dict(color='rgba(255,0,0,0.2)')))
+        fig.add_trace(go.Scatter(x=[future_df['Fecha'].min(), future_df['Fecha'].max()], y=[threshold0, threshold0], mode='lines', name='Umbral Min', line=dict(color='orange', dash='dash')))
+        fig.add_trace(go.Scatter(x=[future_df['Fecha'].min(), future_df['Fecha'].max()], y=[threshold1, threshold1], mode='lines', name='Umbral Max', line=dict(color='red', dash='dash')))
+        fig.add_trace(go.Scatter(x=[future_df['Fecha'].min(), future_df['Fecha'].max()], y=[historical_mean, historical_mean], mode='lines', name='Promedio ult24m', line=dict(color='green', dash='dash')))
+
+        alert_points = future_df[(future_df['Frecuencia_Predicha_conteo'] > threshold1) | (future_df['Frecuencia_Predicha_conteo'] < threshold0)]
+        fig.add_trace(go.Scatter(x=alert_points['Fecha'], y=alert_points['Frecuencia_Predicha_conteo'], mode='markers', name='Alertas', marker=dict(color='orange', size=10, symbol='x')))
+
+        graphJSON = pio.to_json(fig)
+
+        return render_template('resultados.html', graphJSON=graphJSON, future_df=future_df, filename=filename)
+
+    @app.route('/descargar_excel', methods=['POST'])
+    def descargar_excel():
+        filename = request.form['filename']
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        df = pd.read_excel(file_path)
+        df['Fecha'] = pd.to_datetime(df['Fecha de reporte'])
+        columnas = ['Eventos de Entorno: Numeración', 'Fecha', 'Regional', 'Clasificación modalidad del conflicto', 'Temática de Entorno']
+        df = df[columnas]
+        df_analisis = df[(df['Regional'] == request.form['regional']) & (df['Clasificación modalidad del conflicto'] == request.form['clasificacion'])]
+        df_analisis = df_analisis.drop_duplicates(subset='Eventos de Entorno: Numeración')
+        df_analisis['año'] = df_analisis['Fecha'].dt.year
+        df_analisis['mes'] = df_analisis['Fecha'].dt.month
+
+        df_agrupado = df_analisis.groupby(['año', 'mes']).size().reset_index(name='conteo')
+        df_agrupado['año_mes'] = df_agrupado['año'].astype(str) + '-' + df_agrupado['mes'].astype(str).str.zfill(2) + '-' + '01'
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'])
+        df_agrupado['año_mes'] = pd.to_datetime(df_agrupado['año_mes'], format='%Y-%m-%d') + MonthEnd(0)
+
+        df_agrupado = df_agrupado[['año_mes', 'conteo']]
+        df_agrupado['Fecha'] = df_agrupado['año_mes']
+        df_agrupado = df_agrupado[['Fecha', 'conteo']]
+
+        df_futuro = df_agrupado[df_agrupado['Fecha'] > request.form['corte_fecha']]
+        df_serie = df_agrupado[df_agrupado['Fecha'] <= request.form['corte_fecha']]
+
+        df_serie = df_serie.sort_values('Fecha')
+        df_futuro = df_futuro.sort_values('Fecha')
+
+        SEQ_LENGTH = 24
+        EPOCHS = 30
+        NEURONAS = 50
+
+        def create_sequences(data, seq_length):
+            xs, ys = [], []
+            for i in range(len(data) - seq_length):
+                x = data[i:i+seq_length]
+                y = data[i+seq_length]
+                xs.append(x)
+                ys.append(y)
+            return np.array(xs), np.array(ys)
+
+        X, y = create_sequences(df_serie['conteo'].values, SEQ_LENGTH)
+        split = int(0.7 * len(X))
+        X_train, X_test = X[:split], X[split:]
+        y_train, y_test = y[:split], y[split:]
+        X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+
+        model = Sequential()
+        model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,)))
+        model.add(Dropout(0.2))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse')
+        history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
+        y_pred = model.predict(X_test)
+        errors = y_test - y_pred.flatten()
+        std_error = np.std(errors)
+        confidence_interval_90 = 1.96 * std_error
+
+        n_months = 12
+        last_sequence = df_serie['conteo'].values[-SEQ_LENGTH:]
+        future_predictions = []
+        future_confidences = []
+        for _ in range(n_months):
+            input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
+            next_pred = model.predict(input_seq)
+            future_predictions.append(next_pred[0, 0])
+            future_confidences.append(confidence_interval_90)
+            last_sequence = np.append(last_sequence[1:], next_pred)
+
+        last_date = df_serie['Fecha'].iloc[-1]
+        future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
+        future_df = pd.DataFrame({
+            'Fecha': future_dates,
+            'Frecuencia_Predicha_conteo': future_predictions,
+            'Limite_Superior_conteo': np.array(future_predictions) + np.array(future_confidences),
+            'Limite_Inferior_conteo': np.array(future_predictions) - np.array(future_confidences)
+        })
+
+        historical_window = 24
+        ventana_total = df_serie['conteo'].tail(historical_window)
+        Q1 = ventana_total.quantile(0.25)
+        Q3 = ventana_total.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1 * IQR
+        upper_bound = Q3 + 1 * IQR
+        filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
+        historical_mean = filtered_data.mean()
+        historical_std = filtered_data.std()
+        future_df['promedioUlt24meses_conteo'] = historical_mean
+
+        threshold0 = historical_mean - 0.524 * historical_std
+        threshold1 = historical_mean + 0.524 * historical_std
+        threshold2 = historical_mean + 1.645 * historical_std
+        future_df['UmbralMin_conteo'] = threshold0
+        future_df['UmbralMax_conteo'] = threshold1
+
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        future_df.to_excel(writer, sheet_name='Predicciones_conteo', index=False)
+        writer.save()
+        output.seek(0)
+
+        return send_file(output, attachment_filename='predicciones_series.xlsx', as_attachment=True)
+
+    if __name__ == '__main__':
+        app.run(debug=True)
+    ```
+
+Este código te permite agregar una tabla con las predicciones junto a la gráfica en `resultados.html` y un botón para descargar esa tabla en formato Excel. Además, actualiza el archivo `app.py` para manejar la descarga del archivo Excel generado.
