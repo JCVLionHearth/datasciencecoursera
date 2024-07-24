@@ -1,3 +1,11 @@
+    # Gráfico de percentiles
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x=np.arange(0, 101), y=percentiles)
+    plt.title('Percentiles del % LRC')
+    plt.xlabel('Percentiles')
+    plt.ylabel('% LRC')
+    plt.axhline(y=percentil_90,color='red')
+
 \lrc_env\Lib\site-packages\scipy\stats\_distn_infrastructure.py", line 1096, in rvs  
     raise ValueError(message)
 ValueError: Domain error in arguments. The `scale` parameter must be positive for all distributions, and many distributions have restrictions on shape parameters. Please see the `scipy.stats.triang` documentation for details.
