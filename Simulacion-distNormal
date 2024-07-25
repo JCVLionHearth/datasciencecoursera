@@ -1,0 +1,37 @@
+import numpy as np
+
+# Número de simulaciones
+n_sim = 10000
+
+# Datos esperados
+P_esp = 0.5  # Probabilidad esperada
+I_esp = 200  # Impacto esperado
+Frecuencia = 1.2
+
+# Suposiciones sobre las desviaciones estándar
+std_prob = 0.1 * P_esp  # Asumimos un 10% de la probabilidad esperada
+std_impact = 0.2 * I_esp  # Asumimos un 20% del impacto esperado
+
+def normal_simulation(P_esp, std_prob, I_esp, std_impact, Frecuencia, n_sim):
+    # Generar muestras aleatorias para probabilidades e impactos
+    prob_sim = np.random.normal(P_esp, std_prob, n_sim)
+    impact_sim = np.random.normal(I_esp * Frecuencia, std_impact * Frecuencia, n_sim)
+    
+    # Asegurarse de que las probabilidades estén en el rango [0, 1]
+    prob_sim = np.clip(prob_sim, 0, 1)
+    
+    return prob_sim * impact_sim
+
+# Realizar la simulación
+resultados = normal_simulation(P_esp, std_prob, I_esp, std_impact, Frecuencia, n_sim)
+
+# Calcular estadísticas de los resultados
+mean_result = np.mean(resultados)
+std_result = np.std(resultados)
+percentiles_result = np.percentile(resultados, [10, 50, 90])
+
+print(f"Media del impacto total: {mean_result}")
+print(f"Desviación estándar del impacto total: {std_result}")
+print(f"Percentil 10 del impacto total: {percentiles_result[0]}")
+print(f"Percentil 50 del impacto total: {percentiles_result[1]}")
+print(f"Percentil 90 del impacto total: {percentiles_result[2]}")
