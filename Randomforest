@@ -1,0 +1,134 @@
+Entendido, podemos cambiar la perspectiva y usar otro modelo que sea menos sensible a valores extremos o que ofrezca más flexibilidad en cuanto a los tipos de datos que puede manejar. 
+
+Vamos a intentar usar un modelo de regresión de árboles de decisión (`DecisionTreeRegressor`) y un modelo de bosque aleatorio (`RandomForestRegressor`). Estos modelos son robustos frente a datos con valores atípicos y no requieren la misma cantidad de preprocesamiento que los modelos GLM.
+
+### Código Modificado usando `DecisionTreeRegressor` y `RandomForestRegressor`
+
+```python
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Selección de archivo Excel
+ubicacion = "C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Proyectos Analitica/Perdida_Esperada_Entorno/Datos/PERDIDAS_PROYECTOS2.xlsx"
+datos = pd.read_excel(ubicacion)
+
+# Reemplazar valores NaN en campos específicos de texto con 'otros'
+columnas_texto = ['Tipo_Afectacion_Agrupada', 'GERENCIA_H', 'Tipo_Actividad_H', 'Temática_Agrupada']
+datos[columnas_texto] = datos[columnas_texto].fillna('otros')
+
+# Reemplazar otros valores NaN con 0 (u otro valor específico para variables numéricas)
+datos.fillna(0, inplace=True)  # Puedes cambiar 0 por cualquier valor que prefieras
+
+# Categorización de variables
+otras_actividades = ["MOVILIZACION", "NO_DEFINIDA", "COMISIONAMIENTO", "WORKOVER"]
+datos['Tipo_Actividad_H'] = np.where(datos['Tipo_Actividad_H'].isin(otras_actividades), "Otras_actividades", datos['Tipo_Actividad_H'])
+
+# Filtrado de datos
+datos_filtrados = datos[(datos['WIP_AFECTACION'] > 0) & (datos['Tipo_Actividad_H'] != "ABANDONO_POZO")]
+
+# Modelo Predictivo de Pérdida
+X = datos_filtrados[['Tipo_Afectacion_Agrupada', 'GERENCIA_H', 'Tipo_Actividad_H', 'Temática_Agrupada']]
+y = datos_filtrados['WIP_AFECTACION']
+
+# Binarización de variables categóricas
+encoder = OneHotEncoder(drop='first')
+X_encoded = encoder.fit_transform(X)
+
+# División del conjunto de datos
+X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.3, random_state=123)
+
+# Verificación de valores NaN o infinitos
+if np.any(np.isnan(X_train.toarray())) or np.any(np.isnan(y_train)):
+    print("Hay valores NaN en los datos de entrenamiento")
+if np.any(np.isinf(X_train.toarray())) or np.any(np.isinf(y_train)):
+    print("Hay valores infinitos en los datos de entrenamiento")
+
+# Ajuste del modelo DecisionTreeRegressor
+modelo_arbol = DecisionTreeRegressor(random_state=12345)
+modelo_arbol.fit(X_train.toarray(), y_train)
+
+# Ajuste del modelo RandomForestRegressor
+modelo_bosque = RandomForestRegressor(random_state=12345)
+modelo_bosque.fit(X_train.toarray(), y_train)
+
+# Predicciones
+y_pred_arbol = modelo_arbol.predict(X_test.toarray())
+y_pred_bosque = modelo_bosque.predict(X_test.toarray())
+
+# Resumen de métricas
+resumen_test = y_test.describe()
+resumen_prediccion_arbol = pd.Series(y_pred_arbol).describe()
+resumen_prediccion_bosque = pd.Series(y_pred_bosque).describe()
+
+summary_df = pd.DataFrame({
+    "Métrica": ["Afectación (Real)", "Predicción Árbol", "Predicción Bosque"],
+    "Mínimo": [resumen_test['min'], resumen_prediccion_arbol['min'], resumen_prediccion_bosque['min']],
+    "Primer Cuartil": [resumen_test['25%'], resumen_prediccion_arbol['25%'], resumen_prediccion_bosque['25%']],
+    "Mediana": [resumen_test['50%'], resumen_prediccion_arbol['50%'], resumen_prediccion_bosque['50%']],
+    "Media": [resumen_test['mean'], resumen_prediccion_arbol['mean'], resumen_prediccion_bosque['mean']],
+    "Tercer Cuartil": [resumen_test['75%'], resumen_prediccion_arbol['75%'], resumen_prediccion_bosque['75%']],
+    "Máximo": [resumen_test['max'], resumen_prediccion_arbol['max'], resumen_prediccion_bosque['max']]
+})
+
+# Cálculo de algunas métricas
+mse_arbol = mean_squared_error(y_test, y_pred_arbol)
+r2_arbol = r2_score(y_test, y_pred_arbol)
+mae_arbol = mean_absolute_error(y_test, y_pred_arbol)
+
+mse_bosque = mean_squared_error(y_test, y_pred_bosque)
+r2_bosque = r2_score(y_test, y_pred_bosque)
+mae_bosque = mean_absolute_error(y_test, y_pred_bosque)
+
+# Resumen
+print(summary_df)
+print(f"MSE Árbol: {mse_arbol}")
+print(f"R² Árbol: {r2_arbol}")
+print(f"MAE Árbol: {mae_arbol}")
+
+print(f"MSE Bosque: {mse_bosque}")
+print(f"R² Bosque: {r2_bosque}")
+print(f"MAE Bosque: {mae_bosque}")
+
+# Ejemplo para la estimación de la predicción
+datos_prediccion = pd.DataFrame({
+    "GERENCIA_H": ["GRI", "GRI", "GRI", "GMA", "GRB", "GRI"],
+    "Tipo_Afectacion_Agrupada": ["Bloqueo", "Cese", "Cese", "Bloqueo", "Mitin", "Bloqueo"],
+    "Temática_Agrupada": ["Asuntos_Sindicales", "Bienes_Servicios", "Mano_Obra_Local", "Gestion_Contractual", "Daños_a_Terceros", "Mano_Obra_Local"],
+    "Tipo_Actividad_H": ["PERFORACION", "OBRAS", "Otras_actividades", "OBRAS", "Otras_actividades", "OBRAS"]
+})
+
+# Reemplazar valores NaN en campos de texto con 'otros'
+datos_prediccion[columnas_texto] = datos_prediccion[columnas_texto].fillna('otros')
+
+# Binarización de variables categóricas en datos de predicción
+datos_para_pred = encoder.transform(datos_prediccion)
+predicciones_arbol = modelo_arbol.predict(datos_para_pred.toarray())
+predicciones_bosque = modelo_bosque.predict(datos_para_pred.toarray())
+
+datos_prediccion['Pérdida_Esperada_Árbol'] = predicciones_arbol
+datos_prediccion['Pérdida_Esperada_Bosque'] = predicciones_bosque
+
+print(datos_prediccion)
+```
+
+### Explicación de los Cambios
+
+1. **Modelos de Árbol de Decisión y Bosque Aleatorio**:
+   - Se utiliza `DecisionTreeRegressor` y `RandomForestRegressor` en lugar de `GLM`.
+   - Estos modelos son más robustos frente a valores atípicos y pueden manejar diferentes tipos de datos sin requerir tanto preprocesamiento.
+
+2. **Cálculo de métricas**:
+   - Se calculan el MSE, R² y MAE para evaluar el rendimiento de los modelos.
+
+3. **Predicciones en nuevos datos**:
+   - Se hacen predicciones usando los modelos ajustados y se agregan las predicciones al DataFrame de nuevos datos.
+
+4. **Verificación de valores NaN o infinitos**:
+   - Se incluye una verificación adicional para asegurar que no hay valores `NaN` o infinitos en los datos antes de ajustar los modelos.
