@@ -1,3 +1,75 @@
+Para resolver el problema de texto que se corta y sobresale del margen inferior, podemos revisar la lógica de paginación y manejo del texto en el documento PDF. Asegurémonos de que cuando se detecta que el texto está cerca del margen inferior, se cree una nueva página y el texto continúe correctamente desde el punto en que se quedó.
+
+Vamos a utilizar `reportlab.platypus` que ofrece mejores herramientas para manejar flujos de texto y paginación. Con `Paragraph` y `SimpleDocTemplate`, podemos manejar mejor los saltos de página y los márgenes.
+
+Aquí tienes una versión mejorada utilizando `reportlab.platypus`:
+
+```python
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.lib.units import inch
+import datetime
+import re
+from flask import Flask, send_file
+
+app = Flask(__name__)
+
+chat_history = [("User1", "Este es un mensaje muy largo que puede necesitar ser dividido en múltiples líneas en el PDF para asegurarse de que no se corta y se muestra correctamente." * 5)]
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=50, leftMargin=50,
+                            topMargin=50, bottomMargin=50)
+
+    Story = []
+    styles = getSampleStyleSheet()
+    style = styles["Normal"]
+
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"{sender}: {clean_message}"
+        p = Paragraph(text, style)
+        Story.append(p)
+        Story.append(Spacer(1, 12))  # Espacio entre mensajes
+
+    # Añadir encabezado y pie de página personalizado
+    def header_footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 12)
+        header_text = "Historia del Chat"
+        date_text = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        page_text = f"Página {doc.page}"
+
+        canvas.drawString(50, 770, header_text)
+        canvas.drawString(450, 770, date_text)
+        canvas.setFont("Helvetica", 10)
+        canvas.drawString(50, 30, page_text)
+        canvas.restoreState()
+
+    doc.build(Story, onFirstPage=header_footer, onLaterPages=header_footer)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### Desglose de la solución:
+1. **Uso de `SimpleDocTemplate`:** Esto permite manejar mejor la creación de documentos con múltiples páginas.
+2. **Manejo de texto con `Paragraph` y `Spacer`:** `Paragraph` se encarga de la distribución de texto, mientras que `Spacer` añade espacio entre los mensajes.
+3. **Encabezado y pie de página:** La función `header_footer` agrega un encabezado y un pie de página personalizado en cada página.
+
+Esta solución debe garantizar que el texto no se corte y que los márgenes se respeten correctamente en el PDF generado.
+
 Para asegurar que el texto se maneje correctamente cuando llega al final de la página y respetar el margen inferior, debemos ajustar la lógica que maneja la inserción del texto y la creación de nuevas páginas.
 
 Aquí tienes una versión corregida y detallada:
