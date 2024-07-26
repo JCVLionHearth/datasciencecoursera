@@ -1,3 +1,108 @@
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+import datetime
+import re
+from flask import Flask, send_file
+
+app = Flask(__name__)
+
+chat_history = [("User1", "Este es un mensaje muy largo que puede necesitar ser dividido en múltiples líneas en el PDF para asegurarse de que no se corta y se muestra correctamente." * 5)]
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=50, leftMargin=50,
+                            topMargin=80, bottomMargin=50)  # Márgenes ajustados
+
+    Story = []
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    normal_style = styles["Normal"]
+    company_style = ParagraphStyle(
+        'CompanyStyle',
+        parent=normal_style,
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        leading=18,
+        textColor="#4B4B4B",
+        spaceAfter=10,
+    )
+    
+    message_style = ParagraphStyle(
+        'MessageStyle',
+        parent=normal_style,
+        fontName='Helvetica',
+        fontSize=12,
+        leading=14,
+        textColor="#333333",
+        spaceAfter=12,
+    )
+
+    disclaimer_style = ParagraphStyle(
+        'DisclaimerStyle',
+        parent=normal_style,
+        fontName='Helvetica-Oblique',
+        fontSize=10,
+        leading=12,
+        textColor="#777777",
+        spaceAfter=20,
+    )
+
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+
+    # Encabezado con logo y detalles de la compañía
+    company_logo = "static/images/logo.png"  # Ruta al logo de la empresa
+    if company_logo:
+        im = Image(company_logo, 2*inch, 2*inch)
+        Story.append(im)
+    
+    company_info = Paragraph("Nombre de la Empresa<br/>Dirección de la Empresa<br/>Teléfono: (123) 456-7890<br/>Email: contacto@empresa.com", company_style)
+    Story.append(company_info)
+    Story.append(Spacer(1, 12))
+
+    # Añadir el disclaimer
+    disclaimer_text = "Las respuestas dadas por el bot son orientativas frente a aspectos comúnmente consultados. Para una respuesta con mayor detalle a un caso específico, consulte a través de la línea ética."
+    disclaimer = Paragraph(disclaimer_text, disclaimer_style)
+    Story.append(disclaimer)
+    Story.append(Spacer(1, 20))
+
+    # Añadir los mensajes del chat
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"<b>{sender}:</b> {clean_message}"
+        p = Paragraph(text, message_style)
+        Story.append(p)
+
+    # Añadir pie de página personalizado
+    def header_footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 12)
+        header_text = "Historia del Chat"
+        date_text = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        page_text = f"Página {doc.page}"
+
+        canvas.drawString(50, 750, header_text)
+        canvas.drawString(450, 750, date_text)
+        canvas.setFont("Helvetica", 10)
+        canvas.drawString(50, 30, page_text)
+        canvas.drawString(50, 15, "Confidencial - Solo para uso interno")
+        canvas.restoreState()
+
+    doc.build(Story, onFirstPage=header_footer, onLaterPages=header_footer)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 Para darle más personalidad y profesionalismo a tu documento PDF, puedes considerar varios aspectos:
 
 1. **Diseño del encabezado y pie de página:** Añadir logos, información de la empresa, y estilizar el texto.
