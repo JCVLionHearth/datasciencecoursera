@@ -1,0 +1,210 @@
+Para lograr que el modal de personalización incluya los campos para nombre y correo y que estos se guarden en la base de datos, necesitas hacer algunos cambios en tu aplicación. A continuación, te indico los pasos necesarios:
+
+1. **Modifica el modelo de `Interaction` para incluir el campo de correo:**
+
+    ```python
+    class Interaction(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        username = db.Column(db.String(100), nullable=False)
+        user_input = db.Column(db.String(500), nullable=False)
+        email = db.Column(db.String(100), nullable=True)  # Añade el campo de correo
+        timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+        def __repr__(self):
+            return f'<Interaction {self.username} - {self.user_input}>'
+    ```
+
+2. **Actualiza la función `save_interaction` para incluir el correo:**
+
+    ```python
+    def save_interaction(username, user_input, email=None):
+        if username is None:
+            username = 'Unknown'
+        interaction = Interaction(username=username, user_input=user_input, email=email)
+        db.session.add(interaction)
+        db.session.commit()
+    ```
+
+3. **Modifica la ruta `/get` para recibir el correo:**
+
+    ```python
+    @app.route("/get")
+    def get_bot_response_endpoint():
+        user_text = request.args.get('msg')
+        user_name = request.args.get('user', 'Unknown')
+        user_email = request.args.get('email', '')  # Recibe el correo
+        chat_history.append(('User', user_text))
+        return jsonify(get_bot_response(user_text, user_name, user_email))
+    ```
+
+4. **Actualiza la función `get_bot_response` para pasar el correo:**
+
+    ```python
+    def get_bot_response(user_input, user_name, user_email):
+        global chat_history
+        normalized_input = normalize_text(user_input)
+        
+        if greeting_patterns.search(normalized_input):
+            initial_greeting = (f"😊Hola!!, con ¿Cuál opción puedo ayudarte? "
+                                "<button class='option-button' onclick=\"sendMessage('Tengo una consulta')\">Consulta</button>"
+                                "<button class='option-button' onclick=\"sendMessage('Tengo un dilema')\">Dilema</button>"
+                                "<button class='option-button' onclick=\"sendMessage('Quiero consultar la normativa')\">Normativas</button>"
+                                "<button class='option-button' onclick=\"sendMessage('Quiero recordar algunas definiciones')\">Definiciones</button>"
+                                "<button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>")
+            chat_history.append(('Bot', initial_greeting))
+            save_interaction(user_name, user_input, user_email)
+            return initial_greeting
+        
+        if farewell_patterns.search(normalized_input):
+            farewell_message = "Fue un gusto servirte!!👍, ¡que tengas un buen día! Si necesitas más ayuda, estaré aquí para asistirte.👨‍💻 <br> Para más información consulta La 💻<a href='https://ecopetrol.sharepoint.com/sites/emasdigital/Paginas/L%C3%ADnea-%C3%A9tica.aspx' target='_blank'>Línea Ética<a>"
+            chat_history.append(('Bot', farewell_message))
+            save_interaction(user_name, user_input, user_email)
+            return farewell_message
+
+        if normalized_input == 'si':
+            response = get_initial_greeting(user_name)
+            save_interaction(user_name, user_input, user_email)
+            return response
+        if normalized_input == 'no':
+            response = get_farewell_message()
+            save_interaction(user_name, user_input, user_email)
+            return response
+
+        for intent in intents['intents']:
+            if normalized_input == normalize_text(intent['tag']):
+                responses = intent.get('responses', [])
+                if responses:
+                    response = responses[0]
+                else:
+                    response = ""
+                
+                options = intent.get('options', [])
+                if options:
+                    response += "<br><br>👨‍🏫Encontré estas opciones: " + "".join(
+                        f'<button class="option-button" onclick="sendMessage(\'{opt}\')">{opt}</button>' for opt in options)
+                else:
+                    response += "<br><br> ¿Puedo ayudarte con algo más? " \
+                                "<br><button class='option-button green' onclick=\"sendMessage('SI')\">SI</button> " \
+                                "<button class='option-button green' onclick=\"sendMessage('NO')\">NO</button>"
+                chat_history.append(('Bot', response))
+                save_interaction(user_name, user_input, user_email)
+                return response
+
+        response = "Lo siento, No te entiendo. 😅"
+        chat_history.append(('Bot', response))
+        save_interaction(user_name, user_input, user_email)
+        return response
+    ```
+
+5. **Actualiza el archivo `index.html` para incluir el campo de correo en el modal y enviarlo con las peticiones:**
+
+    ```html
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Personaliza tu experiencia</h2>
+            <label for="userName">Nombre:</label>
+            <input type="text" id="userName">
+            <label for="userEmail">Correo:</label>
+            <input type="email" id="userEmail">
+            <label for="userAvatar">Selecciona un avatar:</label>
+            <div id="avatarSelection">
+                <i class="fas fa-user-circle avatar-option" onclick="selectAvatar('fa-user-circle')"></i>
+                <i class="fas fa-user-ninja avatar-option" onclick="selectAvatar('fa-user-ninja')"></i>
+                <i class="fas fa-user-astronaut avatar-option" onclick="selectAvatar('fa-user-astronaut')"></i>
+                <i class="fas fa-user-tie avatar-option" onclick="selectAvatar('fa-user-tie')"></i>
+                <i class="fas fa-user-secret avatar-option" onclick="selectAvatar('fa-user-secret')"></i>
+                <i class="fas fa-mars avatar-option" onclick="selectAvatar('fa-mars')"></i>
+                <i class="fas fa-venus avatar-option" onclick="selectAvatar('fa-venus')"></i>
+            </div>
+            <div>
+                <p><i>Las respuestas dadas por el bot son orientativas frente a aspectos comúnmente consultados. 
+                    Para una respuesta con mayor detalle a un caso específico, consulte a través de la línea ética.</i></p>
+            </div>
+            <button onclick="saveSettings()">Guardar</button>
+        </div>
+    </div>
+
+    <script>
+        var userName = localStorage.getItem('userName') || 'User';
+        var userEmail = localStorage.getItem('userEmail') || '';
+        var userAvatar = 'fa-user-circle';
+
+        function appendMessage(role, message) {
+            var messageClass = role === 'User' ? 'user-message' : 'bot-message';
+            var avatarClass = role === 'User' ? userAvatar : 'fa-robot';
+            $("#chatlog").append('<div class="' + messageClass + '"><i class="fas ' + avatarClass + '"></i> <span>' + message + '</span></div>');
+            $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+        }
+
+        function displayTypingIndicator() {
+            $("#typingIndicator").show();
+            $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+        }
+
+        function hideTypingIndicator() {
+            $("#typingIndicator").hide();
+        }
+
+        function sendMessage(userInput = null) {
+            if (!userInput) {
+                userInput = $("#userInput").val();
+            }
+            appendMessage('User', userInput);
+            $("#userInput").val('');
+            displayTypingIndicator();
+            setTimeout(function() {
+                $.get("/get", { msg: userInput, user: userName, email: userEmail }).done(function(data) {
+                    hideTypingIndicator();
+                    appendMessage('Bot', data);
+                });
+            }, 1000);  // Delay de 1 segundo para simular que el bot está escribiendo
+        }
+
+        function downloadChat() {
+            window.location.href = "/download";
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function selectAvatar(avatarClass) {
+            userAvatar = avatarClass;
+            $('.avatar-option').removeClass('selected');
+            $("." + avatarClass).addClass('selected');
+        }
+
+        function saveSettings() {
+            userName = $("#userName").val() || 'Usuario';
+            userEmail = $("#userEmail").val() || '';
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userEmail', userEmail);
+            closeSettings();
+            var initialGreeting = `Hola ${userName}, soy <b>Ethos</b> tu asistente Virtual de consultas y dilemas 👨‍💻. ¿En qué puedo ayudarte? 
+            <button class='option-button' onclick="sendMessage('Tengo una consulta')">Tengo una Consulta</button> 
+            <button class='option-button' onclick="sendMessage('Tengo un dilema')">Tengo un Dilema</button> 
+            <button class='option-button' onclick=\"sendMessage('Quiero consultar la normativa')\">Quiero consultar la normativa</button> 
+            <button class='option-button'
+
+ onclick=\"sendMessage('Quiero recordar algunas definiciones')\">Quiero recordar algunas definiciones</button> 
+            <button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>`;
+            appendMessage('Bot', initialGreeting);
+        }
+
+        $(document).ready(function() {
+            var initialGreeting = `Hola ${userName}, soy <b>Ethos</b> tu asistente Virtual de consultas y dilemas 👨‍💻. ¿En qué puedo ayudarte? 
+            <button class='option-button' onclick="sendMessage('Tengo una consulta')">Tengo una Consulta</button> 
+            <button class='option-button' onclick="sendMessage('Tengo un dilema')">Tengo un Dilema</button> 
+            <button class='option-button' onclick=\"sendMessage('Quiero consultar la normativa')\">Quiero consultar la normativa</button> 
+            <button class='option-button' onclick=\"sendMessage('Quiero recordar algunas definiciones')\">Quiero recordar algunas definiciones</button> 
+            <button class='option-button' onclick=\"sendMessage('Con quienes me puedo contactar')\">Contactos</button>`;
+            appendMessage('Bot', initialGreeting);
+        });
+    </script>
+    ```
+
+Con estos cambios, tu aplicación estará lista para recibir y guardar el correo electrónico del usuario, además de su nombre. Si tienes alguna duda o necesitas más ayuda con estos cambios, házmelo saber.
