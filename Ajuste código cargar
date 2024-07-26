@@ -1,0 +1,180 @@
+Para implementar la lógica que mencionas, necesitarás realizar los siguientes pasos:
+
+1. **Guardar el archivo cargado y sus datos de validación en una sesión** para poder validarlos más adelante.
+2. **Crear rutas y formularios en Flask** para manejar la carga del archivo y la entrada de los parámetros de simulación.
+3. **Validar la compatibilidad del archivo** con la distribución seleccionada antes de ejecutar la simulación.
+
+A continuación te muestro cómo puedes implementar esto:
+
+1. **Actualizar el archivo `app.py` para manejar la carga del archivo y la simulación**:
+
+```python
+import os
+import numpy as np
+import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+
+app = Flask(__name__)
+app.secret_key = 'supersecretkey'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+def validar_archivo_normal(df):
+    required_columns = {'mean', 'std_dev'}
+    return required_columns.issubset(df.columns)
+
+def validar_archivo_triangular(df):
+    required_columns = {'left', 'mode', 'right'}
+    return required_columns.issubset(df.columns)
+
+def montecarlo_normal(seed, num_simulations, mean, std_dev):
+    np.random.seed(seed)
+    simulations = np.random.normal(mean, std_dev, num_simulations)
+    return simulations
+
+def montecarlo_triangular(seed, num_simulations, left, mode, right):
+    np.random.seed(seed)
+    simulations = np.random.triangular(left, mode, right, num_simulations)
+    return simulations
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    
+    if not file:
+        flash('No file selected')
+        return redirect(url_for('index'))
+    
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
+    df = pd.read_excel(filepath)
+    
+    session['filepath'] = filepath
+    session['file_columns'] = list(df.columns)
+    
+    flash('File uploaded successfully')
+    return redirect(url_for('parameters'))
+
+@app.route('/parameters')
+def parameters():
+    return render_template('parameters.html')
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    distribution = request.form['distribution']
+    seed = int(request.form['seed'])
+    num_simulations = int(request.form['num_simulations'])
+    
+    if 'filepath' not in session:
+        flash('No file uploaded')
+        return redirect(url_for('index'))
+    
+    filepath = session['filepath']
+    df = pd.read_excel(filepath)
+    
+    if distribution == 'normal':
+        if not validar_archivo_normal(df):
+            flash('El archivo seleccionado no es válido para la distribución normal')
+            return redirect(url_for('parameters'))
+        mean = df['mean'][0]
+        std_dev = df['std_dev'][0]
+        result = montecarlo_normal(seed, num_simulations, mean, std_dev)
+    elif distribution == 'triangular':
+        if not validar_archivo_triangular(df):
+            flash('El archivo seleccionado no es válido para la distribución triangular')
+            return redirect(url_for('parameters'))
+        left = df['left'][0]
+        mode = df['mode'][0]
+        right = df['right'][0]
+        result = montecarlo_triangular(seed, num_simulations, left, mode, right)
+    else:
+        flash('Distribución no válida')
+        return redirect(url_for('parameters'))
+    
+    # Guardar los resultados en un archivo Excel
+    df_result = pd.DataFrame(result, columns=['Simulación'])
+    df_result.to_excel('resultados.xlsx', index=False)
+    
+    flash('Simulaciones completadas. Resultados guardados en "resultados.xlsx"')
+    return redirect(url_for('parameters'))
+
+if __name__ == '__main__':
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+    app.run(debug=True)
+```
+
+2. **Crear las plantillas HTML para index.html y parameters.html**:
+
+**index.html**:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Montecarlo Simulations - Upload File</title>
+</head>
+<body>
+    <h1>Upload your file</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Select file:</label><br>
+        <input type="file" id="file" name="file" accept=".xlsx" required><br><br>
+        <input type="submit" value="Upload File">
+    </form>
+</body>
+</html>
+```
+
+**parameters.html**:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Montecarlo Simulations - Parameters</title>
+</head>
+<body>
+    <h1>Enter Simulation Parameters</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="/simulate" method="post">
+        <label for="distribution">Choose a distribution:</label><br>
+        <input type="radio" id="normal" name="distribution" value="normal" required>
+        <label for="normal">Normal</label><br>
+        <input type="radio" id="triangular" name="distribution" value="triangular">
+        <label for="triangular">Triangular</label><br><br>
+
+        <label for="seed">Seed:</label><br>
+        <input type="number" id="seed" name="seed" required><br><br>
+
+        <label for="num_simulations">Number of simulations:</label><br>
+        <input type="number" id="num_simulations" name="num_simulations" required><br><br>
+
+        <input type="submit" value="Run Simulation">
+    </form>
+</body>
+</html>
+```
+
+Con esta estructura, el usuario primero carga el archivo en la página `index.html`. Luego, es redirigido a la página `parameters.html` donde selecciona la distribución y otros parámetros. Antes de ejecutar la simulación, el archivo cargado se valida para asegurar que es compatible con la distribución seleccionada. Si no lo es, se muestra un mensaje de error y se permite al usuario corregir su elección.
