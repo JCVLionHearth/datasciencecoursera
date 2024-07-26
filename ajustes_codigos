@@ -1,3 +1,85 @@
+Para resolver el problema del texto cortado y añadir márgenes, pies de página y encabezados, puedes mejorar tu función de la siguiente manera:
+
+1. **Márgenes:** Ajustar los márgenes del documento.
+2. **Paginación:** Asegurarse de que el texto que no cabe en una página se continúe en la siguiente.
+3. **Encabezado y pie de página:** Añadir encabezado y pie de página personalizados.
+
+Aquí tienes una versión mejorada:
+
+```python
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import utils
+from reportlab.pdfgen import canvas
+import datetime
+import re
+from flask import send_file
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Definir márgenes
+    margin_left = 50
+    margin_right = 50
+    margin_top = 50
+    margin_bottom = 50
+    max_width = width - margin_left - margin_right
+
+    # Definir funciones para encabezado y pie de página
+    def draw_header_footer(canvas, doc):
+        canvas.setFont("Helvetica", 12)
+        canvas.drawString(margin_left, height - margin_top + 10, "Historia del Chat")
+        canvas.drawString(width - margin_right - 100, height - margin_top + 10, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        canvas.setFont("Helvetica", 10)
+        canvas.drawString(margin_left, margin_bottom - 30, f"Página {doc.page}")
+
+    # Iniciar la primera página
+    draw_header_footer(c, c)
+    y = height - margin_top - 20
+    c.setFont("Helvetica", 12)
+    
+    def draw_text(text_object, text, max_width):
+        lines = utils.simpleSplit(text, text_object._fontname, text_object._fontsize, max_width)
+        for line in lines:
+            if text_object.getY() < margin_bottom:
+                c.drawText(text_object)
+                c.showPage()
+                draw_header_footer(c, c)
+                text_object = c.beginText(margin_left, height - margin_top - 20)
+                text_object.setFont("Helvetica", 12)
+            text_object.textLine(line)
+        return text_object
+
+    text_object = c.beginText(margin_left, y)
+    text_object.setFont("Helvetica", 12)
+
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"{sender}: {clean_message}"
+        text_object = draw_text(text_object, text, max_width)
+        text_object.moveCursor(0, 14)
+
+    c.drawText(text_object)
+    c.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+```
+
+### Desglose de la solución:
+1. **Márgenes:** He definido márgenes ajustables (`margin_left`, `margin_right`, `margin_top`, `margin_bottom`) para controlar la posición del texto en la página.
+2. **Paginación:** La función `draw_text` ahora verifica si el cursor está cerca del margen inferior y, si es así, crea una nueva página y continúa el texto.
+3. **Encabezado y pie de página:** La función `draw_header_footer` añade un encabezado y un pie de página personalizados en cada página.
+
+Con estas modificaciones, el PDF debería gestionar correctamente los textos largos y mantener un formato coherente y estilizado en todas las páginas.
+
 @app.route('/download')
 def download_chat():
     global chat_history
