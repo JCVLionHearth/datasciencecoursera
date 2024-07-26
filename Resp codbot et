@@ -1,3 +1,104 @@
+Sí, es posible obtener información del usuario autenticado en un entorno de intranet corporativo, especialmente si estás utilizando un directorio activo (Active Directory, AD). 
+
+Para obtener el correo electrónico del usuario autenticado sin que tengan que ingresarlo manualmente, puedes usar integraciones con servicios de autenticación y directorio como LDAP (Lightweight Directory Access Protocol) en tu aplicación Flask.
+
+A continuación te doy una idea general de cómo podrías implementar esto:
+
+### Paso 1: Configurar Flask-LDAP3-Login
+
+Primero, necesitas instalar la extensión `flask-ldap3-login`:
+
+```bash
+pip install flask-ldap3-login
+```
+
+### Paso 2: Configurar tu aplicación Flask para usar LDAP
+
+Debes configurar tu aplicación Flask para conectarse a tu servidor LDAP. Aquí hay un ejemplo básico:
+
+```python
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from flask_ldap3_login import LDAP3LoginManager, AuthenticationResponseStatus
+from werkzeug.security import generate_password_hash, check_password_hash
+import json
+import datetime
+import re
+import unicodedata
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+
+# Configuración de la base de datos
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///interactions.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# Configuración de LDAP
+app.config['LDAP_HOST'] = 'ldap://your_ldap_server'
+app.config['LDAP_BASE_DN'] = 'dc=your_domain,dc=com'
+app.config['LDAP_USER_DN'] = 'ou=users'
+app.config['LDAP_GROUP_DN'] = 'ou=groups'
+app.config['LDAP_USER_RDN_ATTR'] = 'cn'
+app.config['LDAP_USER_LOGIN_ATTR'] = 'sAMAccountName'
+app.config['LDAP_BIND_USER_DN'] = None
+app.config['LDAP_BIND_USER_PASSWORD'] = None
+
+ldap_manager = LDAP3LoginManager(app)
+
+# Definición del modelo de interacción
+class Interaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    user_input = db.Column(db.String(500), nullable=False)
+    email = db.Column(db.String(150), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Interaction {self.username} - {self.user_input}>'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/get')
+def get_bot_response_endpoint():
+    user_text = request.args.get('msg')
+    user_name = current_user.username if current_user.is_authenticated else 'Unknown'
+    email = current_user.email if current_user.is_authenticated else ''
+    return jsonify(get_bot_response(user_text, user_name, email))
+
+def get_bot_response(user_input, user_name, email):
+    # Tu lógica de respuesta del bot
+    save_interaction(user_name, user_input, email)
+    return "Respuesta del bot"
+
+def save_interaction(username, user_input, email):
+    interaction = Interaction(username=username, user_input=user_input, email=email)
+    db.session.add(interaction)
+    db.session.commit()
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### Paso 3: Autenticación del usuario
+
+Tendrás que autenticar al usuario usando su credencial de red al iniciar la sesión. En un entorno de intranet, esto normalmente se hace automáticamente a través de un Single Sign-On (SSO) o similar.
+
+### Paso 4: Obtener el correo electrónico del usuario autenticado
+
+Cuando el usuario esté autenticado, puedes obtener su información de usuario, incluyendo su correo electrónico, desde el AD y usar esta información en tu aplicación.
+
+Con esta configuración básica, cuando un usuario interactúe con tu aplicación, su información de autenticación (incluido su correo electrónico) se obtendrá automáticamente desde el servidor LDAP, y podrás almacenarla junto con sus interacciones en tu base de datos.
+
+Este es un esquema general. Dependiendo de tu entorno específico y tus requisitos, es posible que necesites ajustar la configuración y el código. Además, necesitarás permisos adecuados para acceder al servidor LDAP y obtener la información de usuario.
+
 Para lograr que el modal de personalización incluya los campos para nombre y correo y que estos se guarden en la base de datos, necesitas hacer algunos cambios en tu aplicación. A continuación, te indico los pasos necesarios:
 
 1. **Modifica el modelo de `Interaction` para incluir el campo de correo:**
