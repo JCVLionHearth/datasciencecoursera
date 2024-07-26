@@ -1,3 +1,89 @@
+Para asegurar que el texto se maneje correctamente cuando llega al final de la página y respetar el margen inferior, debemos ajustar la lógica que maneja la inserción del texto y la creación de nuevas páginas.
+
+Aquí tienes una versión corregida y detallada:
+
+```python
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import utils
+from reportlab.pdfgen import canvas
+import datetime
+import re
+from flask import Flask, send_file
+
+app = Flask(__name__)
+
+chat_history = [("User1", "Este es un mensaje muy largo que puede necesitar ser dividido en múltiples líneas en el PDF para asegurarse de que no se corta y se muestra correctamente." * 5)]
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Definir márgenes
+    margin_left = 50
+    margin_right = 50
+    margin_top = 50
+    margin_bottom = 50
+    max_width = width - margin_left - margin_right
+    page_count = 1
+
+    # Definir funciones para encabezado y pie de página
+    def draw_header_footer(canvas, page_count):
+        canvas.setFont("Helvetica", 12)
+        canvas.drawString(margin_left, height - margin_top + 10, "Historia del Chat")
+        canvas.drawString(width - margin_right - 100, height - margin_top + 10, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        canvas.setFont("Helvetica", 10)
+        canvas.drawString(margin_left, margin_bottom - 30, f"Página {page_count}")
+
+    # Iniciar la primera página
+    draw_header_footer(c, page_count)
+    y = height - margin_top - 20
+    c.setFont("Helvetica", 12)
+    
+    def draw_text(text_object, text, max_width, canvas, page_count):
+        lines = utils.simpleSplit(text, text_object._fontname, text_object._fontsize, max_width)
+        for line in lines:
+            if text_object.getY() < margin_bottom:
+                canvas.drawText(text_object)
+                canvas.showPage()
+                page_count += 1
+                draw_header_footer(canvas, page_count)
+                text_object = canvas.beginText(margin_left, height - margin_top - 20)
+                text_object.setFont("Helvetica", 12)
+            text_object.textLine(line)
+        return text_object, page_count
+
+    text_object = c.beginText(margin_left, y)
+    text_object.setFont("Helvetica", 12)
+
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"{sender}: {clean_message}"
+        text_object, page_count = draw_text(text_object, text, max_width, c, page_count)
+        text_object.moveCursor(0, 14)
+
+    c.drawText(text_object)
+    c.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### Cambios realizados:
+1. **Reinicio de `text_object` al cambiar de página:** Ahora la función `draw_text` devuelve `text_object` y `page_count`, permitiendo actualizar estos valores en cada iteración.
+2. **Márgenes:** Asegurarse de que el texto respete los márgenes definidos.
+
+Con estas modificaciones, el texto debería manejarse correctamente al final de la página y respetar el margen inferior.
+
 El error se debe a que el objeto `canvas.Canvas` de ReportLab no tiene el atributo `page`. Para solucionar esto, necesitamos mantener un contador de páginas manualmente.
 
 Aquí tienes la versión corregida del código:
