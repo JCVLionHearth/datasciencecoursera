@@ -1,3 +1,115 @@
+Para darle más personalidad y profesionalismo a tu documento PDF, puedes considerar varios aspectos:
+
+1. **Diseño del encabezado y pie de página:** Añadir logos, información de la empresa, y estilizar el texto.
+2. **Estilo de texto:** Usar diferentes estilos de párrafo, fuentes y colores.
+3. **Formato del contenido:** Organizar el contenido en secciones claras y añadir elementos visuales como líneas divisorias.
+4. **Marca de agua o fondo:** Añadir una marca de agua o un fondo que refleje la identidad de la compañía.
+
+A continuación, te presento un ejemplo de cómo puedes lograr esto utilizando `reportlab.platypus` y algunas de sus funcionalidades avanzadas:
+
+```python
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+import datetime
+import re
+from flask import Flask, send_file
+
+app = Flask(__name__)
+
+chat_history = [("User1", "Este es un mensaje muy largo que puede necesitar ser dividido en múltiples líneas en el PDF para asegurarse de que no se corta y se muestra correctamente." * 5)]
+
+@app.route('/download')
+def download_chat():
+    global chat_history
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=50, leftMargin=50,
+                            topMargin=80, bottomMargin=50)  # Márgenes ajustados
+
+    Story = []
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    normal_style = styles["Normal"]
+    company_style = ParagraphStyle(
+        'CompanyStyle',
+        parent=normal_style,
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        leading=18,
+        textColor="#4B4B4B",
+        spaceAfter=10,
+    )
+    
+    message_style = ParagraphStyle(
+        'MessageStyle',
+        parent=normal_style,
+        fontName='Helvetica',
+        fontSize=12,
+        leading=14,
+        textColor="#333333",
+        spaceAfter=12,
+    )
+
+    def clean_html(text):
+        clean = re.compile('<.*?>')
+        return re.sub(clean, ' / ', text)
+
+    # Encabezado con logo y detalles de la compañía
+    company_logo = "path_to_company_logo.png"  # Ruta al logo de la empresa
+    if company_logo:
+        im = Image(company_logo, 2*inch, 2*inch)
+        Story.append(im)
+    
+    company_info = Paragraph("Nombre de la Empresa<br/>Dirección de la Empresa<br/>Teléfono: (123) 456-7890<br/>Email: contacto@empresa.com", company_style)
+    Story.append(company_info)
+    Story.append(Spacer(1, 20))
+
+    # Añadir los mensajes del chat
+    for sender, message in chat_history:
+        clean_message = clean_html(message).replace('\n', ' ')
+        text = f"<b>{sender}:</b> {clean_message}"
+        p = Paragraph(text, message_style)
+        Story.append(p)
+
+    # Añadir pie de página personalizado
+    def header_footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 12)
+        header_text = "Historia del Chat"
+        date_text = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        page_text = f"Página {doc.page}"
+
+        canvas.drawString(50, 750, header_text)
+        canvas.drawString(450, 750, date_text)
+        canvas.setFont("Helvetica", 10)
+        canvas.drawString(50, 30, page_text)
+        canvas.drawString(50, 15, "Confidencial - Solo para uso interno")
+        canvas.restoreState()
+
+    doc.build(Story, onFirstPage=header_footer, onLaterPages=header_footer)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="chat_history.pdf")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### Mejoras aplicadas:
+1. **Encabezado y pie de página:** Añadí un encabezado con un logo y detalles de la empresa, y un pie de página con un mensaje de confidencialidad.
+2. **Estilos personalizados:** Utilicé `ParagraphStyle` para definir estilos de texto personalizados para la información de la empresa y los mensajes.
+3. **Imagen de logo:** Añadí la opción de incluir el logo de la empresa al inicio del documento.
+
+### Recomendaciones adicionales:
+1. **Imágenes y Gráficos:** Considera añadir gráficos, diagramas o ilustraciones que puedan mejorar la presentación del documento.
+2. **Tablas:** Si es necesario, usa tablas para estructurar la información de manera más clara.
+3. **Colores y Tipografía:** Usa una paleta de colores y tipografía consistente con la identidad de la empresa para reforzar el branding.
+
+Asegúrate de ajustar las rutas a los archivos de imagen y otros detalles específicos de tu empresa para personalizar completamente el documento.
+
 Para resolver el problema de texto que se corta y sobresale del margen inferior, podemos revisar la lógica de paginación y manejo del texto en el documento PDF. Asegurémonos de que cuando se detecta que el texto está cerca del margen inferior, se cree una nueva página y el texto continúe correctamente desde el punto en que se quedó.
 
 Vamos a utilizar `reportlab.platypus` que ofrece mejores herramientas para manejar flujos de texto y paginación. Con `Paragraph` y `SimpleDocTemplate`, podemos manejar mejor los saltos de página y los márgenes.
