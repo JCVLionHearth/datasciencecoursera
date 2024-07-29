@@ -1,3 +1,55 @@
+function validateAndSaveSettings() {
+    var userName = $("#userName").val().trim();
+    var userEmail = $("#userEmail").val().trim();
+    var emailDomain = "@tu-compania.com"; // Reemplaza con la extensión de correo de tu compañía
+
+    var valid = true;
+
+    if (!userName) {
+        $("#nameError").show();
+        valid = false;
+    } else {
+        $("#nameError").hide();
+    }
+
+    if (!userEmail.endsWith(emailDomain)) {
+        $("#emailError").show();
+        valid = false;
+    } else {
+        $("#emailError").hide();
+    }
+
+    if (valid) {
+        // Guardar el nombre y el correo si son válidos
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('userEmail', userEmail);
+
+        // Mostrar el mensaje de bienvenida
+        var initialGreeting = `Hola ${userName}, soy <b>Ethos</b> tu asistente Virtual de consultas y dilemas 👨‍💻. ¿En qué puedo ayudarte? 
+        <button class='option-button' onclick="sendMessage('Tengo una consulta')">Tengo una Consulta</button> 
+        <button class='option-button' onclick="sendMessage('Tengo un dilema')">Tengo un Dilema</button> 
+        <button class='option-button' onclick=\"sendMessage('Quiero consultar la normativa')\">Quiero consultar la normativa</button> 
+        <button class='option-button' onclick=\"sendMessage('Quiero recordar algunas definiciones')\">Quiero recordar algunas definiciones</button> 
+        <button class='option-button' onclick="sendMessage('Con quienes me puedo contactar')">Con quienes me puedo contactar</button>`;
+        appendMessage('Bot', initialGreeting);
+
+        // Cerrar el modal
+        closeSettings();
+    }
+}
+
+$(document).ready(function() {
+    // Mostrar modal de configuración al cargar la página
+    openSettings();
+
+    $("#userInput").keypress(function(event) {
+        if (event.which == 13) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+});
+
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
