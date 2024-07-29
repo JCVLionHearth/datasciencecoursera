@@ -1,3 +1,76 @@
+El archivo `render.yaml` se utiliza para configurar cómo se debe desplegar tu aplicación en Render. Aquí te doy una guía de cómo crear y configurar este archivo en Visual Studio Code:
+
+### 1. Crear el archivo `render.yaml`
+
+1. **Abrir tu proyecto en Visual Studio Code**:
+   - Asegúrate de tener tu proyecto abierto en Visual Studio Code.
+
+2. **Crear el archivo `render.yaml`**:
+   - En el explorador de archivos de Visual Studio Code, haz clic derecho en la carpeta raíz de tu proyecto.
+   - Selecciona "Nuevo archivo" y nómbralo `render.yaml`.
+
+### 2. Configurar el archivo `render.yaml`
+
+Aquí tienes un ejemplo de cómo podrías configurar tu archivo `render.yaml` para una aplicación Flask:
+
+```yaml
+services:
+  - type: web
+    name: flask-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "flask run --host=0.0.0.0 --port=10000"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        value: your-database-url
+    mounts:
+      - type: persistent
+        name: my-data
+        path: /persistent-data
+```
+
+### 3. Descripción de las claves en el archivo `render.yaml`:
+
+- `services`: Lista de servicios que se van a desplegar.
+  - `type`: Tipo de servicio, en este caso, `web`.
+  - `name`: Nombre del servicio.
+  - `env`: Entorno de ejecución, en este caso, `python`.
+  - `region`: Región del servidor, por ejemplo, `oregon`.
+  - `plan`: Plan de Render, en este caso, `free`.
+  - `buildCommand`: Comando para instalar las dependencias.
+  - `startCommand`: Comando para iniciar la aplicación Flask.
+  - `envVars`: Variables de entorno necesarias para la aplicación.
+  - `mounts`: Configuración de montajes persistentes para que los datos no se pierdan entre despliegues.
+
+### 4. Montar una base de datos persistente
+
+En la clave `mounts`, estamos indicando que queremos montar un volumen persistente en `/persistent-data`. Esto es útil para asegurarse de que los datos no se pierdan entre despliegues.
+
+### 5. Desplegar en Render
+
+1. **Sube tu proyecto a GitHub**: Asegúrate de que tu proyecto, incluido el archivo `render.yaml`, esté en un repositorio de GitHub.
+
+2. **Conecta tu repositorio a Render**:
+   - Ve a [Render.com](https://render.com/) y crea una cuenta o inicia sesión.
+   - Selecciona "New" y luego "Web Service".
+   - Conecta tu cuenta de GitHub y selecciona el repositorio de tu proyecto.
+   - Render detectará automáticamente el archivo `render.yaml` y usará la configuración para desplegar tu aplicación.
+
+### 6. Verificar la persistencia
+
+1. **Prueba tu aplicación**: Después de desplegar tu aplicación, realiza algunas operaciones para modificar los datos en la base de datos.
+
+2. **Reinicia la aplicación**: Puedes reiniciar la aplicación desde el panel de Render o realizando un nuevo despliegue.
+
+3. **Verifica que los datos persisten**: Asegúrate de que los datos modificados sigan estando presentes después del reinicio o nuevo despliegue.
+
+Con esta configuración, deberías poder mantener la persistencia de tus datos en Render.
+
+
 function validateAndSaveSettings() {
     var userName = $("#userName").val().trim();
     var userEmail = $("#userEmail").val().trim();
