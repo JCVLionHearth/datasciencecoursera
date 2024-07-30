@@ -1,3 +1,11 @@
+me sale el siguiente error
+
+ File "C:\Users\E0305878\OneDrive - Ecopetrol S.A\Documentos\Proyectos Analitica\python\Tickets\ticket_env\Lib\site-packages\sqlalchemy\engine\default.py", line 620, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+
 El archivo `render.yaml` se utiliza para configurar cómo se debe desplegar tu aplicación en Render. Aquí te doy una guía de cómo crear y configurar este archivo en Visual Studio Code:
 
 ### 1. Crear el archivo `render.yaml`
