@@ -1,3 +1,57 @@
+Para animar el indicador de que el bot está escribiendo como una curva saltando, puedes seguir estos pasos:
+
+1. **Agregar la animación CSS**:
+   Define una animación en tu archivo `style.css` para el indicador de escritura.
+
+```css
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.typing-indicator i {
+    margin-right: 10px;
+    animation: bounce 1.5s infinite;
+}
+
+.typing-indicator span {
+    background: #f1f1f1;
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    display: inline-block;
+}
+```
+
+2. **Actualizar la función `displayTypingIndicator`**:
+   Asegúrate de que la función que muestra el indicador de escritura esté correctamente configurada en tu archivo `index.html`.
+
+```javascript
+function displayTypingIndicator() {
+    $("#typingIndicator").show();
+    $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+}
+
+function hideTypingIndicator() {
+    $("#typingIndicator").hide();
+}
+```
+
+Con estos cambios, el indicador de que el bot está escribiendo (`<div class="typing-indicator" id="typingIndicator">`) tendrá una animación de rebote.
+
 Para agregar una animación de "curva saltando" cuando el bot escriba, podemos usar CSS para definir la animación y luego aplicarla al elemento que contiene el mensaje del bot. A continuación, se detalla cómo hacerlo:
 
 1. **Agregar la animación CSS**:
