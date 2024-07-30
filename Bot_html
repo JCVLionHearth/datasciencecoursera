@@ -1,3 +1,44 @@
+Para agregar una animación de "curva saltando" cuando el bot escriba, podemos usar CSS para definir la animación y luego aplicarla al elemento que contiene el mensaje del bot. A continuación, se detalla cómo hacerlo:
+
+1. **Agregar la animación CSS**:
+   Define una animación en tu archivo `style.css`:
+
+```css
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.bounce-in {
+    animation: bounceIn 0.5s ease-in-out;
+}
+```
+
+2. **Actualizar la función `appendMessage`**:
+   Modifica tu función `appendMessage` en el archivo `index.html` para añadir la clase `bounce-in` a los mensajes del bot:
+
+```javascript
+function appendMessage(role, message) {
+    var messageClass = role === 'User' ? 'user-message' : 'bot-message';
+    var avatarClass = role === 'User' ? userAvatar : 'fa-robot';
+    var animationClass = role === 'Bot' ? 'bounce-in' : '';
+    $("#chatlog").append('<div class="' + messageClass + '"><i class="fas ' + avatarClass + '"></i> <span class="' + animationClass + '">' + message + '</span></div>');
+    $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+}
+```
+
+Con estos cambios, cada vez que el bot envíe un mensaje, el texto tendrá una animación que simula una curva saltando.
+
 Tengo el siguiente código para un chatbot, hecho en Python con flask, y tengo los siguientes html y css...quisiera que cuando el Bot escriba se vea animado (como una curva saltando)
 
 # index.html
