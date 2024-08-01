@@ -1,0 +1,64 @@
+Para que tu aplicación web tenga un acceso directo en la pantalla de inicio de un celular y use tu icono personalizado, debes agregar algunas configuraciones adicionales en tu HTML. Aquí tienes los pasos detallados:
+
+1. **Agregar Metaetiquetas para Web App**: Añade metaetiquetas específicas en el `<head>` de tu HTML para que tu sitio web sea tratada como una aplicación web por los navegadores móviles.
+
+2. **Agregar Iconos de Tamaños Diferentes**: Para que los iconos se vean bien en todas las resoluciones de pantalla, debes agregar versiones del icono en diferentes tamaños.
+
+Aquí tienes un ejemplo de cómo se hace:
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='my_icon.ico') }}" type="image/x-icon">
+
+    <!-- Iconos para la aplicación web -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+
+    <!-- Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mi Aplicación">
+    <meta name="application-name" content="Mi Aplicación">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>Mi Aplicación</title>
+</head>
+<body>
+    <h1>Bienvenido a Mi Aplicación</h1>
+    <!-- El resto de tu contenido -->
+</body>
+</html>
+```
+
+### Pasos Detallados
+
+1. **Crear Iconos de Diferentes Tamaños**:
+   - Crea versiones de tu icono en diferentes tamaños (por ejemplo, 180x180, 32x32, 16x16).
+   - Guarda estos archivos en la carpeta `static` de tu proyecto.
+
+2. **Actualizar HTML**:
+   - Añade las etiquetas `<link>` en el `<head>` de tu archivo HTML para referenciar estos iconos.
+   - Añade las metaetiquetas para habilitar el modo de aplicación web en dispositivos iOS y Android.
+
+### Guardar el Sitio Web como Aplicación en el Celular
+
+- **Para iOS**:
+  1. Abre tu sitio web en Safari.
+  2. Toca el botón "Compartir" en la parte inferior del navegador.
+  3. Selecciona "Agregar a pantalla de inicio".
+  4. Toca "Agregar" en la esquina superior derecha.
+
+- **Para Android**:
+  1. Abre tu sitio web en Chrome.
+  2. Toca el menú de tres puntos en la esquina superior derecha.
+  3. Selecciona "Agregar a pantalla de inicio".
+  4. Toca "Agregar".
+
+Con estos pasos, tu aplicación web debería aparecer en la pantalla de inicio de los dispositivos móviles con el icono personalizado que has creado.
