@@ -1,3 +1,124 @@
+Para asegurarte de que el icono se muestre correctamente en dispositivos Android, puedes seguir algunos pasos adicionales específicos para Android. Aquí tienes una guía completa:
+
+### Asegúrate de tener los iconos correctos
+
+1. **Crear Iconos de Diferentes Tamaños**:
+   - Crea versiones de tu icono en diferentes tamaños (por ejemplo, 192x192 y 512x512).
+   - Guarda estos archivos en la carpeta `static` de tu proyecto Flask.
+
+2. **Agregar las Metaetiquetas y los Iconos**:
+   - Asegúrate de que tu archivo HTML incluye los iconos y metaetiquetas necesarios.
+
+### Ejemplo Completo de HTML
+
+Asegúrate de que tu archivo HTML tenga algo similar a esto:
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='my_icon.ico') }}" type="image/x-icon">
+
+    <!-- Iconos para la aplicación web -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+
+    <!-- Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mi Aplicación">
+    <meta name="application-name" content="Mi Aplicación">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>Mi Aplicación</title>
+</head>
+<body>
+    <h1>Bienvenido a Mi Aplicación</h1>
+    <!-- El resto de tu contenido -->
+</body>
+</html>
+```
+
+### Crear un Manifest File (Android)
+
+Para mejorar la compatibilidad con Android, puedes crear un archivo `manifest.json` en la carpeta `static` y referenciarlo en tu HTML.
+
+1. **Crear el archivo `manifest.json`**:
+
+```json
+{
+    "name": "Mi Aplicación",
+    "short_name": "Aplicación",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "icons": [
+        {
+            "src": "/static/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
+```
+
+2. **Actualizar tu HTML para incluir el Manifest**:
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='my_icon.ico') }}" type="image/x-icon">
+
+    <!-- Iconos para la aplicación web -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+
+    <!-- Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mi Aplicación">
+    <meta name="application-name" content="Mi Aplicación">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+    <title>Mi Aplicación</title>
+</head>
+<body>
+    <h1>Bienvenido a Mi Aplicación</h1>
+    <!-- El resto de tu contenido -->
+</body>
+</html>
+```
+
+### Guardar el Sitio Web como Aplicación en el Celular
+
+- **Para Android**:
+  1. Abre tu sitio web en Chrome.
+  2. Toca el menú de tres puntos en la esquina superior derecha.
+  3. Selecciona "Agregar a pantalla de inicio".
+  4. Toca "Agregar".
+
+Con estos pasos adicionales, deberías poder ver tu icono personalizado cuando agregues tu aplicación web a la pantalla de inicio de dispositivos Android.
+
 Para que tu aplicación web tenga un acceso directo en la pantalla de inicio de un celular y use tu icono personalizado, debes agregar algunas configuraciones adicionales en tu HTML. Aquí tienes los pasos detallados:
 
 1. **Agregar Metaetiquetas para Web App**: Añade metaetiquetas específicas en el `<head>` de tu HTML para que tu sitio web sea tratada como una aplicación web por los navegadores móviles.
