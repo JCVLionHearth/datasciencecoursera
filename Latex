@@ -1,3 +1,12 @@
+Latexmk: Missing input file 'listings.sty' (or dependence on it) from following:
+  ! LaTeX Error: File `listings.sty' not found.
+Latexmk: Sometimes, the -f option can be used to get latexmk
+  to try to force complete processing.
+  But normally, you will need to correct the file(s) that caused the
+  error, and then rerun latexmk.
+  In some cases, it is best to clean out generated files before rerunning
+  latexmk after you've corrected the files.
+
 Entendido. Puedes usar Python para ejecutar el código y luego insertar los resultados en un archivo LaTeX, generando así un PDF. Aquí tienes una guía paso a paso para lograrlo desde Visual Studio Code.
 
 ### Paso 1: Crear el Código Python
