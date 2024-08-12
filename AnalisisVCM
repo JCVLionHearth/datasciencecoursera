@@ -1,1 +1,134 @@
 codigo
+Aquí te dejo un código completo en R que incluye la carga del archivo Excel, el cálculo de diferenciales, la detección de anomalías utilizando varios métodos, la visualización de resultados, y un análisis adicional con k-means clustering. Cada sección está comentada para que puedas entender el proceso paso a paso.
+
+```r
+# Instalar y cargar las librerías necesarias
+if (!require("readxl")) install.packages("readxl")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("tidyr")) install.packages("tidyr")
+if (!require("factoextra")) install.packages("factoextra")
+if (!require("dbscan")) install.packages("dbscan")
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(factoextra)
+library(dbscan)
+
+# 1. Carga de archivo Excel
+# Asumiendo que tienes un archivo llamado "traders_data.xlsx" con tus datos
+file_path <- "ruta/al/archivo/traders_data.xlsx"
+trades <- read_excel(file_path)
+
+# 2. Transformación de variables
+# Convertir las fechas a formato Date
+trades <- trades %>%
+  mutate(fecha_contrato = as.Date(fecha_contrato),
+         vigencia_desde = as.Date(vigencia_desde),
+         vigencia_hasta = as.Date(vigencia_hasta))
+
+# 3. Cálculo del diferencial de precio
+# Crear una columna con el diferencial dependiendo de si es una venta o compra
+trades <- trades %>%
+  mutate(diferencial = ifelse(tipo_operacion == "venta", precio_barril, -precio_barril))
+
+# 4. Análisis de Anomalías - Métodos Básicos
+# 4.1 Usando IQR (Interquartile Range) para identificar outliers
+Q1 <- quantile(trades$diferencial, 0.25)
+Q3 <- quantile(trades$diferencial, 0.75)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+
+trades <- trades %>%
+  mutate(anomalia_iqr = ifelse(diferencial < lower_bound | diferencial > upper_bound, TRUE, FALSE))
+
+# 4.2 Usando Boxplot para visualizar los outliers
+ggplot(trades, aes(x = tipo_operacion, y = diferencial, color = anomalia_iqr)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2) +
+  labs(title = "Boxplot de Diferenciales por Tipo de Operación",
+       x = "Tipo de Operación",
+       y = "Diferencial (Compra - Venta)")
+
+# 4.3 Visualización de la tendencia de los diferenciales a lo largo del tiempo
+ggplot(trades, aes(x = fecha_contrato, y = diferencial, color = anomalia_iqr)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Tendencia de Diferenciales a lo largo del tiempo",
+       x = "Fecha del Contrato",
+       y = "Diferencial (Compra - Venta)")
+
+# 5. Análisis de Anomalías - Métodos Avanzados
+# 5.1 Usando Isolation Forest
+if (!require("isotree")) install.packages("isotree")
+library(isotree)
+
+# Isolation Forest para detectar anomalías
+iso_forest <- isolation.forest(trades$diferencial, ntrees = 100)
+trades$anomalia_iso <- predict(iso_forest, trades$diferencial) > 0.5
+
+# Visualización de anomalías detectadas por Isolation Forest
+ggplot(trades, aes(x = fecha_contrato, y = diferencial, color = anomalia_iso)) +
+  geom_point() +
+  labs(title = "Análisis de Anomalías usando Isolation Forest",
+       x = "Fecha del Contrato",
+       y = "Diferencial (Compra - Venta)")
+
+# 5.2 Usando Local Outlier Factor (LOF)
+lof_scores <- lof(trades$diferencial, k = 5)
+trades$anomalia_lof <- lof_scores > quantile(lof_scores, 0.95)
+
+# Visualización de anomalías detectadas por LOF
+ggplot(trades, aes(x = fecha_contrato, y = diferencial, color = anomalia_lof)) +
+  geom_point() +
+  labs(title = "Análisis de Anomalías usando Local Outlier Factor",
+       x = "Fecha del Contrato",
+       y = "Diferencial (Compra - Venta)")
+
+# 6. Análisis Adicional: Clustering con k-means
+# Selección del número óptimo de clusters
+set.seed(123)
+fviz_nbclust(trades %>% select(diferencial), kmeans, method = "wss")
+
+# Aplicación de k-means con el número óptimo de clusters
+kmeans_result <- kmeans(trades %>% select(diferencial), centers = 3)
+trades$cluster <- as.factor(kmeans_result$cluster)
+
+# Visualización de clusters
+ggplot(trades, aes(x = fecha_contrato, y = diferencial, color = cluster)) +
+  geom_point() +
+  labs(title = "Clustering de Diferenciales usando k-means",
+       x = "Fecha del Contrato",
+       y = "Diferencial (Compra - Venta)")
+
+# 7. Resultados Finales
+# Unir todas las anomalías detectadas en una columna
+trades <- trades %>%
+  mutate(anomalia_final = anomalia_iqr | anomalia_iso | anomalia_lof)
+
+# Visualización final de todas las anomalías detectadas
+ggplot(trades, aes(x = fecha_contrato, y = diferencial, color = anomalia_final)) +
+  geom_point() +
+  labs(title = "Análisis Combinado de Anomalías en Diferenciales",
+       x = "Fecha del Contrato",
+       y = "Diferencial (Compra - Venta)")
+```
+
+### Explicación de cada sección del código:
+
+1. **Carga de archivo Excel**: El código comienza cargando los datos desde un archivo Excel y convierte las fechas a formato adecuado.
+   
+2. **Transformación de variables**: Calcula el diferencial entre los precios de compra y venta.
+   
+3. **Análisis de anomalías - Métodos básicos**: Identifica y visualiza anomalías utilizando el método de IQR (rango intercuartílico) y un gráfico de boxplot.
+
+4. **Análisis de anomalías - Métodos avanzados**: Incluye técnicas más sofisticadas como Isolation Forest y Local Outlier Factor (LOF) para identificar anomalías en los diferenciales.
+
+5. **Análisis adicional: Clustering con k-means**: Realiza un análisis de clustering para agrupar los diferenciales en clusters, ayudando a detectar patrones en los datos.
+
+6. **Resultados finales**: Combina los resultados de todas las técnicas de detección de anomalías y visualiza las anomalías identificadas en un gráfico.
+
+Este código te proporcionará una visión integral de posibles anomalías en los diferenciales de compra y venta y ayudará a identificar patrones inusuales en las transacciones de los traders.
