@@ -1,3 +1,16 @@
+errores
+Error in process.data(data, sample_weights, column_weights, recode_categ,  : 
+  Invalid input data. Supported types are: data.frame, matrix, dgCMatrix, matrix.csc
+In addition: Warning message:
+In isolation.forest(trades$diferencial_analisis, ntrees = 100) :
+  'sample_size' is larger than the number of rows in 'data', will be decreased.
+
+Error in lof(trades$diferencial_analisis, k = 5) : 
+  x needs to be a matrix or a dist object!
+In addition: Warning message:
+In lof(trades$diferencial_analisis, k = 5) :
+  lof: k is now deprecated. use minPts = 6 instead .
+
 codigo
 Aquí te dejo un código completo en R que incluye la carga del archivo Excel, el cálculo de diferenciales, la detección de anomalías utilizando varios métodos, la visualización de resultados, y un análisis adicional con k-means clustering. Cada sección está comentada para que puedas entender el proceso paso a paso.
 
