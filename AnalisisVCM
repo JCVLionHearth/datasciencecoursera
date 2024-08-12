@@ -1,3 +1,133 @@
+Gracias por la aclaración. A continuación, te presento el código actualizado para realizar el análisis de anomalías considerando tanto el `trader_id` como el `tipo_operación`.
+
+```r
+# Instalar y cargar las librerías necesarias
+if (!require("readxl")) install.packages("readxl")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("tidyr")) install.packages("tidyr")
+if (!require("factoextra")) install.packages("factoextra")
+if (!require("dbscan")) install.packages("dbscan")
+if (!require("isotree")) install.packages("isotree")
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(factoextra)
+library(dbscan)
+library(isotree)
+
+# 1. Carga de archivo Excel
+file_path <- "ruta/al/archivo/traders_data.xlsx"
+trades <- read_excel(file_path)
+
+# 2. Transformación de variables
+# Convertir las fechas a formato Date
+trades <- trades %>%
+  mutate(fecha_contrato = as.Date(fecha_contrato),
+         vigencia_desde = as.Date(vigencia_desde),
+         vigencia_hasta = as.Date(vigencia_hasta))
+
+# 3. Análisis de Anomalías por Trader y Tipo de Operación - Métodos Básicos
+# 3.1 Usando IQR (Interquartile Range) para identificar outliers por trader y tipo de operación
+trades <- trades %>%
+  group_by(trader_id, tipo_operacion) %>%
+  mutate(Q1 = quantile(diferencial, 0.25),
+         Q3 = quantile(diferencial, 0.75),
+         IQR = Q3 - Q1,
+         lower_bound = Q1 - 1.5 * IQR,
+         upper_bound = Q3 + 1.5 * IQR,
+         anomalia_iqr = diferencial < lower_bound | diferencial > upper_bound) %>%
+  ungroup()
+
+# 3.2 Visualización de anomalías por trader y tipo de operación usando Boxplot
+ggplot(trades, aes(x = as.factor(trader_id), y = diferencial, color = anomalia_iqr)) +
+  geom_boxplot() +
+  facet_wrap(~tipo_operacion) +
+  geom_jitter(width = 0.2) +
+  labs(title = "Boxplot de Diferenciales por Trader y Tipo de Operación",
+       x = "Trader ID",
+       y = "Diferencial (Compra - Venta)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# 4. Análisis de Anomalías por Trader y Tipo de Operación - Métodos Avanzados
+# 4.1 Usando Isolation Forest para detectar anomalías
+iso_forest <- isolation.forest(as.matrix(trades$diferencial), ntrees = 100)
+trades$anomalia_iso <- predict(iso_forest, as.matrix(trades$diferencial)) > 0.5
+
+# Visualización de anomalías detectadas por Isolation Forest
+ggplot(trades, aes(x = as.factor(trader_id), y = diferencial, color = anomalia_iso)) +
+  geom_point() +
+  facet_wrap(~tipo_operacion) +
+  labs(title = "Análisis de Anomalías usando Isolation Forest por Trader y Tipo de Operación",
+       x = "Trader ID",
+       y = "Diferencial (Compra - Venta)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# 4.2 Usando Local Outlier Factor (LOF) para detectar anomalías
+lof_scores <- lof(as.matrix(trades$diferencial), minPts = 6)
+trades$anomalia_lof <- lof_scores > quantile(lof_scores, 0.95)
+
+# Visualización de anomalías detectadas por LOF
+ggplot(trades, aes(x = as.factor(trader_id), y = diferencial, color = anomalia_lof)) +
+  geom_point() +
+  facet_wrap(~tipo_operacion) +
+  labs(title = "Análisis de Anomalías usando Local Outlier Factor por Trader y Tipo de Operación",
+       x = "Trader ID",
+       y = "Diferencial (Compra - Venta)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# 5. Análisis Adicional: Clustering con k-means
+# Selección del número óptimo de clusters por trader y tipo de operación
+set.seed(123)
+optimal_clusters <- kmeans(trades$diferencial, centers = 3)
+trades$cluster <- as.factor(optimal_clusters$cluster)
+
+# Visualización de clusters por trader y tipo de operación
+ggplot(trades, aes(x = as.factor(trader_id), y = diferencial, color = cluster)) +
+  geom_point() +
+  facet_wrap(~tipo_operacion) +
+  labs(title = "Clustering de Diferenciales usando k-means por Trader y Tipo de Operación",
+       x = "Trader ID",
+       y = "Diferencial (Compra - Venta)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# 6. Resultados Finales
+# Unir todas las anomalías detectadas en una columna
+trades <- trades %>%
+  mutate(anomalia_final = anomalia_iqr | anomalia_iso | anomalia_lof)
+
+# Visualización final de todas las anomalías detectadas
+ggplot(trades, aes(x = as.factor(trader_id), y = diferencial, color = anomalia_final)) +
+  geom_point() +
+  facet_wrap(~tipo_operacion) +
+  labs(title = "Análisis Combinado de Anomalías en Diferenciales por Trader y Tipo de Operación",
+       x = "Trader ID",
+       y = "Diferencial (Compra - Venta)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+### Explicación:
+
+1. **Carga de archivo Excel**: Se carga el archivo Excel y se convierten las fechas a formato `Date`.
+
+2. **Análisis de Anomalías por Trader y Tipo de Operación - Métodos Básicos**: 
+   - Se agrupan los datos por `trader_id` y `tipo_operacion` para calcular el rango intercuartílico (IQR) y determinar outliers dentro de cada combinación de trader y tipo de operación.
+   - Se visualizan los resultados usando un boxplot por `trader_id` y `tipo_operacion`.
+
+3. **Análisis de Anomalías por Trader y Tipo de Operación - Métodos Avanzados**:
+   - Se utiliza `Isolation Forest` para detectar anomalías y se visualizan los resultados por `trader_id` y `tipo_operacion`.
+   - Se usa `Local Outlier Factor (LOF)` para identificar anomalías y se visualizan los resultados.
+
+4. **Análisis Adicional: Clustering con k-means**: 
+   - Se realiza un clustering de los diferenciales por trader y tipo de operación usando k-means, y se visualizan los resultados para identificar patrones.
+
+5. **Resultados Finales**: 
+   - Se combinan los resultados de todas las técnicas de detección de anomalías y se visualizan las anomalías detectadas en un gráfico final, considerando las dos variables `trader_id` y `tipo_operacion`.
+
+Este código te permitirá analizar y detectar anomalías en los diferenciales de precios, teniendo en cuenta tanto el `trader_id` como el `tipo_operacion`.
+
 Gracias por la aclaración. Aquí te dejo un código actualizado que utiliza la variable "diferencial" ya existente y realiza el análisis por trader para identificar anomalías en sus operaciones.
 
 ```r
