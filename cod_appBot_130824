@@ -1,3 +1,79 @@
+<div id="settingsModal" class="modal">
+    <div class="modal-content form-group">
+        <!-- ... (código existente) ... -->
+        
+        <div class="consent-section">
+            <p>Las interacciones serán guardadas con fines estadísticos. ¿Está de acuerdo con que sus interacciones sean almacenadas?</p>
+            <label>
+                <input type="radio" name="consent" value="yes" checked> Sí
+            </label>
+            <label>
+                <input type="radio" name="consent" value="no"> No
+            </label>
+        </div>
+        
+        <button type="button" class="btn btn-success" onclick="validateAndSaveSettings()">Guardar</button>
+    </div>
+</div>
+
+function validateAndSaveSettings() {
+    // ... (código existente de validación) ...
+
+    if (valid) {
+        var userConsent = $('input[name="consent"]:checked').val();
+        
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('userEmail', userEmail);
+        localStorage.setItem('userConsent', userConsent);
+
+        // ... (resto del código existente) ...
+    }
+}
+
+function sendMessage(userInput = null) {
+    if (!userInput) {
+        userInput = $("#userInput").val();
+    }
+    appendMessage('User', userInput);
+    $("#userInput").val('');
+    displayTypingIndicator();
+    
+    var userConsent = localStorage.getItem('userConsent') || 'no';
+    
+    setTimeout(function() {
+        $.get("/get", { 
+            msg: userInput, 
+            user: userName, 
+            email: userEmail,
+            consent: userConsent
+        }).done(function(data) {
+            hideTypingIndicator();
+            appendMessage('Bot', data);
+        });
+    }, 1000);
+}
+
+@app.route("/get")
+def get_bot_response_endpoint():
+    user_text = request.args.get('msg')
+    user_name = request.args.get('user', 'Unknown')
+    user_email = request.args.get('email', '')
+    user_consent = request.args.get('consent', 'no')
+    
+    chat_history.append(('User', user_text))
+    response = get_bot_response(user_text, user_name, user_email)
+    
+    if user_consent.lower() == 'yes':
+        save_interaction(user_name, user_text, user_email)
+    
+    return jsonify(response)
+
+def save_interaction(username, user_input, email=None):
+    if username is None:
+        username = 'Unknown'
+    interaction = Interaction(username=username, user_input=user_input, email=email)
+    db.session.add(interaction)
+    db.session.commit()
 
 Hola, actualmente tengo esta aplicacion usando python en visual studio code, la cual es un chatbot cuyas interacciones son guardadas en una base de datos, la aplicacion inicial con un modal en donde se pide nombre y correo, pero quisiera agregar algo que dijera: "La información de las interacciones seran guardadas para fines estadisticos, desea que sus interacciones sean guardadas? (porfa redacta mejor y con mayor claridad el mensaje)" que haya un SI y un NO y si elije NO no seberia guardar la información en la base de datos...es posible hacer esto?
 
