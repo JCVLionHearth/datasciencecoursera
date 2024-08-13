@@ -1,0 +1,224 @@
+Para diseñar el proyecto en Visual Studio Code, te guiaré a través de los pasos necesarios para crear un sistema de línea ética utilizando Python, Flask, y otras herramientas mencionadas. 
+
+### **1. Configuración Inicial del Proyecto**
+
+1. **Crea una Carpeta para el Proyecto**
+
+   - Abre Visual Studio Code.
+   - Crea una nueva carpeta para tu proyecto (por ejemplo, `linea_etica_ia`).
+
+2. **Configura un Entorno Virtual**
+
+   - Abre la terminal en Visual Studio Code (`Ctrl + `).
+   - Navega a la carpeta de tu proyecto.
+   - Crea un entorno virtual usando Python:
+     ```bash
+     python -m venv env
+     ```
+   - Activa el entorno virtual:
+     - **Windows:**
+       ```bash
+       .\env\Scripts\activate
+       ```
+     - **Mac/Linux:**
+       ```bash
+       source env/bin/activate
+       ```
+
+3. **Instala Dependencias**
+
+   - Instala las librerías necesarias:
+     ```bash
+     pip install Flask pandas sklearn nltk sqlite3 joblib
+     ```
+
+4. **Estructura del Proyecto**
+
+   - Organiza tu proyecto de la siguiente manera:
+
+     ```
+     linea_etica_ia/
+     ├── static/
+     ├── templates/
+     │   ├── index.html
+     │   ├── resultado.html
+     ├── app.py
+     ├── preprocesamiento.py
+     ├── entrenamiento.py
+     ├── base_de_datos.py
+     └── modelo_clasificacion.pkl
+     ```
+
+### **2. Desarrollo de la Aplicación**
+
+1. **Crea la Interfaz de Usuario con Flask**
+
+   - **app.py**: Este será el archivo principal donde configuraremos la aplicación Flask.
+
+     ```python
+     from flask import Flask, request, render_template
+     import joblib
+     from preprocesamiento import limpiar_texto, vectorizer
+     from entrenamiento import modelo_clasificacion
+
+     app = Flask(__name__)
+
+     @app.route('/')
+     def index():
+         return render_template('index.html')
+
+     @app.route('/analizar', methods=['POST'])
+     def analizar():
+         reporte = request.form['reporte']
+         reporte_procesado = vectorizer.transform([limpiar_texto(reporte)])
+         clasificacion = modelo_clasificacion.predict(reporte_procesado)
+         return render_template('resultado.html', clasificacion=clasificacion[0])
+
+     if __name__ == "__main__":
+         app.run(debug=True)
+     ```
+
+2. **Crea el Script de Preprocesamiento**
+
+   - **preprocesamiento.py**: Aquí limpiarás y vectorizarás los textos.
+
+     ```python
+     import re
+     from nltk.tokenize import word_tokenize
+     from sklearn.feature_extraction.text import TfidfVectorizer
+
+     # Limpieza básica de texto
+     def limpiar_texto(texto):
+         texto = texto.lower()
+         texto = re.sub(r'\d+', '', texto)  # Eliminar números
+         texto = re.sub(r'[^\w\s]', '', texto)  # Eliminar puntuación
+         return texto
+
+     # Vectorizador TF-IDF
+     vectorizer = TfidfVectorizer(max_features=500)
+     ```
+
+3. **Crea el Script de Entrenamiento**
+
+   - **entrenamiento.py**: Entrena y guarda el modelo de clasificación.
+
+     ```python
+     import pandas as pd
+     from sklearn.model_selection import train_test_split
+     from sklearn.svm import SVC
+     import joblib
+     from preprocesamiento import limpiar_texto, vectorizer
+
+     # Cargar datos
+     df = pd.read_csv('reportes_eticos.csv')
+
+     # Preprocesamiento
+     df['descripcion_limpia'] = df['descripcion'].apply(limpiar_texto)
+     X = vectorizer.fit_transform(df['descripcion_limpia'])
+     y = df['tipo_incidente']
+
+     # División de datos
+     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+     # Entrenamiento del modelo
+     modelo_clasificacion = SVC(kernel='linear')
+     modelo_clasificacion.fit(X_train, y_train)
+
+     # Guardar el modelo
+     joblib.dump(modelo_clasificacion, 'modelo_clasificacion.pkl')
+     ```
+
+4. **Conecta a la Base de Datos SQLite**
+
+   - **base_de_datos.py**: Este archivo se utilizará para interactuar con la base de datos SQLite.
+
+     ```python
+     import sqlite3
+
+     def conectar_db():
+         conn = sqlite3.connect('reportes_eticos.db')
+         c = conn.cursor()
+         return conn, c
+
+     def crear_tabla():
+         conn, c = conectar_db()
+         c.execute('''CREATE TABLE IF NOT EXISTS reportes
+                      (id INTEGER PRIMARY KEY, descripcion TEXT, clasificacion TEXT, sentimiento REAL)''')
+         conn.commit()
+         conn.close()
+
+     def insertar_reporte(descripcion, clasificacion, sentimiento):
+         conn, c = conectar_db()
+         c.execute("INSERT INTO reportes (descripcion, clasificacion, sentimiento) VALUES (?, ?, ?)",
+                   (descripcion, clasificacion, sentimiento))
+         conn.commit()
+         conn.close()
+     ```
+
+### **3. Crear las Plantillas HTML**
+
+1. **Plantilla para el Formulario Inicial**
+
+   - **templates/index.html**:
+
+     ```html
+     <!DOCTYPE html>
+     <html lang="en">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Línea Ética - Análisis de Reportes</title>
+     </head>
+     <body>
+         <h1>Analiza un Reporte de la Línea Ética</h1>
+         <form action="/analizar" method="post">
+             <label for="reporte">Ingresa el reporte:</label><br>
+             <textarea id="reporte" name="reporte" rows="4" cols="50"></textarea><br><br>
+             <input type="submit" value="Analizar">
+         </form>
+     </body>
+     </html>
+     ```
+
+2. **Plantilla para Mostrar el Resultado**
+
+   - **templates/resultado.html**:
+
+     ```html
+     <!DOCTYPE html>
+     <html lang="en">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Resultado del Análisis</title>
+     </head>
+     <body>
+         <h1>Resultado del Análisis</h1>
+         <p>La clasificación del reporte es: <strong>{{ clasificacion }}</strong></p>
+         <a href="/">Volver al inicio</a>
+     </body>
+     </html>
+     ```
+
+### **4. Ejecución del Proyecto**
+
+1. **Inicia el Servidor Flask**
+
+   - Ejecuta el siguiente comando en la terminal de Visual Studio Code:
+
+     ```bash
+     python app.py
+     ```
+
+   - Esto iniciará tu servidor Flask en `http://127.0.0.1:5000/`. Puedes acceder a esta URL en tu navegador para interactuar con la aplicación.
+
+### **5. Mantenimiento y Mejora del Modelo**
+
+1. **Monitoreo y Actualización**
+
+   - Realiza evaluaciones periódicas del modelo y mejora el preprocesamiento o entrenamiento según sea necesario.
+   - Actualiza el dataset con nuevos reportes para mejorar la precisión del modelo.
+
+### **Conclusión**
+
+Siguiendo estos pasos, habrás creado un proyecto completo de una línea ética automatizada utilizando inteligencia artificial, todo dentro de Visual Studio Code. Este sistema es escalable y se puede adaptar a nuevas necesidades o tipos de análisis a medida que crece la cantidad de datos o se identifican nuevas características de los reportes.
