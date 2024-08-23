@@ -1,3 +1,44 @@
+@app.route('/download', methods=['POST'])
+def download_file():
+    # Obtener datos desde el formulario
+    try:
+        df_data = request.form.getlist('data')
+        percentiles_table_data = request.form.getlist('percentiles_table_data')
+        suma_asegurada_ajustada_data = request.form.getlist('suma_asegurada_ajustada_data')
+
+        # Asegurarse de que los datos sean válidos y no estén vacíos
+        if not df_data or not percentiles_table_data or not suma_asegurada_ajustada_data:
+            flash("Los datos proporcionados no son válidos o están vacíos", "danger")
+            return redirect(url_for('index'))
+
+        # Convertir las listas JSON a DataFrames
+        df = pd.DataFrame(eval(df_data[0]))
+        percentiles_table = pd.DataFrame(eval(percentiles_table_data[0]))
+        suma_asegurada_ajustada = pd.DataFrame(eval(suma_asegurada_ajustada_data[0]), columns=['Suma Asegurada Ajustada'])
+
+        # Crear un flujo de bytes en memoria
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            # Escribir cada DataFrame en una hoja separada del archivo Excel
+            df.to_excel(writer, index=False, sheet_name='Input Data')
+            percentiles_table.to_excel(writer, index=False, sheet_name='Percentiles')
+            suma_asegurada_ajustada.to_excel(writer, index=False, sheet_name='Simulaciones')
+
+        # Asegurarse de que el buffer esté en la posición inicial
+        output.seek(0)
+
+        # Crear una respuesta para enviar el archivo Excel generado
+        response = make_response(output.read())
+        response.headers['Content-Disposition'] = 'attachment; filename=simulation_results.xlsx'
+        response.headers['Content-type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+        return response
+
+    except Exception as e:
+        # Capturar cualquier error y mostrar un mensaje de error adecuado
+        flash(f"Ocurrió un error al generar el archivo: {str(e)}", "danger")
+        return redirect(url_for('index'))
+
 Este es mi archivo .py al que deseo convertir en .exe
 
 from flask import Flask, request, render_template, send_file, make_response, redirect, url_for, flash, session
