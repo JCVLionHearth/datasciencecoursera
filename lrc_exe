@@ -1,0 +1,218 @@
+Este es mi archivo .py al que deseo convertir en .exe
+
+from flask import Flask, request, render_template, send_file, make_response, redirect, url_for, flash, session
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.graph_objs as go
+import plotly.io as pio
+import plotly.figure_factory as ff
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import base64
+from scipy.stats import triang
+import os
+
+app = Flask(__name__)
+
+app.secret_key = 'supersecretkey'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+def validar_archivo_normal(df):
+    required_columns = {'I_esp', 'P_esp','std_impact','std_prob','Frecuencia'}
+    return required_columns.issubset(df.columns)
+
+def validar_archivo_triangular(df):
+    required_columns = {'I_min','P_min','I_esp','P_esp','I_max','P_max','Frecuencia'}
+    return required_columns.issubset(df.columns)
+
+@app.route('/')
+def index():
+    return render_template('index_lrc.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+
+    if not file:
+        flash('No file selected')
+        return redirect(url_for('index'))
+    
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
+    df = pd.read_excel(filepath)
+    
+    session['filepath'] = filepath
+    session['file_columns'] = list(df.columns)
+    
+    flash('Archivo de Riesgos Cargado Satisfactoriamente!','success')
+    return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    #num_expuestos = int(request.form['num_expuestos'])
+    num_expuestos=1
+    presupuesto = float(request.form['presupuesto'])
+    factor_riesgo = 1
+    # factor_riesgo = 1 + float(request.form['factor_riesgo']) / 100
+    # factor_gastos = 1 + float(request.form['factor_gastos']) / 100
+    # factor_legal = 1 + float(request.form['factor_legal']) / 100
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    if 'filepath' not in session:
+        flash('No file uploaded','danger')
+        return redirect(url_for('index'))
+    
+    filepath = session['filepath']
+    df = pd.read_excel(filepath)
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        #prob_sim=np.random.triangular(P_min, P_esp, P_max,n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    def normal_simulation(row):
+            P_esp= float(row['P_esp'])
+            I_esp= float(row['I_esp'])
+            std_prob= float(row['std_prob'])
+            std_impact= float(row['std_impact'])
+            Frecuencia = float(row['Frecuencia'])
+            prob_sim = np.random.normal(P_esp, std_prob, size=n_sim)
+            impact_sim = np.random.normal(I_esp * Frecuencia, std_impact * Frecuencia,size= n_sim)
+            # Asegurarse de que las probabilidades estén en el rango [0, 1]
+            prob_sim = np.clip(prob_sim, 0, 1)
+            return prob_sim * impact_sim
+
+    choice=request.form['choice']
+    if choice=='funcion1':
+        if not validar_archivo_normal(df):
+            flash('El archivo seleccionado no es válido para la distribución normal','danger')
+            flash('Para la distribución normal, el archivo debe tener los campos: I_esp, P_esp, std_impact, std_prob, Frecuencia','info')
+            return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+        suma_asegurada_total = np.sum([normal_simulation(row) for idx, row in df.iterrows()], axis=0)
+    elif choice=='funcion2':
+        if not validar_archivo_triangular(df):
+            flash('El archivo seleccionado no es válido para la distribución triangular','danger')
+            flash('Para la distribución triangular, el archivo debe tener los campos: I_min, P_min, I_esp, P_esp, I_max, P_max, Frecuencia','info')
+            return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+        suma_asegurada_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    else:
+        flash('Distribución no válida')
+        return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+    suma_asegurada_final = suma_asegurada_total
+    suma_asegurada_ajustada = ((suma_asegurada_final/presupuesto))*factor_riesgo
+    suma_asegurada_ajustada =suma_asegurada_ajustada*100
+
+    valor_esperado_riesgos=((suma_asegurada_final/presupuesto))
+    valor_esperado_riesgos=np.mean(valor_esperado_riesgos)
+
+    valor_lrc_esperado=((suma_asegurada_final/presupuesto))*factor_riesgo
+    valor_lrc_esperado=np.mean(valor_lrc_esperado)
+    
+    percentiles = np.percentile(suma_asegurada_ajustada, np.arange(0, 101))
+    percentiles_df = np.percentile(suma_asegurada_ajustada, np.arange(0, 101,5))
+    mean_suma_asegurada = np.mean(suma_asegurada_ajustada)
+    
+    median_suma_asegurada = np.median(suma_asegurada_ajustada)
+    sd_suma_asegurada = np.std(suma_asegurada_ajustada)
+    percentil_90 = np.percentile(suma_asegurada_ajustada, 90)
+
+    sa_propuesta=mean_suma_asegurada+sd_suma_asegurada
+
+    percentiles_table = pd.DataFrame({'Percentil': np.arange(0, 101,5), 'Porcentaje_LRC': percentiles_df})
+    percentiles_table['Porcentaje_LRC']=percentiles_table['Porcentaje_LRC'].apply(lambda x: f'{int(x):,}') # dandole formato a la tabla
+
+    # Gráfico de la distribución de la suma asegurada ajustada
+    fig = go.Figure()
+
+    fig.add_trace(go.Histogram(x=suma_asegurada_ajustada,nbinsx=100,name='Simulaciones % LRC'))
+    fig.add_trace(go.Scatter(x=[mean_suma_asegurada,mean_suma_asegurada],
+                             y=[0,max(np.histogram(suma_asegurada_ajustada,bins=50)[0])],
+                             mode="lines",
+                             name=f'LRC esperado: {mean_suma_asegurada:.2f} %',
+                             line=dict(color='red',dash='dash')
+                             ))
+    xaxis = dict(title="% LRC")
+    yaxis = dict(title="Frecuencia simulada")
+    fig.update_layout(title="Histograma", xaxis=xaxis, yaxis=yaxis)
+    graphJSON = pio.to_json(fig)
+
+    # Gráfico de percentiles
+    fig2=go.Figure()
+
+    fig2.add_trace(go.Scatter(
+        x=np.arange(0,101),
+        y=percentiles,
+        mode='lines',
+        name='Percentiles',
+        line=dict(color='blue')
+    ))
+
+    fig2.add_trace(go.Scatter(
+        x=[0,100],
+        y=[percentil_90,percentil_90],
+        mode='lines',
+        name='Percentil 90',
+        line=dict(color='red',dash='dash')
+    ))
+
+    fig2.update_layout(title="Percentiles del % LRC", xaxis_title='Percentiles', yaxis_title='% LRC',showlegend=True)
+    graphJSON2 = pio.to_json(fig2)
+
+    # Conversión de la tabla de percentiles a formato html
+    percentiles_table_html = percentiles_table.to_html(index=False,classes='table table-striped table-bordered text-center',justify='center')
+    df_table_html = pd.DataFrame(suma_asegurada_ajustada, columns=['Simulaciones']).to_html(index=False)
+
+    return render_template('results_lrc.html', mean_suma_asegurada=mean_suma_asegurada,valor_lrc_esperado=valor_lrc_esperado,valor_esperado_riesgos=valor_esperado_riesgos,
+                           median_suma_asegurada=median_suma_asegurada, sd_suma_asegurada=sd_suma_asegurada,sa_propuesta=sa_propuesta,
+                        #    plot_url=plot_url, percentiles_plot_url=percentiles_plot_url,
+                           percentiles_table=percentiles_table_html, df_table=df_table_html,
+                           data=df.to_dict(orient='records'), percentiles_table_data=percentiles_table.to_dict(orient='records'),suma_asegurada_ajustada_data=suma_asegurada_ajustada.tolist(),
+                           graphJSON=graphJSON,graphJSON2=graphJSON2)
+
+@app.route('/download', methods=['POST'])
+def download_file():
+    df_data = request.form.getlist('data')
+    percentiles_table_data = request.form.getlist('percentiles_table_data')
+    suma_asegurada_ajustada_data = request.form.getlist('suma_asegurada_ajustada_data')
+    # sensibilidad_table_data = request.form.getlist('sensibilidad_table_data')
+
+    df = pd.DataFrame(eval(df_data[0]))
+    percentiles_table = pd.DataFrame(eval(percentiles_table_data[0]))
+    suma_asegurada_ajustada = pd.DataFrame(eval(suma_asegurada_ajustada_data[0]), columns=['Suma Asegurada Ajustada'])
+    # sensibilidad_table = pd.DataFrame(eval(sensibilidad_table_data[0]))
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Input Data')
+        percentiles_table.to_excel(writer, index=False, sheet_name='Percentiles')
+        suma_asegurada_ajustada.to_excel(writer, index=False, sheet_name='Simulaciones')
+        # sensibilidad_table.to_excel(writer, index=False, sheet_name='Analisis_sensibilidad')
+
+    output.seek(0)
+    response = make_response(output.read())
+    response.headers['Content-Disposition'] = 'attachment; filename=simulation_results.xlsx'
+    response.headers['Content-type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    return response
+
+@app.route('/')
+def form():
+    return render_template('index_lrc.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
