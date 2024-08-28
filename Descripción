@@ -1,0 +1,48 @@
+Aquí tienes las descripciones que podrías utilizar para explicar ambos archivos:
+
+### **Descripción del Primer Archivo: Simulación de Riesgos Basados en Escenarios**
+
+**Propósito:**  
+Este archivo está diseñado para realizar simulaciones de riesgos utilizando tres escenarios: optimista, pesimista, y probable. El objetivo es evaluar el impacto y la probabilidad de cada riesgo bajo diferentes circunstancias.
+
+**Instrucciones para Ingresar Datos:**
+
+1. **Impacto y Probabilidad por Escenario:**
+   - **Escenario Optimista:** Introduce el impacto mínimo esperado y la probabilidad mínima de que ocurra el riesgo en un escenario optimista, donde las condiciones son más favorables.
+   - **Escenario Pesimista:** Introduce el impacto máximo y la probabilidad máxima de que ocurra el riesgo en un escenario pesimista, donde las condiciones son menos favorables.
+   - **Escenario Probable:** Introduce el impacto y la probabilidad más realista o comúnmente esperada.
+
+2. **Frecuencia Esperada:**
+   - Introduce una estimación de cuántas veces podrías esperar que el riesgo ocurra en un periodo determinado. Esta frecuencia se utilizará para ajustar las simulaciones y proporcionar una visión más precisa del comportamiento del riesgo.
+
+**Consideraciones:**
+- Los valores de impacto y probabilidad deben reflejar el entendimiento y la experiencia de quienes conocen el riesgo. Los valores no deben ser arbitrarios; se deben basar en datos históricos o en juicios informados.
+- Es crucial ser consistente al determinar los escenarios, asegurándote de que el escenario probable esté entre el optimista y el pesimista.
+
+---
+
+### **Descripción del Segundo Archivo: Simulación de Riesgos con Distribución Normal**
+
+**Propósito:**  
+Este archivo permite realizar simulaciones de riesgos utilizando una distribución normal. Se enfoca en evaluar riesgos basados en el impacto y la probabilidad esperada, junto con sus desviaciones.
+
+**Instrucciones para Ingresar Datos:**
+
+1. **Impacto Esperado:**
+   - Introduce el valor promedio o esperado del impacto del riesgo. Este es el valor que, en promedio, se espera que el riesgo alcance si ocurre.
+
+2. **Probabilidad Esperada:**
+   - Introduce la probabilidad esperada de que ocurra el riesgo. Esto se basa en la mejor estimación disponible de cuán probable es que el riesgo se materialice.
+
+3. **Desviaciones Asociadas:**
+   - **Desviación del Impacto:** Introduce el porcentaje de desviación (variabilidad) del impacto esperado. Esto permite modelar la incertidumbre alrededor del valor esperado.
+   - **Desviación de la Probabilidad:** Introduce el porcentaje de desviación de la probabilidad esperada. Este valor captura la variabilidad o incertidumbre en la probabilidad de ocurrencia.
+
+**Consideraciones:**
+- La desviación se expresa como un porcentaje, y refleja cuán dispersos podrían estar los valores reales en relación con los valores esperados.
+- Los datos deben estar basados en análisis previos o en estimaciones bien fundamentadas, ya que serán la base para las simulaciones, que a su vez influirán en la toma de decisiones.
+- Es importante comprender que la distribución normal asume que los valores se distribuyen simétricamente alrededor de la media; por tanto, se deben ingresar valores de desviación que reflejen esta naturaleza.
+
+---
+
+Estas descripciones te ayudarán a guiar a los usuarios en cómo completar correctamente los archivos, asegurando que comprendan el propósito de cada campo y cómo ingresar los datos de manera efectiva.
