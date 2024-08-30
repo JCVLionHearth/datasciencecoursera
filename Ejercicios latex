@@ -1,3 +1,174 @@
+Vamos a realizar la factorización LU de la matriz 4x4 que has proporcionado. La matriz \( A \) es:
+
+\[
+A = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+-36 & -11 & 50 & -17 \\
+-54 & -97 & 126 & -46 \\
+48 & 3 & -55 & 3
+\end{pmatrix}
+\]
+
+### Paso 1: Inicialización
+
+Iniciamos con las matrices \( L \) como la matriz identidad y \( U \) igual a la matriz \( A \):
+
+\[
+L = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{pmatrix},
+\quad
+U = A = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+-36 & -11 & 50 & -17 \\
+-54 & -97 & 126 & -46 \\
+48 & 3 & -55 & 3
+\end{pmatrix}
+\]
+
+### Paso 2: Eliminar elementos debajo de la diagonal en la primera columna
+
+**Para la fila 2:** 
+\[
+L_{21} = \frac{-36}{-6} = 6
+\]
+Actualizamos la fila 2 en \( U \) restando 6 veces la fila 1:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+-54 & -97 & 126 & -46 \\
+48 & 3 & -55 & 3
+\end{pmatrix}
+\]
+
+**Para la fila 3:**
+\[
+L_{31} = \frac{-54}{-6} = 9
+\]
+Actualizamos la fila 3 en \( U \) restando 9 veces la fila 1:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & -70 & 45 & -19 \\
+48 & 3 & -55 & 3
+\end{pmatrix}
+\]
+
+**Para la fila 4:**
+\[
+L_{41} = \frac{48}{-6} = -8
+\]
+Actualizamos la fila 4 en \( U \) sumando 8 veces la fila 1:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & -70 & 45 & -19 \\
+0 & -21 & 17 & -21
+\end{pmatrix}
+\]
+
+La matriz \( L \) actualizada es:
+\[
+L = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+6 & 1 & 0 & 0 \\
+9 & 0 & 1 & 0 \\
+-8 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+### Paso 3: Eliminar elementos debajo de la diagonal en la segunda columna
+
+**Para la fila 3:**
+\[
+L_{32} = \frac{-70}{7} = -10
+\]
+Actualizamos la fila 3 en \( U \) sumando 10 veces la fila 2:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & 0 & 5 & -9 \\
+0 & -21 & 17 & -21
+\end{pmatrix}
+\]
+
+**Para la fila 4:**
+\[
+L_{42} = \frac{-21}{7} = -3
+\]
+Actualizamos la fila 4 en \( U \) sumando 3 veces la fila 2:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & 0 & 5 & -9 \\
+0 & 0 & 5 & -18
+\end{pmatrix}
+\]
+
+La matriz \( L \) actualizada es:
+\[
+L = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+6 & 1 & 0 & 0 \\
+9 & -10 & 1 & 0 \\
+-8 & -3 & 0 & 1
+\end{pmatrix}
+\]
+
+### Paso 4: Eliminar elementos debajo de la diagonal en la tercera columna
+
+**Para la fila 4:**
+\[
+L_{43} = \frac{5}{5} = 1
+\]
+Actualizamos la fila 4 en \( U \) restando 1 vez la fila 3:
+\[
+U = \begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & 0 & 5 & -9 \\
+0 & 0 & 0 & -9
+\end{pmatrix}
+\]
+
+La matriz \( L \) final es:
+\[
+L = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+6 & 1 & 0 & 0 \\
+9 & -10 & 1 & 0 \\
+-8 & -3 & 1 & 1
+\end{pmatrix}
+\]
+
+### Resultado Final
+La factorización \( LU \) de la matriz \( A \) es:
+
+\[
+A = LU = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+6 & 1 & 0 & 0 \\
+9 & -10 & 1 & 0 \\
+-8 & -3 & 1 & 1
+\end{pmatrix}
+\begin{pmatrix}
+-6 & -3 & 9 & -3 \\
+0 & 7 & -4 & 1 \\
+0 & 0 & 5 & -9 \\
+0 & 0 & 0 & -9
+\end{pmatrix}
+\]
+
+Este es el resultado en formato LaTeX para la factorización LU de tu matriz.
+
 \documentclass{article}
 \usepackage{amsmath}
 
