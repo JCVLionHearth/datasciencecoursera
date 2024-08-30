@@ -1,0 +1,83 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\begin{document}
+
+\section*{Problema}
+
+Una fábrica de muebles de calidad tiene dos divisiones: un taller de máquinas herramienta, donde se fabrican las partes de los muebles, y una división de ensamble y terminado, en la que se unen las partes para obtener el producto final. Suponga que se tienen 12 empleados en el taller y 20 empleados en la división de ensamble, y que cada empleado trabaja 8 horas al día. Suponga también que se producen únicamente dos artículos: sillas y mesas. 
+
+- Una silla requiere 38.417 horas de maquinado y 48.017 horas de ensamble y terminado. 
+- Una mesa requiere 24.017 horas de maquinado y 64.017 horas de ensamble y terminado.
+
+El fabricante desea mantener ocupados a todos los empleados. ¿Cuántas sillas y cuántas mesas puede producir esa fábrica al día?
+
+\section*{Planteamiento del problema}
+
+Primero, calculamos la disponibilidad total de horas de trabajo:
+
+- En el taller de máquinas herramienta: \(12 \text{ empleados} \times 8 \text{ horas} = 96 \text{ horas}\).
+- En la división de ensamble y terminado: \(20 \text{ empleados} \times 8 \text{ horas} = 160 \text{ horas}\).
+
+Sea \(x\) el número de sillas producidas por día y \(y\) el número de mesas producidas por día. Tenemos las siguientes ecuaciones para las horas requeridas:
+
+\[
+\begin{aligned}
+38.417x + 24.017y &= 96 \quad \text{(horas disponibles en el taller de máquinas herramienta)} \\
+48.017x + 64.017y &= 160 \quad \text{(horas disponibles en la división de ensamble y terminado)}
+\end{aligned}
+\]
+
+\section*{Resolución del sistema de ecuaciones}
+
+El sistema de ecuaciones en su forma matricial es:
+
+\[
+\begin{pmatrix}
+38.417 & 24.017 \\
+48.017 & 64.017
+\end{pmatrix}
+\begin{pmatrix}
+x \\
+y
+\end{pmatrix}
+=
+\begin{pmatrix}
+96 \\
+160
+\end{pmatrix}
+\]
+
+Resolvemos este sistema utilizando eliminación por renglones.
+
+\[
+\text{Primera ecuación: } 38.417x + 24.017y = 96
+\]
+
+\[
+\text{Segunda ecuación: } 48.017x + 64.017y = 160
+\]
+
+Multiplicamos la primera ecuación por \(1\) y restamos a la segunda para eliminar \(x\):
+
+\[
+\text{Nueva segunda ecuación: } \left(48.017x - \frac{48.017}{38.417} \times 38.417x\right) + \left(64.017y - \frac{48.017}{38.417} \times 24.017y\right) = 160 - \frac{48.017}{38.417} \times 96
+\]
+
+Simplificando la segunda ecuación:
+
+\[
+y \approx 2
+\]
+
+Sustituimos \(y = 2\) en la primera ecuación:
+
+\[
+38.417x + 24.017(2) = 96 \implies 38.417x + 48.034 = 96 \implies x \approx 1.25
+\]
+
+\section*{Conclusión}
+
+La fábrica puede producir aproximadamente \(1.25\) sillas y \(2\) mesas al día para mantener a todos los empleados ocupados.
+
+\end{document}
