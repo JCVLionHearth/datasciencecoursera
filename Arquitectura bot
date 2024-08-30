@@ -1,0 +1,30 @@
+Aquí tienes un borrador para cada una de las secciones solicitadas para tu proyecto en Azure DevOps:
+
+### 1. **Descripción del Proyecto**
+El proyecto "Ethos" es un asistente virtual automatizado desarrollado para gestionar consultas y dilemas éticos en la compañía. Implementado con Python y Flask, Ethos interactúa con los usuarios a través de una interfaz web intuitiva, guiándolos en la resolución de sus consultas mediante menús interactivos. La aplicación guarda las interacciones en una base de datos SQL Alchemy, con la opción de personalizar la experiencia según el nombre, área, y correo del usuario. Además, permite la descarga de un reporte en PDF que documenta el intercambio con el bot.
+
+### 2. **Objetivo del Proyecto**
+El objetivo de Ethos es proporcionar a los empleados una herramienta accesible y eficaz para abordar dilemas éticos y consultas relacionadas con la compañía. Ethos busca mejorar la coherencia y transparencia en la toma de decisiones, al tiempo que asegura que las interacciones sean documentadas y fácilmente accesibles, promoviendo un entorno de trabajo ético y alineado con las políticas corporativas.
+
+### 3. **Alcance del Proyecto**
+Ethos será desplegado como una aplicación web accesible para todos los empleados dentro de la red corporativa. El bot se integrará en el ecosistema de aplicaciones de la compañía a través de Azure DevOps, y estará disponible en todos los dispositivos compatibles con navegadores web. El alcance incluye:
+- Interfaz de usuario personalizada.
+- Almacenamiento seguro de interacciones en una base de datos.
+- Generación de reportes en PDF.
+- Integración con las herramientas de DevOps para facilitar despliegues, actualizaciones y mantenimiento.
+
+### 4. **Impacto del Proyecto**
+Ethos tendrá un impacto significativo en la cultura corporativa, fortaleciendo los principios éticos y proporcionando un medio confiable para que los empleados gestionen dilemas y consultas. El proyecto también reducirá la carga sobre los departamentos de cumplimiento y recursos humanos, al ofrecer respuestas automatizadas y documentar las interacciones. Esto contribuirá a un entorno de trabajo más ético y transparente.
+
+### 5. **Justificación del Proyecto**
+La creación de Ethos responde a la necesidad de un sistema automatizado que pueda asistir a los empleados en la resolución de dilemas éticos de manera eficiente y documentada. La solución se justifica por la creciente demanda de transparencia y coherencia en las decisiones corporativas, además de la necesidad de minimizar errores humanos y asegurar el cumplimiento de las políticas éticas de la compañía. Ethos es una herramienta proactiva que mejorará la capacidad de la empresa para gestionar riesgos éticos.
+
+### 6. **Definición de la Arquitectura**
+Ethos está construido sobre una arquitectura basada en microservicios utilizando Python y Flask. La aplicación se compone de los siguientes componentes:
+- **Interfaz de Usuario (UI):** Desarrollada con HTML y Flask, permite la interacción del usuario con Ethos.
+- **Motor de Consultas:** Implementado en Python, gestiona la lógica de las consultas y dilemas, orientando al usuario a través de los menús.
+- **Base de Datos:** Se utiliza SQL Alchemy para gestionar las interacciones guardadas, con opciones de personalización para el usuario.
+- **Generador de Reportes:** Un módulo que convierte las interacciones en un archivo PDF descargable.
+- **Integración con Azure DevOps:** Para gestionar el despliegue continuo, la actualización de la aplicación y la supervisión de su rendimiento en producción.
+
+Este esquema garantiza escalabilidad, mantenimiento sencillo, y una experiencia de usuario coherente y segura.
