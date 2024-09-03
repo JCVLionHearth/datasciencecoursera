@@ -1,0 +1,105 @@
+Para desarrollar el programa que necesitas en Python, vamos a utilizar las bibliotecas `PyPDF2` para leer los PDFs, `re` para buscar las palabras dentro del texto y `openpyxl` para generar el reporte en un archivo Excel.
+
+Aquí te dejo el código completo:
+
+### Paso 1: Instalar las bibliotecas necesarias
+
+Primero, asegúrate de tener instaladas las bibliotecas necesarias. Puedes instalarlas utilizando pip:
+
+```bash
+pip install PyPDF2 openpyxl
+```
+
+### Paso 2: Crear el programa en Python
+
+A continuación, te muestro cómo podrías implementar el programa:
+
+```python
+import os
+import re
+import PyPDF2
+from openpyxl import Workbook
+
+def search_word_in_pdf(pdf_path, search_words):
+    results = []
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        num_pages = len(reader.pages)
+        
+        for page_num in range(num_pages):
+            page = reader.pages[page_num]
+            text = page.extract_text()
+            
+            for word in search_words:
+                for match in re.finditer(r'\b{}\b'.format(re.escape(word)), text, re.IGNORECASE):
+                    start = match.start()
+                    # Encontrar el párrafo
+                    paragraph_start = text.rfind('\n', 0, start)
+                    paragraph_end = text.find('\n', start)
+                    paragraph = text[paragraph_start:paragraph_end].strip()
+                    
+                    results.append({
+                        'document': os.path.basename(pdf_path),
+                        'word': word,
+                        'paragraph': paragraph,
+                        'page': page_num + 1
+                    })
+                    
+    return results
+
+def create_excel_report(results, output_path):
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Resultados de Búsqueda'
+    
+    # Encabezados
+    headers = ['Documento', 'Palabra', 'Párrafo', 'Página']
+    sheet.append(headers)
+    
+    # Filas de datos
+    for result in results:
+        row = [result['document'], result['word'], result['paragraph'], result['page']]
+        sheet.append(row)
+    
+    workbook.save(output_path)
+    print(f'Reporte guardado en {output_path}')
+
+def main():
+    pdf_folder = 'path_to_your_pdf_folder'  # Cambia esto por la ruta de tu carpeta de PDFs
+    output_excel = 'reporte_resultados.xlsx'  # Cambia esto por el nombre del archivo de salida
+    search_words = ['palabra1', 'palabra2', 'palabra3']  # Lista de palabras que quieres buscar
+    
+    all_results = []
+    
+    for pdf_file in os.listdir(pdf_folder):
+        if pdf_file.endswith('.pdf'):
+            pdf_path = os.path.join(pdf_folder, pdf_file)
+            print(f'Procesando {pdf_file}...')
+            results = search_word_in_pdf(pdf_path, search_words)
+            all_results.extend(results)
+    
+    create_excel_report(all_results, output_excel)
+
+if __name__ == '__main__':
+    main()
+```
+
+### Explicación del código:
+1. **search_word_in_pdf**: Esta función abre el PDF, lo lee página por página y busca las palabras especificadas. Cuando encuentra una palabra, extrae el párrafo en el que aparece y almacena el nombre del documento, la palabra, el párrafo, y el número de página en una lista.
+   
+2. **create_excel_report**: Esta función toma los resultados almacenados en la lista y genera un archivo Excel con ellos. Cada fila del archivo Excel contiene el nombre del documento, la palabra encontrada, el párrafo y la página.
+
+3. **main**: Esta es la función principal que configura el directorio donde se encuentran los PDFs, el nombre del archivo Excel de salida, y la lista de palabras a buscar. Procesa cada PDF en el directorio y genera el reporte Excel.
+
+### Paso 3: Ejecutar el programa en Visual Studio Code
+
+- Copia y pega el código en un archivo `.py` en Visual Studio Code.
+- Ajusta las rutas de la carpeta de PDFs (`pdf_folder`) y el nombre del archivo de salida (`output_excel`).
+- Define las palabras que deseas buscar en `search_words`.
+- Ejecuta el programa.
+
+### Ajustes adicionales:
+- **Rutas**: Cambia `'path_to_your_pdf_folder'` y `'reporte_resultados.xlsx'` por las rutas que necesites.
+- **Palabras de búsqueda**: Ajusta `search_words` con las palabras que quieres buscar.
+
+Este programa debería procesar tus PDFs y generar el reporte que necesitas en un archivo Excel. Si tienes más preguntas o necesitas ajustar algo más, estoy aquí para ayudarte.
