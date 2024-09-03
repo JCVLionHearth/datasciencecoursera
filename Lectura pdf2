@@ -1,3 +1,112 @@
+import os
+import re
+import PyPDF2
+import matplotlib.pyplot as plt
+import seaborn as sns
+from textblob import TextBlob
+import spacy
+from openpyxl import Workbook
+from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
+
+# Cargar el modelo de spaCy para análisis de entidades
+nlp = spacy.load("en_core_web_sm")
+
+def extract_paragraph(text, start_pos, max_length=500):
+    # Encontrar el inicio del párrafo
+    paragraph_start = text.rfind('.', 0, start_pos) + 1
+    if paragraph_start == 0:
+        paragraph_start = text.rfind('\n', 0, start_pos)
+    if paragraph_start == -1:
+        paragraph_start = 0
+    
+    # Encontrar el final del párrafo
+    paragraph_end = text.find('.', start_pos)
+    if paragraph_end == -1 or (paragraph_end - paragraph_start > max_length):
+        paragraph_end = text.find('\n', start_pos)
+    if paragraph_end == -1:
+        paragraph_end = len(text)
+    
+    # Extraer y limpiar el párrafo
+    paragraph = text[paragraph_start:paragraph_end].strip()
+    
+    return paragraph
+
+def search_word_in_pdf(pdf_path, search_words):
+    results = []
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        num_pages = len(reader.pages)
+        full_text = ''
+        
+        for page_num in range(num_pages):
+            page = reader.pages[page_num]
+            text = page.extract_text()
+            full_text += text
+            
+            for word in search_words:
+                pattern = r'\b\w*{}\w*\b'.format(re.escape(word))
+                for match in re.finditer(pattern, text, re.IGNORECASE):
+                    start_pos = match.start()
+                    
+                    # Extraer párrafo utilizando el nuevo método
+                    paragraph = extract_paragraph(text, start_pos)
+                    
+                    # Análisis de sentimiento
+                    sentiment = TextBlob(paragraph).sentiment
+                    
+                    # Análisis de entidades nombradas
+                    doc = nlp(paragraph)
+                    entities = [(ent.text, ent.label_) for ent in doc.ents]
+                    
+                    results.append({
+                        'document': os.path.basename(pdf_path),
+                        'word': match.group(0),
+                        'paragraph': paragraph,
+                        'page': page_num + 1,
+                        'total_pages': num_pages,
+                        'sentiment': sentiment.polarity,  # Polaridad del sentimiento
+                        'entities': entities  # Entidades nombradas
+                    })
+        
+        # Frecuencia de palabras en el documento
+        word_frequencies = Counter(re.findall(r'\b\w+\b', full_text.lower()))
+        
+        return results, word_frequencies
+
+# (Las demás funciones se mantienen igual que antes)
+
+def main():
+    pdf_folder = 'documentos'  # Ruta relativa a la carpeta "documentos"
+    output_excel = 'reporte_resultados.xlsx'  # Nombre del archivo de salida
+    search_words = ['proyecto', 'inversión']  # Lista de palabras que quieres buscar
+    
+    all_results = []
+    all_word_frequencies = Counter()
+    
+    with ProcessPoolExecutor() as executor:
+        futures = []
+        for pdf_file in os.listdir(pdf_folder):
+            if pdf_file.endswith('.pdf'):
+                pdf_path = os.path.join(pdf_folder, pdf_file)
+                print(f'Procesando {pdf_file}...')
+                futures.append(executor.submit(search_word_in_pdf, pdf_path, search_words))
+        
+        for future in futures:
+            results, word_frequencies = future.result()
+            all_results.extend(results)
+            all_word_frequencies.update(word_frequencies)
+    
+    create_excel_report(all_results, all_word_frequencies, output_excel)
+    plot_word_frequencies(all_word_frequencies, top_n=10)
+    classifications = classify_documents(all_results)
+    
+    print("Clasificaciones de documentos:", classifications)
+
+if __name__ == '__main__':
+    main()
+
+#######
 Implementar las mejoras propuestas (análisis de frecuencia de palabras, análisis de sentimiento, análisis de entidades nombradas, visualización de resultados, clasificación de documentos, y optimización del rendimiento) es un proceso complejo, pero te guiaré paso a paso para integrar estas funciones en tu programa. A continuación, te presento una versión del código que incluye todas estas mejoras.
 
 ### Paso 1: Instalar las bibliotecas necesarias
