@@ -1,0 +1,191 @@
+Implementar las mejoras propuestas (análisis de frecuencia de palabras, análisis de sentimiento, análisis de entidades nombradas, visualización de resultados, clasificación de documentos, y optimización del rendimiento) es un proceso complejo, pero te guiaré paso a paso para integrar estas funciones en tu programa. A continuación, te presento una versión del código que incluye todas estas mejoras.
+
+### Paso 1: Instalar las bibliotecas necesarias
+
+Primero, necesitas instalar algunas bibliotecas adicionales si no las tienes instaladas:
+
+```bash
+pip install PyPDF2 openpyxl textblob spacy matplotlib seaborn nltk
+python -m textblob.download_corpora
+python -m spacy download en_core_web_sm
+```
+
+### Paso 2: Código mejorado
+
+Aquí tienes el código actualizado:
+
+```python
+import os
+import re
+import PyPDF2
+import matplotlib.pyplot as plt
+import seaborn as sns
+from textblob import TextBlob
+import spacy
+from openpyxl import Workbook
+from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
+
+# Cargar el modelo de spaCy para análisis de entidades
+nlp = spacy.load("en_core_web_sm")
+
+def search_word_in_pdf(pdf_path, search_words):
+    results = []
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        num_pages = len(reader.pages)
+        full_text = ''
+        
+        for page_num in range(num_pages):
+            page = reader.pages[page_num]
+            text = page.extract_text()
+            full_text += text
+            
+            for word in search_words:
+                pattern = r'\b\w*{}\w*\b'.format(re.escape(word))
+                for match in re.finditer(pattern, text, re.IGNORECASE):
+                    start = match.start()
+                    # Encontrar el párrafo
+                    paragraph_start = text.rfind('\n', 0, start)
+                    paragraph_end = text.find('\n', start)
+                    paragraph = text[paragraph_start:paragraph_end].strip()
+                    
+                    # Análisis de sentimiento
+                    sentiment = TextBlob(paragraph).sentiment
+                    
+                    # Análisis de entidades nombradas
+                    doc = nlp(paragraph)
+                    entities = [(ent.text, ent.label_) for ent in doc.ents]
+                    
+                    results.append({
+                        'document': os.path.basename(pdf_path),
+                        'word': match.group(0),
+                        'paragraph': paragraph,
+                        'page': page_num + 1,
+                        'total_pages': num_pages,
+                        'sentiment': sentiment.polarity,  # Polaridad del sentimiento
+                        'entities': entities  # Entidades nombradas
+                    })
+        
+        # Frecuencia de palabras en el documento
+        word_frequencies = Counter(re.findall(r'\b\w+\b', full_text.lower()))
+        
+        return results, word_frequencies
+
+def create_excel_report(results, word_frequencies, output_path):
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Resultados de Búsqueda'
+    
+    # Encabezados
+    headers = ['Documento', 'Palabra', 'Párrafo', 'Página', 'Total Páginas', 'Sentimiento', 'Entidades']
+    sheet.append(headers)
+    
+    # Filas de datos
+    for result in results:
+        row = [
+            result['document'], 
+            result['word'], 
+            result['paragraph'], 
+            result['page'],
+            result['total_pages'], 
+            result['sentiment'], 
+            ", ".join([f"{ent[0]} ({ent[1]})" for ent in result['entities']])
+        ]
+        sheet.append(row)
+    
+    # Crear una hoja adicional para la frecuencia de palabras
+    freq_sheet = workbook.create_sheet(title='Frecuencia de Palabras')
+    freq_sheet.append(['Palabra', 'Frecuencia'])
+    for word, freq in word_frequencies.items():
+        freq_sheet.append([word, freq])
+    
+    workbook.save(output_path)
+    print(f'Reporte guardado en {output_path}')
+
+def plot_word_frequencies(word_frequencies, top_n=10):
+    most_common_words = word_frequencies.most_common(top_n)
+    words, freqs = zip(*most_common_words)
+    
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=list(freqs), y=list(words), palette="viridis")
+    plt.title('Top {} Palabras Más Frecuentes'.format(top_n))
+    plt.xlabel('Frecuencia')
+    plt.ylabel('Palabras')
+    plt.show()
+
+def classify_documents(results):
+    classifications = {}
+    
+    for result in results:
+        doc_name = result['document']
+        word = result['word']
+        
+        if doc_name not in classifications:
+            classifications[doc_name] = {'proyecto': 0, 'inversión': 0}
+        
+        if 'proyecto' in word.lower():
+            classifications[doc_name]['proyecto'] += 1
+        if 'inversión' in word.lower():
+            classifications[doc_name]['inversión'] += 1
+    
+    return classifications
+
+def main():
+    pdf_folder = 'documentos'  # Ruta relativa a la carpeta "documentos"
+    output_excel = 'reporte_resultados.xlsx'  # Nombre del archivo de salida
+    search_words = ['proyecto', 'inversión']  # Lista de palabras que quieres buscar
+    
+    all_results = []
+    all_word_frequencies = Counter()
+    
+    with ProcessPoolExecutor() as executor:
+        futures = []
+        for pdf_file in os.listdir(pdf_folder):
+            if pdf_file.endswith('.pdf'):
+                pdf_path = os.path.join(pdf_folder, pdf_file)
+                print(f'Procesando {pdf_file}...')
+                futures.append(executor.submit(search_word_in_pdf, pdf_path, search_words))
+        
+        for future in futures:
+            results, word_frequencies = future.result()
+            all_results.extend(results)
+            all_word_frequencies.update(word_frequencies)
+    
+    create_excel_report(all_results, all_word_frequencies, output_excel)
+    plot_word_frequencies(all_word_frequencies, top_n=10)
+    classifications = classify_documents(all_results)
+    
+    print("Clasificaciones de documentos:", classifications)
+
+if __name__ == '__main__':
+    main()
+```
+
+### Explicación de las mejoras:
+
+1. **Análisis de Frecuencia de Palabras**:
+   - El código ahora cuenta la frecuencia de cada palabra en el documento completo y almacena los resultados en el reporte Excel en una hoja separada. Además, genera un gráfico de las 10 palabras más frecuentes usando `matplotlib` y `seaborn`.
+
+2. **Análisis de Sentimiento**:
+   - Cada párrafo encontrado se analiza utilizando `TextBlob` para determinar el sentimiento (polaridad). Los resultados se agregan al reporte en la columna "Sentimiento".
+
+3. **Análisis de Entidades Nombradas**:
+   - `spaCy` se utiliza para identificar entidades nombradas en los párrafos donde aparecen las palabras clave. Estas entidades se agregan al reporte en la columna "Entidades".
+
+4. **Visualización de Resultados**:
+   - Un gráfico de barras muestra las 10 palabras más frecuentes encontradas en los documentos, facilitando una visualización rápida de la información.
+
+5. **Clasificación de Documentos**:
+   - El programa clasifica los documentos según la cantidad de veces que aparecen las palabras "proyecto" o "inversión". Esta clasificación se muestra en la consola al final de la ejecución.
+
+6. **Optimización del Rendimiento**:
+   - Se utiliza `ProcessPoolExecutor` para procesar varios documentos en paralelo, lo que mejora el rendimiento en sistemas con múltiples núcleos.
+
+### Próximos pasos:
+
+1. **Prueba**: Ejecuta el código en tu entorno para verificar que todo funciona como esperas.
+2. **Ajustes**: Si necesitas personalizar más aspectos del análisis, como la clasificación de documentos o el número de palabras frecuentes que se muestran, puedes modificar los parámetros respectivos.
+3. **Integración**: Si planeas usar este programa de manera repetida, considera encapsularlo en una función o crear una interfaz gráfica para facilitar su uso.
+
+Si tienes alguna pregunta adicional o necesitas más ayuda, no dudes en decírmelo.
