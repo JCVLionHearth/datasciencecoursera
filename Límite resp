@@ -1,0 +1,80 @@
+### Documento Explicativo para la Aplicación de Cálculo de Límite de Responsabilidad
+
+---
+
+#### 1. **Justificación**
+La toma de decisiones en torno al cálculo del límite de responsabilidad contractual es un proceso complejo que involucra múltiples factores de riesgo, sus probabilidades de ocurrencia e impactos financieros potenciales. A menudo, este proceso puede ser subjetivo, basado en juicios cualitativos más que en análisis cuantitativos sólidos. 
+
+La aplicación que hemos desarrollado busca reducir esa subjetividad utilizando técnicas estadísticas y probabilísticas. El propósito es proporcionar al usuario una herramienta que, a través de simulaciones y modelos de distribución, permita una estimación más fundamentada del límite de responsabilidad, dejando siempre la decisión final en manos del usuario. Esta aplicación no busca sustituir la toma de decisiones, sino apoyarla con datos objetivos y escenarios probables, facilitando una mejor evaluación de los riesgos.
+
+#### 2. **Propósito**
+El propósito de esta herramienta es brindar una plataforma que permita a los usuarios:
+- Cargar información sobre riesgos asociados a impactos y probabilidades.
+- Utilizar modelos probabilísticos y simulaciones Monte Carlo para generar escenarios.
+- Presentar los resultados en percentiles que representen la variabilidad de los riesgos.
+- Apoyar la toma de decisiones del usuario al mostrar un rango de posibles valores de límite de responsabilidad, evitando imponer un único valor.
+
+#### 3. **Parámetros**
+La aplicación permite dos formas de entrada para los datos sobre riesgos:
+
+- **Distribución Triangular**: Se ingresan tres escenarios para cada riesgo:
+  - **Optimista**: El mejor escenario posible con menor impacto y menor probabilidad.
+  - **Probable**: Un escenario con una probabilidad e impacto más realistas.
+  - **Pesimista**: El peor escenario posible con mayor impacto y mayor probabilidad.
+  
+- **Distribución Normal**: Se ingresan los valores de:
+  - **Impacto esperado**: Valor promedio del impacto del riesgo.
+  - **Probabilidad esperada**: Valor promedio de la probabilidad de ocurrencia.
+  - **Desviaciones estándar** asociadas al impacto y la probabilidad para capturar la variabilidad.
+
+#### 4. **Metodología de Cálculo**
+El modelo se basa en la simulación de escenarios mediante **Simulaciones Monte Carlo**. Este método permite generar múltiples escenarios posibles considerando la variabilidad de los riesgos ingresados, para obtener una distribución del límite de responsabilidad basado en los riesgos.
+
+- **Simulación Monte Carlo**: A partir de las distribuciones seleccionadas (triangular o normal), se generan miles de simulaciones que producen escenarios de posibles combinaciones de impacto y probabilidad. El resultado es una distribución de resultados, permitiendo observar cómo se comporta el límite de responsabilidad bajo diferentes supuestos.
+  
+- **Percentiles**: En lugar de ofrecer un único valor, la aplicación presenta un rango de percentiles (e.g., P50, P75, P90), mostrando los límites de responsabilidad bajo diferentes niveles de confianza. De esta forma, el usuario puede decidir cuál valor es más apropiado para su contexto, basándose en su tolerancia al riesgo.
+
+#### 5. **Técnicas Utilizadas y Justificación**
+- **Distribuciones Triangulares y Normales**: La selección de estas distribuciones permite representar tanto situaciones donde existe mayor incertidumbre (distribución triangular) como escenarios más centrados y con variabilidad acotada (distribución normal).
+  
+- **Simulación Monte Carlo**: Esta técnica es ampliamente utilizada en análisis de riesgo y es válida porque permite incorporar la incertidumbre de manera explícita. Al realizar un gran número de simulaciones, se puede observar cómo pequeñas variaciones en las entradas (impactos y probabilidades) afectan el resultado final, proporcionando un análisis robusto.
+
+- **Uso de Percentiles**: En lugar de depender de un único valor esperado, los percentiles permiten mostrar la variabilidad inherente al cálculo de límites de responsabilidad. Esto da al usuario una visión más completa, ayudándolo a tomar decisiones basadas en datos en lugar de suposiciones.
+
+#### 6. **Por qué es Efectivo**
+- **Reducción de Subjetividad**: La aplicación transforma lo que podría ser una decisión subjetiva en un proceso basado en datos y estadísticas.
+  
+- **Flexibilidad en la Toma de Decisiones**: Al ofrecer percentiles, el usuario final mantiene el control sobre cuál es el valor del límite de responsabilidad que está dispuesto a asumir, basándose en sus criterios y contexto.
+
+- **Escenarios Realistas**: Gracias a la simulación, se presentan escenarios realistas que muestran cómo el límite de responsabilidad varía bajo diferentes condiciones, permitiendo al usuario prepararse mejor para diversos escenarios de riesgo.
+
+---
+
+### Puntos Clave para Presentación en Forma de Bullets
+
+- **Justificación**:
+  - El cálculo de límites de responsabilidad es complejo y puede ser subjetivo.
+  - La herramienta reduce la subjetividad mediante técnicas probabilísticas y simulaciones.
+
+- **Propósito**:
+  - Brindar al usuario una estimación más objetiva del límite de responsabilidad.
+  - Permitir que el usuario final tome la decisión basada en una gama de posibles escenarios.
+
+- **Parámetros**:
+  - Dos formas de entrada: Distribución Triangular (optimista, probable, pesimista) y Distribución Normal (impacto y probabilidad esperados).
+  
+- **Metodología de Cálculo**:
+  - Uso de simulaciones Monte Carlo para generar miles de escenarios.
+  - Resultados presentados en percentiles (P50, P75, P90) para mostrar la variabilidad del límite de responsabilidad.
+
+- **Técnicas Utilizadas**:
+  - **Distribuciones Triangular y Normal**: Modelos que representan diferentes tipos de incertidumbre.
+  - **Simulación Monte Carlo**: Técnica que permite capturar la variabilidad en los cálculos.
+  - **Percentiles**: Ofrecen una visión completa de los posibles valores del límite de responsabilidad.
+
+- **Por qué es Efectivo**:
+  - Reduce la subjetividad en el cálculo de límites de responsabilidad.
+  - Proporciona una herramienta flexible que permite al usuario decidir.
+  - Ofrece escenarios realistas para apoyar mejor la toma de decisiones.
+
+Este enfoque deja claro que la aplicación es una herramienta de apoyo para la toma de decisiones, no un reemplazo del juicio experto.
