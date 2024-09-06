@@ -1,3 +1,95 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{caption}
+
+\title{Análisis del Modelo de Regresión con TensorFlow y Keras}
+\author{Trabajo en Grupo}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Video Explicativo}
+
+El enlace con el video debidamente cargado en la plataforma YouTube es: 
+\url{https://youtu.be/0oUtxANcSlo}
+
+\section{Explicación General del Código}
+
+Antes de comenzar con la explicación, es importante aclarar que hubo la necesidad de cambiar las líneas de código, específicamente en la configuración de la red neuronal. Anteriormente, se utilizaba el siguiente bloque de código:
+
+\begin{lstlisting}[language=Python]
+# Create a DNNRegressor object.
+my_optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+my_optimizer = tf.contrib.estimator.clip_gradients_by_norm(my_optimizer, 5.0)
+dnn_regressor = tf.estimator.DNNRegressor(
+    feature_columns=construct_feature_columns(training_examples),
+    hidden_units=hidden_units,
+    optimizer=my_optimizer
+)
+\end{lstlisting}
+
+Este código fue desarrollado para una versión de TensorFlow 1.x. Dado que algunas funciones fueron eliminadas en versiones recientes, se cambió a lo siguiente:
+
+\begin{lstlisting}[language=Python]
+# Crear el modelo secuencial de Keras
+model = tf.keras.Sequential()
+
+# Añadir capas ocultas
+for units in hidden_units:
+    model.add(tf.keras.layers.Dense(units=units, activation='relu'))
+
+# Añadir la capa de salida
+model.add(tf.keras.layers.Dense(units=1, activation='linear'))
+
+# Definir el optimizador con recorte de gradientes
+my_optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, clipnorm=5.0)
+
+# Compilar el modelo
+model.compile(optimizer=my_optimizer, loss='mean_squared_error')
+\end{lstlisting}
+
+Este cambio es compatible con TensorFlow 2.7. A continuación, se explica el código.
+
+\subsection{Instalación y Importaciones}
+
+Se deben instalar las librerías necesarias para construir y entrenar modelos en TensorFlow:
+
+\begin{verbatim}
+!pip install tensorflow-estimator
+\end{verbatim}
+
+\subsection{Preprocesamiento de Datos}
+
+Se leen y preprocesan los datos del conjunto de California Housing, creando una característica sintética llamada \texttt{rooms\_per\_person}.
+
+\begin{lstlisting}[language=Python]
+def preprocess_features(california_housing_dataframe):
+    selected_features = california_housing_dataframe[
+        ["latitude", "longitude", "housing_median_age", "total_rooms",
+         "total_bedrooms", "population", "households", "median_income"]]
+    processed_features = selected_features.copy()
+    processed_features["rooms_per_person"] = (
+        california_housing_dataframe["total_rooms"] /
+        california_housing_dataframe["population"])
+    return processed_features
+\end{lstlisting}
+
+\section{Conclusiones Generales}
+
+\begin{itemize}
+    \item Es crucial mantener el código actualizado a las nuevas versiones de las librerías para garantizar su compatibilidad y funcionamiento.
+    \item La configuración adecuada de los hiperparámetros, como la tasa de aprendizaje y el número de pasos, es fundamental para obtener un buen rendimiento en los modelos de machine learning.
+    \item Modelos más complejos pueden capturar mejor las relaciones en los datos, pero deben equilibrarse cuidadosamente con otros hiperparámetros para evitar sobreajuste.
+    \item El uso de un conjunto de validación durante el entrenamiento es esencial para garantizar que el modelo generalice bien a nuevos datos.
+\end{itemize}
+
+\end{document}
+
 Vamos a realizar la factorización LU de la matriz 5x5 que has proporcionado. La matriz \( A \) es:
 
 \[
