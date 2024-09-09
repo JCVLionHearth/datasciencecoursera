@@ -1,3 +1,6 @@
+me sale este error: werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+KeyError: 'file'
+
 ¡Claro! Para incorporar la funcionalidad que mencionas, podemos modificar el flujo de la aplicación para que, una vez que se cargue el archivo Excel, aparezca un selector con las hojas disponibles. El usuario podrá elegir la hoja específica, y a partir de ahí se realizará la modelación de las series que se encuentren en esa hoja.
 
 A continuación te indico cómo podrías implementar esta funcionalidad.
