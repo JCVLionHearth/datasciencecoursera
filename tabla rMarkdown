@@ -1,3 +1,66 @@
+Para reflejar el idioma de cada consulta en tu tabla dinámica, puedes extraer el idioma directamente del DataFrame donde ya está registrado para cada búsqueda. A continuación te muestro cómo puedes agregar esta información al código.
+
+### Actualización del Código:
+
+1. **Idioma de la consulta**: Extraerás el idioma directamente del DataFrame para cada búsqueda.
+2. **Modificar la función**: Incluirás el idioma dentro de la función `tabla_resumen` para generar dinámicamente esta información.
+
+### Código Modificado:
+
+```r
+library(dplyr)
+library(knitr)
+
+# Genera el índice único de las búsquedas
+indices <- unique(Noticias$index)
+
+# Define una función para generar las filas dinámicas
+tabla_resumen <- function(indice) {
+  # Extrae la búsqueda y el idioma asociado
+  busqueda <- unique(Noticias$Busqueda[Noticias$index == indice])
+  idioma <- unique(Noticias$Idioma[Noticias$index == indice])  # Asume que tienes una columna "Idioma"
+  
+  noticias_hoy <- Num_Noticias %>%
+    filter(Busqueda == busqueda & Fecha == as.Date(Sys.Date())) %>%
+    select(Conteo) %>%
+    pull() %>%
+    ifelse(is.na(.), 0, .)
+  
+  noticias_ayer <- Num_Noticias %>%
+    filter(Busqueda == busqueda & Fecha == as.Date(Sys.Date() - 1)) %>%
+    select(Conteo) %>%
+    pull() %>%
+    ifelse(is.na(.), 0, .)
+  
+  noticias_mes <- Num_Noticias2 %>%
+    filter(Busqueda == busqueda & AM == mes_hoy) %>%
+    select(Conteo2) %>%
+    pull()
+  
+  noticias_ano <- Num_Noticias2 %>%
+    filter(Busqueda == busqueda & AY == ano_hoy) %>%
+    select(Conteo2) %>%
+    pull()
+  
+  # Retorna los datos incluyendo el idioma
+  return(c(busqueda, idioma, noticias_hoy, noticias_ayer, noticias_mes, noticias_ano))
+}
+
+# Aplica la función a todos los índices
+tabla <- do.call(rbind, lapply(indices, tabla_resumen))
+
+# Genera la tabla con kable
+colnames(tabla) <- c("Consulta", "Idioma de consulta", "Noticias hoy", "Noticias ayer", "Noticias Mes", "Noticias Año")
+
+kable(tabla, align = 'c', caption = "Resumen de Búsquedas de Noticias")
+```
+
+### Explicación Adicional:
+1. **Idioma**: Se asume que tienes una columna `Idioma` en tu DataFrame `Noticias`, que contiene el idioma de cada búsqueda. Esto puede ser "ES", "EN", o ambos (por ejemplo, "ES, EN").
+2. **`Idioma` en la tabla**: Al agregar la columna `Idioma` a la función `tabla_resumen`, ahora la tabla reflejará correctamente si una búsqueda fue realizada en español, inglés, o ambos idiomas.
+
+Este enfoque asegurará que las consultas se muestren junto con el idioma correspondiente sin que tengas que modificar manualmente el código cada vez que haya una búsqueda nueva o un cambio de idioma.
+
 library(dplyr)
 library(knitr)
 
