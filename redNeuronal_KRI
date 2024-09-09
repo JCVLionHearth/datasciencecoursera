@@ -1,3 +1,192 @@
+¡Claro! A continuación te guiaré paso a paso para crear tu proyecto en **Visual Studio Code** utilizando **Python** y **Dash** para la aplicación de predicciones. Asegúrate de tener todo lo necesario instalado y configurado.
+
+### 1. **Configurar tu entorno de desarrollo**
+
+Primero, debes asegurarte de tener instaladas las siguientes herramientas:
+
+- **Python** (Versión 3.x)
+- **Visual Studio Code** (con la extensión de Python)
+- **Pip** para instalar paquetes de Python
+
+### 2. **Crear el entorno virtual**
+
+En tu terminal de Visual Studio Code, crea un entorno virtual para el proyecto:
+
+```bash
+python -m venv venv
+```
+
+Activa el entorno virtual:
+
+- En Windows:
+  ```bash
+  venv\Scripts\activate
+  ```
+- En macOS/Linux:
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. **Instalar las dependencias**
+
+Con el entorno activado, instala los paquetes necesarios usando `pip`:
+
+```bash
+pip install dash plotly pandas openpyxl
+```
+
+### 4. **Estructurar el proyecto**
+
+Crea una estructura de carpetas y archivos dentro de tu proyecto:
+
+```
+/tu_proyecto_predicciones/
+│
+├── app.py           # Archivo principal para ejecutar la aplicación
+├── assets/          # Carpeta para estilos CSS (si necesitas)
+└── data/            # Carpeta para archivos Excel (si necesitas usar datos de prueba)
+```
+
+### 5. **Escribir el código de la aplicación (app.py)**
+
+Copia el siguiente código dentro de `app.py`. Este código crea una aplicación básica en **Dash** que incluye la subida de archivos, inputs para los parámetros, y un gráfico interactivo usando **Plotly**:
+
+```python
+import dash
+from dash import dcc, html, dash_table
+from dash.dependencies import Input, Output, State
+import pandas as pd
+import plotly.graph_objs as go
+import base64
+import io
+
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    html.H1("Predicción de Series Temporales"),
+    
+    # Subir archivo de Excel
+    dcc.Upload(
+        id='upload-data',
+        children=html.Button('Cargar archivo Excel'),
+        multiple=False
+    ),
+    
+    # Entrada para parámetros
+    html.Div([
+        dcc.Input(id='cutoff-date', type='text', placeholder='Fecha de Corte (YYYY-MM-DD)'),
+        dcc.Input(id='num-series', type='number', placeholder='Número de Series'),
+        dcc.Input(id='z-value', type='number', placeholder='Valor Z (Intervalo de Confianza)'),
+        dcc.Input(id='num-months', type='number', placeholder='Meses a Predecir'),
+        html.Button('Ejecutar Predicción', id='run-model')
+    ]),
+    
+    # Salidas gráficas y tablas
+    dcc.Graph(id='graph-prediction'),
+    html.Div(id='table-summary')
+])
+
+# Función para procesar archivo Excel
+def parse_contents(contents):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    df = pd.read_excel(io.BytesIO(decoded), sheet_name="PQRS_Neiva_Orito")
+    return df
+
+# Callback para manejar la lógica y actualizar gráficos y tablas
+@app.callback(
+    [Output('graph-prediction', 'figure'),
+     Output('table-summary', 'children')],
+    [Input('run-model', 'n_clicks')],
+    [State('upload-data', 'contents'),
+     State('cutoff-date', 'value'),
+     State('num-series', 'value'),
+     State('z-value', 'value'),
+     State('num-months', 'value')]
+)
+def update_output(n_clicks, uploaded_file, cutoff_date, num_series, z_value, num_months):
+    if uploaded_file is None:
+        return {}, ""
+    
+    df = parse_contents(uploaded_file)
+
+    # Aquí va la lógica para ejecutar las predicciones (inserta tu modelo)
+    # df contiene el DataFrame procesado del archivo Excel
+
+    # Simulación de predicción con valores aleatorios
+    pred = df.head(num_months)
+    pred['Frecuencia_Predicha'] = pred.iloc[:, 1] + 10  # Ejemplo de predicción simple
+    
+    # Generar gráfico interactivo
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=pred['Fecha'], y=pred.iloc[:, 1], mode='lines', name='Histórico'))
+    fig.add_trace(go.Scatter(x=pred['Fecha'], y=pred['Frecuencia_Predicha'], mode='lines', name='Predicción'))
+
+    # Generar resumen en tabla
+    table = dash_table.DataTable(
+        data=pred.to_dict('records'),
+        columns=[{"name": i, "id": i} for i in pred.columns],
+        style_table={'overflowX': 'scroll'}
+    )
+    
+    return fig, table
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
+```
+
+### 6. **Ejecutar la aplicación**
+
+Guarda todos los archivos y, en la terminal de **Visual Studio Code**, ejecuta:
+
+```bash
+python app.py
+```
+
+Si todo está configurado correctamente, verás un mensaje como este en tu terminal:
+
+```
+Dash is running on http://127.0.0.1:8050/
+```
+
+Abre tu navegador web y visita esa dirección (http://127.0.0.1:8050/), y verás la interfaz básica de tu aplicación con opciones para cargar un archivo Excel, ingresar los parámetros, y generar las predicciones.
+
+### 7. **Mejoras adicionales**
+
+#### a) **Agregar CSS para mejorar la apariencia**
+Puedes personalizar la apariencia de la aplicación agregando un archivo CSS en la carpeta `assets/`. Por ejemplo, crea un archivo `assets/style.css` y agrega tus estilos.
+
+#### b) **Añadir lógica de predicción con LSTM**
+Sustituye la sección de "Simulación de predicción" en el código por tu modelo de LSTM o cualquier otro modelo de predicción que estés usando.
+
+#### c) **Agregar la opción de descargar resultados en Excel**
+Para permitir que los usuarios descarguen los resultados de las predicciones, puedes añadir un botón de descarga. Aquí tienes un ejemplo:
+
+```python
+import dash_core_components as dcc
+
+# Agrega un botón de descarga en el layout
+html.Button("Descargar Resultados", id="btn-download"),
+dcc.Download(id="download-dataframe-xlsx")
+```
+
+Luego, en tu callback:
+
+```python
+@app.callback(
+    Output("download-dataframe-xlsx", "data"),
+    [Input("btn-download", "n_clicks")],
+    [State('predictions', 'data')]
+)
+def download_excel(n_clicks, predictions):
+    if n_clicks:
+        return dcc.send_data_frame(predictions.to_excel, "predicciones.xlsx")
+```
+
+### 8. **Conclusión**
+
+Con esto tendrás una aplicación web interactiva en Dash donde puedes cargar archivos Excel, realizar predicciones de series temporales, visualizar gráficos y tablas, y eventualmente descargar los resultados.
+
 Hola, actualmente tengo el siguiente código para realizar el pronóstico de ciertos eventos a partir de redes neuronales, pero quiero convertirlo en una aplicación más dinámica e interactiva, quiero que el usuario cargue el archivo de excel, ingrese valores como:
 la fecha de corte, número de series contenidas en la hoja de excel, el valor del z valor a partir del intervalo de confianza (actualmente es fijo a 1.96), el número de meses a predecir.
 Quiero que la interfaz nme muestre las graficas con las predicciones y umbrales definidos (plotly).
