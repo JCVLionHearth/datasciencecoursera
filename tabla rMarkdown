@@ -1,3 +1,71 @@
+library(dplyr)
+library(knitr)
+
+# DataFrame vacío para almacenar resultados
+tabla_final <- data.frame(
+  Consulta = character(),
+  Idioma = character(),
+  Noticias_hoy = integer(),
+  Noticias_ayer = integer(),
+  Noticias_mes = integer(),
+  Noticias_ano = integer(),
+  stringsAsFactors = FALSE
+)
+
+# Índices únicos de las búsquedas
+indices <- unique(Noticias$index)
+
+# Ciclo for para iterar sobre cada búsqueda
+for (indice in indices) {
+  
+  # Extrae la búsqueda y el idioma asociado
+  busqueda <- unique(Noticias$Busqueda[Noticias$index == indice])
+  idioma <- unique(Noticias$Idioma[Noticias$index == indice])
+  
+  # Noticias de hoy
+  noticias_hoy <- Num_Noticias %>%
+    filter(Busqueda == busqueda & Fecha == as.Date(Sys.Date())) %>%
+    select(Conteo) %>%
+    pull() %>%
+    ifelse(is.na(.), 0, .)
+  
+  # Noticias de ayer
+  noticias_ayer <- Num_Noticias %>%
+    filter(Busqueda == busqueda & Fecha == as.Date(Sys.Date() - 1)) %>%
+    select(Conteo) %>%
+    pull() %>%
+    ifelse(is.na(.), 0, .)
+  
+  # Noticias del mes
+  noticias_mes <- Num_Noticias2 %>%
+    filter(Busqueda == busqueda & AM == mes_hoy) %>%
+    select(Conteo2) %>%
+    pull()
+  
+  # Noticias del año
+  noticias_ano <- Num_Noticias2 %>%
+    filter(Busqueda == busqueda & AY == ano_hoy) %>%
+    select(Conteo2) %>%
+    pull()
+  
+  # Crea una nueva fila con los datos y agrégala al DataFrame
+  nueva_fila <- data.frame(
+    Consulta = busqueda,
+    Idioma = idioma,
+    Noticias_hoy = noticias_hoy,
+    Noticias_ayer = noticias_ayer,
+    Noticias_mes = noticias_mes,
+    Noticias_ano = noticias_ano,
+    stringsAsFactors = FALSE
+  )
+  
+  # Acumula la fila en el DataFrame final
+  tabla_final <- rbind(tabla_final, nueva_fila)
+}
+
+# Genera la tabla final con kable
+kable(tabla_final, align = 'c', caption = "Resumen de Búsquedas de Noticias")
+
 Para reflejar el idioma de cada consulta en tu tabla dinámica, puedes extraer el idioma directamente del DataFrame donde ya está registrado para cada búsqueda. A continuación te muestro cómo puedes agregar esta información al código.
 
 ### Actualización del Código:
