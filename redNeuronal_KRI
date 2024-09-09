@@ -1,3 +1,151 @@
+¡Claro! Para incorporar la funcionalidad que mencionas, podemos modificar el flujo de la aplicación para que, una vez que se cargue el archivo Excel, aparezca un selector con las hojas disponibles. El usuario podrá elegir la hoja específica, y a partir de ahí se realizará la modelación de las series que se encuentren en esa hoja.
+
+A continuación te indico cómo podrías implementar esta funcionalidad.
+
+### 1. **Actualiza el formulario en `index.html`** para mostrar las hojas del Excel:
+   
+Primero, debes actualizar el flujo en dos pasos:
+
+1. Cargar el archivo Excel y mostrar un selector de hojas.
+2. Permitir al usuario elegir una hoja y procesar los datos.
+
+#### `index.html` (actualizado):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicciones de Series</title>
+</head>
+<body>
+    <h1>Sube tu archivo Excel para generar predicciones</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+        <input type="file" name="file" accept=".xlsx" required><br>
+        <input type="submit" value="Cargar Archivo">
+    </form>
+
+    <!-- Aquí se mostrará el selector de hojas después de cargar el archivo -->
+    <div id="sheet-selector" style="display:none;">
+        <form action="/process" method="post" id="process-form">
+            <label for="sheet_name">Selecciona la hoja:</label>
+            <select name="sheet_name" id="sheet_name" required>
+                <!-- Las opciones de las hojas se insertarán aquí dinámicamente -->
+            </select><br>
+            Fecha de Corte: <input type="text" name="cutoff_date" placeholder="YYYY-MM-DD" required><br>
+            Número de Series: <input type="number" name="num_series" required><br>
+            Z-valor: <input type="text" name="z_value" value="1.96" required><br>
+            Meses a Predecir: <input type="number" name="num_months" required><br>
+            <input type="submit" value="Generar Predicciones">
+        </form>
+    </div>
+
+    <script>
+        // Mostrar el formulario de selección de hojas al recibir la respuesta del servidor
+        async function fetchSheets() {
+            const form = document.getElementById('upload-form');
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                const sheetSelector = document.getElementById('sheet-selector');
+                const sheetDropdown = document.getElementById('sheet_name');
+                sheetDropdown.innerHTML = ''; // Limpiar cualquier opción anterior
+                
+                data.sheets.forEach(sheet => {
+                    const option = document.createElement('option');
+                    option.value = sheet;
+                    option.textContent = sheet;
+                    sheetDropdown.appendChild(option);
+                });
+
+                sheetSelector.style.display = 'block'; // Mostrar el selector de hojas
+            });
+        }
+        
+        fetchSheets();
+    </script>
+</body>
+</html>
+```
+
+### 2. **Modificaciones en `app.py`** para manejar las hojas del Excel:
+
+Actualiza el código en `app.py` para que, una vez cargado el archivo, se envíen las hojas disponibles al cliente. Después, cuando el usuario seleccione una hoja, la aplicación procesará los datos de esa hoja específica.
+
+#### `app.py` (actualizado):
+
+```python
+from flask import Flask, render_template, request, jsonify, send_file
+import pandas as pd
+import tensorflow as tf
+from model import process_series
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return 'No file part'
+    
+    file = request.files['file']
+    
+    # Leer el archivo Excel para obtener las hojas disponibles
+    excel_data = pd.ExcelFile(file)
+    sheet_names = excel_data.sheet_names
+    
+    # Enviar las hojas disponibles como respuesta JSON
+    return jsonify({"sheets": sheet_names})
+
+@app.route('/process', methods=['POST'])
+def process_file():
+    # Procesar los datos basados en la hoja seleccionada
+    file = request.files['file']
+    sheet_name = request.form.get('sheet_name')
+    cutoff_date = request.form.get('cutoff_date')
+    num_series = int(request.form.get('num_series'))
+    z_value = float(request.form.get('z_value'))
+    num_months = int(request.form.get('num_months'))
+    
+    # Leer la hoja seleccionada
+    df = pd.read_excel(file, sheet_name=sheet_name)
+    
+    # Procesar los datos de la hoja seleccionada
+    results, plots = process_series(df, cutoff_date, num_series, z_value, num_months)
+
+    return render_template('results.html', tables=results, plots=plots)
+
+@app.route('/download')
+def download_excel():
+    return send_file('predicciones_series_ejemplo.xlsx', as_attachment=True)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### 3. **Modificaciones en `model.py`**:
+
+En `model.py` no es necesario realizar cambios mayores, ya que seguirá procesando los datos de la hoja seleccionada y generando las predicciones correspondientes.
+
+### Flujo de Trabajo:
+1. El usuario carga un archivo Excel.
+2. La aplicación envía un JSON con los nombres de las hojas que contiene el archivo.
+3. El usuario selecciona la hoja y ajusta los parámetros.
+4. La aplicación procesa los datos de la hoja seleccionada y genera las predicciones correspondientes.
+
+Con este enfoque, cada vez que el usuario cargue un archivo Excel, podrá elegir qué hoja analizar, y tu aplicación será más dinámica y flexible.
+
 Para convertir tu código en una aplicación web dinámica usando Flask, te sugiero estructurarlo en varias partes: interfaz de usuario (HTML), lógica en Python (Flask), y visualización interactiva (Plotly). Te proporciono una guía básica para empezar:
 
 ### 1. **Instalación de las dependencias necesarias:**
