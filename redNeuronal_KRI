@@ -1,3 +1,137 @@
+import dash
+from dash import dcc, html, dash_table
+from dash.dependencies import Input, Output, State
+import pandas as pd
+import plotly.graph_objs as go
+import base64
+import io
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from sklearn.preprocessing import MinMaxScaler
+
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    html.H1("Predicción de Series Temporales"),
+    
+    # Subir archivo de Excel
+    dcc.Upload(
+        id='upload-data',
+        children=html.Button('Cargar archivo Excel'),
+        multiple=False
+    ),
+    
+    # Entrada para parámetros
+    html.Div([
+        dcc.Input(id='cutoff-date', type='text', placeholder='Fecha de Corte (YYYY-MM-DD)'),
+        dcc.Input(id='num-series', type='number', placeholder='Número de Series'),
+        dcc.Input(id='z-value', type='number', placeholder='Valor Z (Intervalo de Confianza)'),
+        dcc.Input(id='num-months', type='number', placeholder='Meses a Predecir'),
+        html.Button('Ejecutar Predicción', id='run-model')
+    ]),
+    
+    # Salidas gráficas y tablas
+    dcc.Graph(id='graph-prediction'),
+    html.Div(id='table-summary')
+])
+
+# Función para procesar archivo Excel
+def parse_contents(contents):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    df = pd.read_excel(io.BytesIO(decoded))
+    return df
+
+# Función para entrenar y hacer predicciones con LSTM
+def lstm_prediction(data, num_months):
+    # Preprocesamiento
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaled_data = scaler.fit_transform(data.values.reshape(-1, 1))
+
+    # Preparar los datos para LSTM
+    X_train, y_train = [], []
+    for i in range(60, len(scaled_data) - num_months):
+        X_train.append(scaled_data[i-60:i, 0])
+        y_train.append(scaled_data[i:i+num_months, 0])
+
+    X_train, y_train = np.array(X_train), np.array(y_train)
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+
+    # Crear el modelo LSTM
+    model = Sequential()
+    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+    model.add(LSTM(units=50))
+    model.add(Dense(num_months))
+
+    # Compilar y entrenar el modelo
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.fit(X_train, y_train, epochs=10, batch_size=32)
+
+    # Hacer predicciones para el futuro
+    inputs = scaled_data[len(scaled_data) - 60:].reshape(-1, 1)
+    inputs = scaler.transform(inputs)
+    X_test = []
+    X_test.append(inputs)
+    X_test = np.array(X_test)
+    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+    predicted_values = model.predict(X_test)
+    predicted_values = scaler.inverse_transform(predicted_values).flatten()
+
+    return predicted_values
+
+# Callback para manejar la lógica y actualizar gráficos y tablas
+@app.callback(
+    [Output('graph-prediction', 'figure'),
+     Output('table-summary', 'children')],
+    [Input('run-model', 'n_clicks')],
+    [State('upload-data', 'contents'),
+     State('cutoff-date', 'value'),
+     State('num-series', 'value'),
+     State('z-value', 'value'),
+     State('num-months', 'value')]
+)
+def update_output(n_clicks, uploaded_file, cutoff_date, num_series, z_value, num_months):
+    if uploaded_file is None:
+        return {}, ""
+
+    # Procesar el archivo subido
+    df = parse_contents(uploaded_file)
+
+    # Filtrar datos hasta la fecha de corte (si se ha proporcionado)
+    if cutoff_date:
+        df = df[df['Fecha'] <= cutoff_date]
+
+    # Extraer la columna de la serie temporal
+    df_series = df['Valores']  # Ajusta el nombre según tu archivo Excel
+
+    # Lógica de predicción (usamos LSTM como ejemplo)
+    predicted_values = lstm_prediction(df_series, num_months)
+
+    # Crear nuevo DataFrame con las predicciones
+    pred_df = pd.DataFrame({
+        'Fecha': pd.date_range(start=df['Fecha'].iloc[-1], periods=num_months+1, freq='M')[1:],
+        'Predicción': predicted_values
+    })
+
+    # Crear gráfico interactivo
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['Fecha'], y=df['Valores'], mode='lines', name='Histórico'))
+    fig.add_trace(go.Scatter(x=pred_df['Fecha'], y=pred_df['Predicción'], mode='lines', name='Predicción'))
+
+    # Crear tabla resumen
+    summary_table = dash_table.DataTable(
+        data=pred_df.to_dict('records'),
+        columns=[{"name": i, "id": i} for i in pred_df.columns],
+        style_table={'overflowX': 'scroll'}
+    )
+    
+    return fig, summary_table
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
+
 ¡Claro! A continuación te guiaré paso a paso para crear tu proyecto en **Visual Studio Code** utilizando **Python** y **Dash** para la aplicación de predicciones. Asegúrate de tener todo lo necesario instalado y configurado.
 
 ### 1. **Configurar tu entorno de desarrollo**
