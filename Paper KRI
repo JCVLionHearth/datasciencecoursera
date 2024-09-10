@@ -4,6 +4,126 @@
 \usepackage{geometry}
 \geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
 
+\title{Desarrollo de un Sistema de Indicadores Claves de Riesgo (KRI) Observado y Prospectivo Utilizando Redes Neuronales}
+\author{Nombre del Autor}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+Este documento presenta el desarrollo y la implementación de un sistema de Indicadores Claves de Riesgo (KRI), basado en Redes Neuronales, para la predicción de la frecuencia de quejas en diversas temáticas y regiones. El sistema incluye:
+\begin{itemize}
+    \item \textbf{KRI Observado}: Basado en los datos actuales, permitiendo la evaluación del rendimiento actual.
+    \item \textbf{KRI Prospectivo}: Basado en predicciones a futuro mediante redes neuronales recurrentes (RNN).
+\end{itemize}
+
+El objetivo del sistema es alertar sobre posibles riesgos futuros, facilitando la toma de decisiones proactivas.
+
+\section{KRI Prospectivo: Predicción con Redes Neuronales}
+
+El KRI Prospectivo se obtiene utilizando redes neuronales recurrentes, diseñadas para capturar patrones en series temporales. Para este modelo, se emplearon los siguientes parámetros:
+
+\subsection{Modelo ARNN}
+
+El modelo de Red Neuronal Recurrente se entrena utilizando secuencias de 24 meses, prediciendo la frecuencia de quejas para los siguientes 12 meses. Las principales características del modelo incluyen:
+\begin{itemize}
+    \item \textbf{Capas}: Una capa LSTM con 50 neuronas y una capa \textit{dropout} con una tasa de 20\%.
+    \item \textbf{Función de activación}: ReLU.
+    \item \textbf{Número de épocas}: 50.
+    \item \textbf{Optimización}: Método Adam.
+\end{itemize}
+
+\section{KRI Observado: Media Móvil y Desviación Estándar}
+
+El KRI Observado se calcula mediante una media móvil de los últimos 24 meses, eliminando los valores atípicos detectados por el rango intercuartílico (IQR).
+
+\subsection{Cálculo de la Media Móvil de 24 Meses}
+La media móvil ($\bar{X}_{24}$) es un promedio ponderado de los últimos 24 meses:
+
+\[
+\bar{X}_{24} = \frac{1}{24} \sum_{i=1}^{24} X_i
+\]
+
+donde $X_i$ representa el valor mensual de quejas durante el mes $i$.
+
+\subsection{Cálculo de la Desviación Estándar}
+
+La desviación estándar ($\sigma$) de los últimos 24 meses se calcula de la siguiente manera:
+
+\[
+\sigma = \sqrt{\frac{1}{24} \sum_{i=1}^{24} (X_i - \bar{X}_{24})^2}
+\]
+
+Esto proporciona una medida de la dispersión en la frecuencia de quejas, permitiendo establecer umbrales de alerta.
+
+\subsection{Eliminación de Valores Atípicos (IQR)}
+
+El rango intercuartílico (IQR) se calcula como:
+
+\[
+\text{IQR} = Q_3 - Q_1
+\]
+
+donde $Q_1$ es el primer cuartil (percentil 25) y $Q_3$ es el tercer cuartil (percentil 75). Los valores que caen fuera del rango:
+
+\[
+X < Q_1 - 1.5 \times \text{IQR} \quad \text{o} \quad X > Q_3 + 1.5 \times \text{IQR}
+\]
+
+son considerados atípicos y se eliminan del cálculo de la media móvil y la desviación estándar.
+
+\section{Definición de Umbrales y Cálculo de Alertas}
+
+Para determinar los niveles de alerta, se definen umbrales superiores e inferiores utilizando la media móvil ($\bar{X}_{24}$) y la desviación estándar ($\sigma$).
+
+\subsection{Cálculo de Umbrales}
+
+Los umbrales superior e inferior se calculan con un intervalo de confianza del 40\% de la siguiente manera:
+
+\[
+\text{Umbral Superior} = \bar{X}_{24} + Z \cdot \sigma
+\]
+\[
+\text{Umbral Inferior} = \bar{X}_{24} - Z \cdot \sigma
+\]
+
+donde $Z = 0.524$ corresponde al intervalo de confianza del 40\%.
+
+\subsection{Generación de Alertas}
+
+Las alertas se definen de acuerdo con las predicciones mensuales ($P_m$) de la red neuronal:
+
+\begin{itemize}
+    \item \textbf{Alerta Baja}: Si $P_m < \text{Umbral Inferior}$.
+    \item \textbf{Alerta Moderada}: Si $\text{Umbral Inferior} \leq P_m \leq \text{Umbral Superior}$.
+    \item \textbf{Alerta Alta}: Si $P_m > \text{Umbral Superior}$.
+\end{itemize}
+
+\section{Recomendaciones para el Monitoreo de KRIs}
+
+\subsection{Revisión Continua de KRIs}
+
+Es recomendable revisar continuamente los valores de KRI Observado y Prospectivo para detectar desviaciones significativas y ajustar los umbrales según sea necesario. La comparación entre las predicciones y los datos observados puede proporcionar retroalimentación para mejorar la precisión del modelo.
+
+\subsection{Ajuste de Intervalos de Confianza}
+
+Dependiendo del apetito de riesgo y la sensibilidad del sistema, se pueden ajustar los intervalos de confianza ($Z$). Un valor más alto de $Z$ reduce la cantidad de alertas, pero incrementa el riesgo de no detectar eventos críticos.
+
+\section{Conclusión}
+
+El sistema de KRIs desarrollado combina el análisis de datos históricos con predicciones de redes neuronales para proporcionar una visión integral de los riesgos futuros. Al utilizar una media móvil ajustada y umbrales definidos por la desviación estándar, el sistema ofrece una forma eficiente de identificar anomalías y gestionar riesgos potenciales. La flexibilidad de los umbrales y el ajuste de los modelos permite a las organizaciones adaptarse a las condiciones cambiantes y tomar decisiones basadas en datos sólidos.
+
+\end{document}
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
 \title{Sistema de Indicadores Claves de Riesgo (KRI) Observado y Prospectivo Basado en Redes Neuronales}
 \author{Nombre del Autor}
 \date{\today}
