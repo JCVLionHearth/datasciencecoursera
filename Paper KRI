@@ -1,3 +1,89 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\title{Sistema de Indicadores Claves de Riesgo (KRI) Observado y Prospectivo Basado en Redes Neuronales}
+\author{Nombre del Autor}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+
+El presente documento describe el desarrollo de un sistema de Indicadores Clave de Riesgo (KRI) enfocado en la predicción de quejas en diferentes temáticas y regionales utilizando Redes Neuronales. Este sistema consta de dos tipos de KRI:
+\begin{itemize}
+    \item \textbf{KRI Prospectivo}: basado en predicciones a futuro mediante el uso de redes neuronales (ARNN).
+    \item \textbf{KRI Observado}: calculado a partir de los datos actuales, permitiendo medir el desempeño y comparar con las predicciones.
+\end{itemize}
+El propósito del KRI es alertar sobre posibles desviaciones que puedan requerir acciones preventivas en la gestión de riesgos.
+
+\section{Predicción de Frecuencia de Quejas (KRI Prospectivo)}
+
+Para realizar predicciones de la frecuencia de quejas, se utilizó una Arquitectura de Redes Neuronales Recurrentes (ARNN). Este tipo de red es adecuado para manejar secuencias de datos, capturando patrones temporales como tendencias y estacionalidades. Las series temporales de datos históricos son alimentadas a la red, permitiendo predecir la frecuencia de quejas en los próximos 12 meses.
+
+\subsection{Arquitectura de la Red}
+La arquitectura utilizada incluye las siguientes características:
+\begin{itemize}
+    \item \textbf{Longitud de la secuencia}: Se utilizaron secuencias de 24 meses para realizar la predicción del mes siguiente.
+    \item \textbf{Capas}: Una capa densa con 50 neuronas para capturar la dependencia temporal, seguida de una capa de \textit{dropout} con una tasa del 20\% para evitar el sobreajuste.
+    \item \textbf{Función de activación}: ReLU para las capas internas.
+    \item \textbf{Número de épocas}: El modelo fue entrenado por 50 épocas para optimizar el ajuste a los datos.
+\end{itemize}
+
+\section{Cálculo del Promedio y Desviación Estándar (KRI Observado)}
+
+Para establecer una línea de base para el KRI Observado, se seleccionan los últimos 24 meses de datos históricos. Este período es suficiente para capturar la estacionalidad anual y otras fluctuaciones regulares en las series de quejas.
+
+\subsection{Justificación del Periodo de 24 Meses}
+El uso de 24 meses garantiza que se tomen en cuenta variaciones estacionales y tendencias anuales, permitiendo obtener una medida representativa de la frecuencia típica de las quejas.
+
+\subsection{Eliminación de Valores Atípicos}
+Se empleó el método del rango intercuartílico (IQR) para identificar y eliminar valores atípicos. Estos valores extremos pueden distorsionar el cálculo del promedio y la desviación estándar, por lo que su exclusión asegura una representación más precisa de los datos.
+
+\section{Definición de Umbrales y Alertas}
+
+\subsection{Cálculo de los Umbrales}
+Para definir los umbrales de alerta se utiliza un intervalo de confianza basado en la fórmula:
+
+\[
+\text{Umbral Max} = \bar{X} + 0.524 \cdot \sigma
+\]
+\[
+\text{Umbral Min} = \bar{X} - 0.524 \cdot \sigma
+\]
+
+donde $\bar{X}$ y $\sigma$ son el promedio y la desviación estándar de los últimos 24 meses sin valores atípicos. El valor de 0.524 corresponde a un nivel de confianza del 40\%.
+
+\subsection{Alertas Basadas en Predicciones}
+Las alertas se definen en función de las proyecciones futuras y los umbrales calculados:
+
+\begin{itemize}
+    \item \textbf{Alerta Baja}: Si la proyección mensual es menor que el Umbral Min.
+    \item \textbf{Alerta Media}: Si la proyección mensual está entre el Umbral Min y el Umbral Max.
+    \item \textbf{Alerta Extrema}: Si la proyección mensual supera el Umbral Max.
+\end{itemize}
+
+\section{Recomendaciones}
+
+\subsection{Revisión Periódica}
+Se recomienda una revisión periódica de los KRIs para asegurar que las predicciones se ajusten adecuadamente a los datos observados.
+
+\subsection{Ajuste del Intervalo de Confianza}
+El intervalo de confianza puede ajustarse según la sensibilidad y especificidad deseadas en las alertas. Un ajuste de los umbrales influirá en la cantidad de alertas generadas.
+
+\subsection{Validación de Resultados}
+Es esencial validar los resultados predichos con los datos observados para garantizar que las redes neuronales capturan de manera precisa las tendencias y patrones.
+
+\section{Conclusión}
+
+El uso de redes neuronales recurrentes en la predicción de quejas permite establecer un KRI Prospectivo que puede alertar sobre posibles incrementos en la frecuencia de quejas, proporcionando a las organizaciones la capacidad de tomar decisiones proactivas. Simultáneamente, el KRI Observado ofrece una visión clara del desempeño actual, basada en datos históricos filtrados y ajustados, estableciendo umbrales clave para la detección de anomalías. Ambos KRIs son esenciales para una gestión de riesgos eficiente, permitiendo a las organizaciones mitigar riesgos de manera proactiva y reactiva.
+
+\end{document}
+
 Hola he realizado con ayuda de redes neuronales predicciones de eventos en el tiempo, con esta información se busca realizar un KRI prospectivo con el fin de identificar momentos en el tiempo en los que pueden haber alertas asociadas a quejas de diferentes temáticas y en diferentes regionales, hice unos paso muy breves descritos a continuación, pero quiero hacer un documento que permita a cualquiera que lo lea entenderlo, ya que ellos reportaran las cifras y les pedirán explicaciones. Ayudame creando un documento que describa cada paso a detalle, la necesidad de este paso y además pueda entenderse...quiero un documento que describa la importancia del KRI y además que explique que variables como la de los umbrales serán utilizadas para los KRI observados, es decir para los datos que actualmente suceden. Es decir hay dos KRIs el KRI prospectivo y el KRI observado.  
 
 1. Predicciones de la Frecuencia de quejas: Se utilizó redes neuronales (ARNN) para hacer predicciones basadas en datos históricos, son adecuadas para manejar secuencias de datos y pueden capturar tendencias y estacionalidades en series temporales.
