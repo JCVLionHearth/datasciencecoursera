@@ -1,0 +1,125 @@
+Hola he realizado con ayuda de redes neuronales predicciones de eventos en el tiempo, con esta información se busca realizar un KRI prospectivo con el fin de identificar momentos en el tiempo en los que pueden haber alertas asociadas a quejas de diferentes temáticas y en diferentes regionales, hice unos paso muy breves descritos a continuación, pero quiero hacer un documento que permita a cualquiera que lo lea entenderlo, ya que ellos reportaran las cifras y les pedirán explicaciones. Ayudame creando un documento que describa cada paso a detalle, la necesidad de este paso y además pueda entenderse...quiero un documento que describa la importancia del KRI y además que explique que variables como la de los umbrales serán utilizadas para los KRI observados, es decir para los datos que actualmente suceden. Es decir hay dos KRIs el KRI prospectivo y el KRI observado.  
+
+1. Predicciones de la Frecuencia de quejas: Se utilizó redes neuronales (ARNN) para hacer predicciones basadas en datos históricos, son adecuadas para manejar secuencias de datos y pueden capturar tendencias y estacionalidades en series temporales.
+
+2. Cálculo del Promedio de los Últimos 24 Meses: Se seleccionan los últimos 24 meses de datos para calcular el promedio y la desviación estándar. El período de 24 meses permite tener en cuenta la estacionalidad anual y otros patrones que pueden repetirse.
+
+3. Eliminación de Valores Atípicos: Se utiliza el método del rango intercuartil (IQR) para identificar y excluir valores atípicos. Esto se hace para asegurar que el promedio y la desviación estándar no sean distorsionados por valores extremos. Al excluirlos, se obtiene una medida más representativa del comportamiento típico de los datos.
+
+4. Definición del Umbral con el Intervalo de Confianza (Min-Max): Se utiliza intervalos de confianzas para definir los umbrales de alerta.
+
+𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑎𝑥=𝑋 ̅+0,524∙𝜎
+𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑖𝑛=𝑋 ̅−0,524∙𝜎
+
+Donde 𝑋 ̅ y 𝜎 son los respectivos promedios y desviación estándar de los últimos 24 meses sin considerar datos atípicos, para cada una de las series temáticas de quejas, el valor de 0,524 hace referencia al z-score de un nivel de confianza del 40%.
+
+5. Alertas
+
+𝐴𝑙𝑒𝑟𝑡𝑎_𝑏𝑎𝑗𝑎⇒𝑃𝑟𝑜𝑦𝑒𝑐𝑐𝑖𝑜𝑛_𝑚𝑒𝑛𝑠𝑢𝑎𝑙<𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑖𝑛
+𝐴𝑙𝑒𝑟𝑡𝑎_𝑚𝑒𝑑𝑖𝑎⇒𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑖𝑛<𝑃𝑟𝑜𝑦𝑒𝑐𝑐𝑖𝑜𝑛_𝑚𝑒𝑛𝑠𝑢𝑎𝑙≤𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑎𝑥
+𝐴𝑙𝑒𝑟𝑡𝑎_𝑒𝑥𝑡𝑟𝑒𝑚𝑎⇒𝑃𝑟𝑜𝑦𝑒𝑐𝑐𝑖𝑜𝑛_𝑚𝑒𝑛𝑠𝑢𝑎𝑙>𝑈𝑚𝑏𝑟𝑎𝑙_𝑚𝑎𝑥
+
+Recomendaciones
+Revisión Periódica
+Ajuste del Intervalo de Confianza
+Validación de Resultados
+Disclaimers
+
+Se asume que los datos se distribuyen normalmente.
+Sensibilidad y Especificidad: Ajustar el umbral puede cambiar la sensibilidad y especificidad de las alertas.
+Dependencia de Datos Históricos: La precisión de las predicciones y la detección de alertas dependen de la calidad y representatividad de los datos históricos.
+
+Agrego una porción del codigo, reducelo a la arquitectura más relevante:
+SEQ_LENGTH = 24  # Usar 24 meses para predecir el siguiente mes
+EPOCHS = 50
+NEURONAS=50
+# Crear un archivo Excel para guardar las predicciones
+writer = pd.ExcelWriter('predicciones_series_ejemplo.xlsx', engine='xlsxwriter')
+# Bucle para cada serie
+for serie in ['Serie1', 'Serie2', 'Serie3', 'Serie4', 'Serie5','Serie6','Serie7','Serie8', 'Serie9', 'Serie10', 'Serie11', 'Serie12','Serie13','Serie14','Serie15','Serie16','Serie17']:
+   print(f"Procesando {serie}...")
+   # Crear secuencias de entrenamiento y etiquetas
+   X, y = create_sequences(df[serie].values, SEQ_LENGTH)
+   # Dividir los datos en conjuntos de entrenamiento y prueba
+   split = int(0.7 * len(X))
+   X_train, X_test = X[:split], X[split:]
+   y_train, y_test = y[:split], y[split:]
+   # Redimensionar los datos para que sean compatibles con LSTM [samples, time steps, features]
+   X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+   X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+   # Construir el modelo LSTM con Dropout
+   model = Sequential()
+   model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,))) #capa con # neuronas para capturar la dependencia temporal
+   model.add(Dropout(0.2)) #20% Esto ayuda a evitar el sobreajuste
+   model.add(Dense(1)) #capa densa con una neurona para producir la predicción para el siguiente paso temporal
+   model.compile(optimizer='adam', loss='mse')
+   # Entrenar el modelo
+   history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
+   # Predecir en el conjunto de prueba
+   y_pred = model.predict(X_test)
+   # Calcular los errores y la desviación estándar
+   errors = y_test - y_pred.flatten()
+   std_error = np.std(errors)
+   # Calcular el intervalo de confianza (IC 95%)
+   confidence_interval_90 = 1.96 * std_error
+   # Visualizar resultados del conjunto de prueba con intervalo de confianza
+#    plt.figure(figsize=(10, 6))
+#    plt.plot(range(len(y_test)), y_test, label='Actual')
+#    plt.plot(range(len(y_pred)), y_pred, label='Predicted')
+#    plt.fill_between(range(len(y_pred)),
+#                     y_pred.flatten() - confidence_interval_90,
+#                     y_pred.flatten() + confidence_interval_90,
+#                     color='b', alpha=0.2, label='95% Confidence Interval')
+#    plt.title(f"Predicción de la frecuencia de {serie} con IC 95% (ARNN)")
+#    plt.xlabel("Tiempo")
+#    plt.ylabel("Frecuencia")
+#    plt.legend()
+#    plt.savefig(f'prediccion_{serie}.png')
+#    plt.show()
+   # Predecir los próximos 12 meses con intervalos de confianza
+   n_months = 12
+   last_sequence = df[serie].values[-SEQ_LENGTH:]  # Tomar la última secuencia de longitud SEQ_LENGTH
+   future_predictions = []
+   future_confidences = []
+   for _ in range(n_months):
+       input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
+       next_pred = model.predict(input_seq)
+       future_predictions.append(next_pred[0, 0])
+       future_confidences.append(confidence_interval_90)
+       last_sequence = np.append(last_sequence[1:], next_pred)  # Actualizar la secuencia para la siguiente predicción
+   # Crear una lista de fechas para los próximos 12 meses
+   last_date = df['Fecha'].iloc[-1]
+   future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
+   # Crear un DataFrame con las predicciones futuras
+   future_df = pd.DataFrame({
+       'Fecha': future_dates,
+       f'Frecuencia_Predicha_{serie}': future_predictions,
+       f'Limite_Superior_{serie}': np.array(future_predictions) + np.array(future_confidences),
+       f'Limite_Inferior_{serie}': np.array(future_predictions) - np.array(future_confidences)
+   })
+   # Calcular el promedio histórico y la desviación estándar de los últimos 24 meses
+   historical_window = 24
+   ventana_total=df[serie].tail(historical_window)
+   # Calcular los cuartiles y el rango intercuartil
+   Q1 = ventana_total.quantile(0.25)
+   Q3 = ventana_total.quantile(0.75)
+   IQR = Q3 - Q1
+   # Definir los límites para los valores atípicos
+   lower_bound = Q1 - 1* IQR
+   upper_bound = Q3 + 1* IQR
+   # Filtrar los valores que no son atípicos
+   filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
+   # Calcular el promedio y la desviación estándar de los datos filtrados
+   historical_mean = filtered_data.mean() #historical_mean = df[serie].tail(historical_window).mean()
+   historical_std = filtered_data.std()   #historical_std = df[serie].tail(historical_window).std()
+   # Añadir el promedio de los ultimos 24 meses al DataFrame
+   future_df[f'promedioUlt24meses_{serie}'] = historical_mean
+   #Umbral
+   threshold0 = historical_mean - 0.524*historical_std #-40% de confianza
+   threshold1 = historical_mean + 0.524*historical_std #+40% de confianza
+   threshold2 = historical_mean + 1.645*historical_std #90% de confianza
+   # Añadir el umbral al DataFrame
+   future_df[f'UmbralMin_{serie}'] = threshold0
+   future_df[f'UmbralMax_{serie}'] = threshold1
+
+genera el documento en formato latex
