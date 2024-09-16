@@ -1,3 +1,98 @@
+import numpy as np
+import skfuzzy as fuzz
+import matplotlib.pyplot as plt
+
+# Definimos los universos de las variables
+x_impacto = np.arange(0, 151, 1)
+x_probabilidad = np.arange(0, 101, 1)
+
+# Creamos las funciones de membresía para el impacto
+impacto_insignificante = fuzz.trapmf(x_impacto, [0, 0, 1, 1])
+impacto_menor = fuzz.trimf(x_impacto, [1, 10, 10])
+impacto_moderado = fuzz.trimf(x_impacto, [10, 50, 50])
+impacto_mayor = fuzz.trimf(x_impacto, [50, 150, 150])
+impacto_catastrofico = fuzz.trapmf(x_impacto, [150, 150, 151, 151])
+
+# Graficamos las funciones de membresía para el impacto
+plt.figure(figsize=(10, 6))
+plt.plot(x_impacto, impacto_insignificante, label='Insignificante')
+plt.plot(x_impacto, impacto_menor, label='Menor')
+plt.plot(x_impacto, impacto_moderado, label='Moderado')
+plt.plot(x_impacto, impacto_mayor, label='Mayor')
+plt.plot(x_impacto, impacto_catastrofico, label='Catastrófico')
+
+plt.title('Funciones de membresía para Impacto')
+plt.xlabel('Impacto económico (millones)')
+plt.ylabel('Membresía')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Asumamos que ya hicimos la inferencia, ahora graficamos el resultado
+risgo_valores = np.arange(0, 101, 1)
+riesgo_bajo = fuzz.trapmf(risgo_valores, [0, 0, 20, 40])
+riesgo_medio = fuzz.trimf(risgo_valores, [20, 50, 80])
+riesgo_alto = fuzz.trapmf(risgo_valores, [60, 80, 100, 100])
+
+plt.figure(figsize=(10, 6))
+plt.plot(risgo_valores, riesgo_bajo, label='Bajo')
+plt.plot(risgo_valores, riesgo_medio, label='Medio')
+plt.plot(risgo_valores, riesgo_alto, label='Alto')
+
+plt.title('Funciones de membresía para el Riesgo')
+plt.xlabel('Riesgo (%)')
+plt.ylabel('Membresía')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+import plotly.graph_objs as go
+
+# Definimos las funciones de membresía de impacto para graficar
+x_impacto = np.arange(0, 151, 1)
+impacto_insignificante = fuzz.trapmf(x_impacto, [0, 0, 1, 1])
+impacto_menor = fuzz.trimf(x_impacto, [1, 10, 10])
+impacto_moderado = fuzz.trimf(x_impacto, [10, 50, 50])
+impacto_mayor = fuzz.trimf(x_impacto, [50, 150, 150])
+impacto_catastrofico = fuzz.trapmf(x_impacto, [150, 150, 151, 151])
+
+# Crear las trazas de las curvas de membresía
+traces = [
+    go.Scatter(x=x_impacto, y=impacto_insignificante, mode='lines', name='Insignificante'),
+    go.Scatter(x=x_impacto, y=impacto_menor, mode='lines', name='Menor'),
+    go.Scatter(x=x_impacto, y=impacto_moderado, mode='lines', name='Moderado'),
+    go.Scatter(x=x_impacto, y=impacto_mayor, mode='lines', name='Mayor'),
+    go.Scatter(x=x_impacto, y=impacto_catastrofico, mode='lines', name='Catastrófico')
+]
+
+# Configuramos la gráfica interactiva
+layout = go.Layout(title='Funciones de membresía para Impacto', xaxis=dict(title='Impacto (millones)'),
+                   yaxis=dict(title='Membresía'))
+
+fig = go.Figure(data=traces, layout=layout)
+fig.show()
+
+from mpl_toolkits.mplot3d import Axes3D
+
+# Creamos un grid para graficar en 3D el impacto y la probabilidad
+x_impacto = np.arange(0, 151, 1)
+x_probabilidad = np.arange(0, 101, 1)
+X, Y = np.meshgrid(x_impacto, x_probabilidad)
+
+# Generamos una función simulada para el riesgo
+Z = (X * Y) / 10000  # Ejemplo de fórmula simple para riesgo
+
+# Graficamos en 3D
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(X, Y, Z, cmap='viridis')
+
+ax.set_xlabel('Impacto')
+ax.set_ylabel('Probabilidad')
+ax.set_zlabel('Riesgo')
+plt.title('Superficie de Riesgo')
+plt.show()
+
 Para definir las funciones de membresía de la variable **riesgo**, que depende tanto del impacto como de la probabilidad, y establecer las reglas de inferencia entre estas dos categorías, podemos estructurarlo de la siguiente manera:
 
 ### 1. Definir las categorías de riesgo
