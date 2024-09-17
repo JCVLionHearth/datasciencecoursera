@@ -1,0 +1,414 @@
+Hola, quiero crear una nota tecnica, en donde explique a detalle el funcionamiento de la aplicación (prototipo) en la que permite visualizar los intervalos en los que estaría la estimación del limite de responsabilidad contractual (LRC) por medio de simulaciones.
+1. Deseo que esta nota tecnica esta hecha en latex
+2. Muestre matemáticamente los modelos usados para la simulación de monte carlo
+3. Defina la metodología usada.
+4. Describa la configuración de los archivos de riesgo que deben ser cargados para que el prototipo estinme el LRC (tablas en látex)
+5. Describa la arquitectura utilizada para su desarrollo.
+
+Actualmente la arquitectura esta hecha en visual studio code:
+tiene un entorno virtual: lrc_env
+una carpeta static, en donde esta un archivo style.css y una carpeta de imagenes
+una carpeta llamada templates, en donde estan los archivos html: index_lrc.html, form_lrc.html y results_lrc.html
+y el archivo python que desarrolla la aplicación: appLRC.py
+
+quiero mostrar la arquitectura o configuración de las carpeta tambien en látex
+
+Necesito indicar en la nota tecnica: la metodología, los modelos estadisticos usados, objetivos, justificación, un disclaimer en el que se indique que la herramienta es un prototipo y que los resultados (que será una curva de percentiles) dependerá de los riesgos cargados y todo lo necesario para eliminar responsabilidades (lo mas polite posible), la forma en la que deberia usarse, la arquitectura de la aplicacion y herramientas necesarias para ejecutarlo.
+la idea es que el documento pueda ser entendido por cualquiera y que además permita a usuarios expertos replicar la metodología en sus computadores.
+
+Te comparto la configuración de los archivos para que conozcas el desarrollo y metodología usada en la aplicación.
+
+
+#1. Archivo Python: appLRC.py
+
+from flask import Flask, request, render_template, send_file, make_response, redirect, url_for, flash, session
+import pandas as pd
+import numpy as np
+import plotly.graph_objs as go
+import plotly.io as pio
+import io
+from scipy.stats import triang
+import os
+
+app = Flask(__name__)
+
+app.secret_key = 'supersecretkey'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+def validar_archivo_normal(df):
+    required_columns = {'I_esp', 'P_esp','std_impact','std_prob','Frecuencia'}
+    return required_columns.issubset(df.columns)
+
+def validar_archivo_triangular(df):
+    required_columns = {'I_min','P_min','I_esp','P_esp','I_max','P_max','Frecuencia'}
+    return required_columns.issubset(df.columns)
+
+@app.route('/')
+def index():
+    return render_template('index_lrc.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+
+    if not file:
+        flash('No file selected')
+        return redirect(url_for('index'))
+    
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
+    df = pd.read_excel(filepath)
+    
+    session['filepath'] = filepath
+    session['file_columns'] = list(df.columns)
+    
+    flash('Archivo de Riesgos Cargado Satisfactoriamente!','success')
+    return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    df_data = request.form.getlist('data')
+    df = pd.DataFrame(eval(df_data[0]))
+    
+    presupuesto = float(request.form['presupuesto'])
+    n_sim = int(request.form['n_sim'])
+    seed = int(request.form['seed'])
+    
+    if 'filepath' not in session:
+        flash('No file uploaded','danger')
+        return redirect(url_for('index'))
+    
+    filepath = session['filepath']
+    df = pd.read_excel(filepath)
+
+    np.random.seed(seed)
+    
+    def triangular_simulation(row):
+        P_min, P_esp, P_max = float(row['P_min']), float(row['P_esp']), float(row['P_max'])
+        I_min, I_esp, I_max = float(row['I_min']), float(row['I_esp']), float(row['I_max'])
+        Frecuencia = float(row['Frecuencia'])
+        prob_sim = triang.rvs((P_esp - P_min) / (P_max - P_min), loc=P_min, scale=P_max - P_min, size=n_sim)
+        impact_sim = triang.rvs((I_esp - I_min) / (I_max - I_min), loc=I_min * Frecuencia, scale=I_max * Frecuencia - I_min * Frecuencia, size=n_sim)
+        return prob_sim * impact_sim
+
+    def normal_simulation(row):
+            P_esp= float(row['P_esp'])
+            I_esp= float(row['I_esp'])
+            std_prob= float(row['std_prob'])
+            std_impact= float(row['std_impact'])
+            Frecuencia = float(row['Frecuencia'])
+            prob_sim = np.random.normal(P_esp, std_prob, size=n_sim)
+            impact_sim = np.random.normal(I_esp * Frecuencia, std_impact * Frecuencia,size= n_sim)
+            # Asegurarse de que las probabilidades estén en el rango [0, 1]
+            prob_sim = np.clip(prob_sim, 0, 1)
+            return prob_sim * impact_sim
+
+    choice=request.form['choice']
+    if choice=='funcion1':
+        if not validar_archivo_normal(df):
+            flash('El archivo seleccionado no es válido para la distribución normal','danger')
+            flash('Para la distribución normal, el archivo debe tener los campos: I_esp, P_esp, std_impact, std_prob, Frecuencia','info')
+            return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+        lrc_total = np.sum([normal_simulation(row) for idx, row in df.iterrows()], axis=0)
+    elif choice=='funcion2':
+        if not validar_archivo_triangular(df):
+            flash('El archivo seleccionado no es válido para la distribución triangular','danger')
+            flash('Para la distribución triangular, el archivo debe tener los campos: I_min, P_min, I_esp, P_esp, I_max, P_max, Frecuencia','info')
+            return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+        lrc_total = np.sum([triangular_simulation(row) for idx, row in df.iterrows()], axis=0)
+    else:
+        flash('Distribución no válida')
+        return render_template('form_lrc.html', columns=df.columns.tolist(), data=df.to_dict(orient='records'))
+
+    lrc_final = lrc_total
+    lrc_ajustada = ((lrc_final/presupuesto))
+    lrc_ajustada =lrc_ajustada*100
+
+    percentiles = np.percentile(lrc_ajustada, np.arange(0, 101))
+    percentiles_df = np.percentile(lrc_ajustada, np.arange(0, 101,5))
+    mean_lrc = np.mean(lrc_ajustada)
+    
+    percentil_90 = np.percentile(lrc_ajustada, 90)
+
+    percentiles_table = pd.DataFrame({'Percentil': np.arange(0, 101,5), 'Porcentaje_LRC': percentiles_df})
+    percentiles_table['Porcentaje_LRC']=percentiles_table['Porcentaje_LRC'].apply(lambda x: f'{int(x):,}') # dandole formato a la tabla
+
+    # Gráfico de la distribución de la suma asegurada ajustada
+    fig = go.Figure()
+
+    fig.add_trace(go.Histogram(x=lrc_ajustada,nbinsx=100,name='Simulaciones % LRC'))
+    fig.add_trace(go.Scatter(x=[mean_lrc,mean_lrc],
+                             y=[0,max(np.histogram(lrc_ajustada,bins=50)[0])],
+                             mode="lines",
+                             name=f'LRC esperado: {mean_lrc:.2f} %',
+                             line=dict(color='red',dash='dash')
+                             ))
+    xaxis = dict(title="% LRC")
+    yaxis = dict(title="Frecuencia simulada")
+    fig.update_layout(title="Histograma", xaxis=xaxis, yaxis=yaxis)
+    graphJSON = pio.to_json(fig)
+
+    # Gráfico de percentiles
+    fig2=go.Figure()
+
+    fig2.add_trace(go.Scatter(
+        x=np.arange(0,101),
+        y=percentiles,
+        mode='lines',
+        name='Percentiles',
+        line=dict(color='blue')
+    ))
+
+    fig2.add_trace(go.Scatter(
+        x=[0,100],
+        y=[percentil_90,percentil_90],
+        mode='lines',
+        name='Percentil 90',
+        line=dict(color='red',dash='dash')
+    ))
+
+    fig2.update_layout(title="Percentiles del % LRC", xaxis_title='Percentiles', yaxis_title='% LRC',showlegend=True)
+    graphJSON2 = pio.to_json(fig2)
+
+    # Conversión de la tabla de percentiles a formato html
+    percentiles_table_html = percentiles_table.to_html(index=False,classes='table table-striped table-bordered text-center',justify='center')
+    df_table_html = pd.DataFrame(lrc_ajustada, columns=['Simulaciones']).to_html(index=False)
+
+    return render_template('results_lrc.html', mean_lrc=mean_lrc,
+                           percentiles_table=percentiles_table_html, df_table=df_table_html,
+                           data=df.to_dict(orient='records'), percentiles_table_data=percentiles_table.to_dict(orient='records'),lrc_ajustada_data=lrc_ajustada.tolist(),
+                           graphJSON=graphJSON,graphJSON2=graphJSON2)
+
+@app.route('/download', methods=['POST'])
+def download_file():
+    # Obtener datos desde el formulario
+    try:
+        df_data = request.form.getlist('data')
+        percentiles_table_data = request.form.getlist('percentiles_table_data')
+        lrc_ajustada_data = request.form.getlist('lrc_ajustada_data')
+
+        # Asegurarse de que los datos sean válidos y no estén vacíos
+        if not df_data or not percentiles_table_data or not lrc_ajustada_data:
+            flash("Los datos proporcionados no son válidos o están vacíos", "danger")
+            return redirect(url_for('index'))
+
+        # Convertir las listas JSON a DataFrames
+        df = pd.DataFrame(eval(df_data[0]))
+        percentiles_table = pd.DataFrame(eval(percentiles_table_data[0]))
+        lrc_ajustada = pd.DataFrame(eval(lrc_ajustada_data[0]), columns=['Lrc Ajustada'])
+
+        # Crear un flujo de bytes en memoria
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            # Escribir cada DataFrame en una hoja separada del archivo Excel
+            df.to_excel(writer, index=False, sheet_name='Input Data')
+            percentiles_table.to_excel(writer, index=False, sheet_name='Percentiles')
+            lrc_ajustada.to_excel(writer, index=False, sheet_name='Simulaciones')
+
+        # Asegurarse de que el buffer esté en la posición inicial
+        output.seek(0)
+
+        # Crear una respuesta para enviar el archivo Excel generado
+        response = make_response(output.read())
+        response.headers['Content-Disposition'] = 'attachment; filename=simulation_results.xlsx'
+        response.headers['Content-type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+        return response
+
+    except Exception as e:
+        # Capturar cualquier error y mostrar un mensaje de error adecuado
+        flash(f"Ocurrió un error al generar el archivo: {str(e)}", "danger")
+        return redirect(url_for('index'))
+
+@app.route('/')
+def form():
+    return render_template('index_lrc.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+Archivos Html:
+#2 index_lrc.html
+En esta página se cargan los archivos de excel de acuerdo con la configuaración de riesgos que se ha definido anteriormente
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Simulación de LRC</title>
+</head>
+
+<body>
+    <div class="container mt-5 card shadow-lg">
+        <h1 class="mb-4">Simulación de Limite de Responsabilidad</h1>
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Cargar archivo de riesgos</h4>
+        </div>
+        <div class="card-body">
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="file" class="form-label">Subir archivo Excel</label>
+                    <input class="form-control" type="file" name="file" id="file" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Cargar archivo</button>
+                <br>
+            </form>
+            <br>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+#3 form_lrc.html
+
+En esta hoja se configura los parametros de entrada para la simulación, tales como presupuesto, numero de simulaciones y la semilla (este valor es para auditorias y reproducidad de la simulación)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parametros-Simulación Monte Carlo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center align-items-center h-100">
+            <div class="col-md-8">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h2>Parametros de simulación</h2>
+                    </div>
+                    <div class="card-body  btn-block">
+                        <form action="/simulate" method="post">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category,message in messages %}
+                                    <div class="alert alert-{{ category }}">
+                                        {{ message }}
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                            
+                            <div class="form-group">
+                                <label for="presupuesto">Presupuesto (MUSD):</label>
+                                <input type="number" class="form-control" id="presupuesto" name="presupuesto" step="0.01" value="1" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="n_sim">Número de Simulaciones:</label>
+                                <input type="number" class="form-control" id="n_sim" name="n_sim" value="10000" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="seed">Semilla (Seed):</label>
+                                <input type="number" class="form-control" id="seed" name="seed" value="1234" required>
+                            </div>
+                            <br>
+                            <div class="card-body shadow p-3 mb-5 bg-white rounded">
+                            <div class="form-group">
+                                <div class="card-header bg-primary text-white">
+                                <h4>Configuración del archivo de Riesgos</h4>
+                                </div>
+                                <input type="radio" id="funcion1" name="choice" value="funcion1" required>
+                                <label for ="funcion1">Análisis con distribución Normal (Valor esperado y Desviación)</label>
+                                <br>
+                                <input type="radio" id="funcion2" name="choice" value="funcion2">
+                                <label for ="funcion2">Análisis con distribución Triangular (Escenarios: Pesimista, Probable, Optimista)</label>
+                            </div>
+                            </div>
+                            <input type="hidden" name="data" value="{{ data }}">
+                           
+                            <button type="submit" class="btn btn-success">Simular</button>
+                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+#4 results_lrc.html
+
+En esta hoja se presentan los rangos en los que podria variar la estimacion del limite de responsabilidad contractual (LRC), definida por perecentiles, la idea aqui es que el usuario final seleccione el valor más apropiado de LRC, de acuerdo con su apetito de riesgo, adversidad al riesgo. quiero dejar claro en el documento que los resultados serán una herramienta para ayudar a seleccionar el mejor LRC, pero este valor dependerá de la configuración de los riesgos cargados y de los impactos y probabilidades definidas.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monte Carlo Simulation - Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="card-header bg-primary text-white">
+    <h2>Resultados Simulación Limite de Responsabilidad</h2>
+    </div>
+    
+
+    <div class="card-body shadow p-3 mb-5 bg-white rounded">
+        <h3>Parámetros ingresados</h3>
+        <p for="presupuesto" >Presupuesto (MUSD): $ {{ request.form['presupuesto'] }}</p>
+        <p for="n_sim">Número de Simulaciones: {{ request.form['n_sim'] }}</p>
+        <p for="seed">Semilla (Seed): {{ request.form['seed'] }}</p>
+        
+    </div>
+    
+    <div class="row mt-4 card-body shadow p-3 mb-5 bg-white rounded">
+        <div class="col-md-6">
+            <h3>Distribución LRC simulado</h3>
+            <div id="graph"></div>
+        </div>
+        <div class="col-md-6">
+            <h3>Percentiles de % LRC</h3>
+            <div id="graph2"></div>
+        </div>
+    </div>
+        
+    <div class="card-body shadow p-3 mb-5 bg-white rounded">
+        <h3>Curva de percentiles para el LRC (%)</h3>
+        <div>{% autoescape false %}{{ percentiles_table|safe }}{% endautoescape %}</div>
+    </div> 
+    
+    <div class="row mt-4 card-body shadow p-3 mb-5 bg-white rounded">
+    <form action="/download" method="post">
+        <input type="hidden" name="data" value="{{ data }}">
+        <input type="hidden" name="percentiles_table_data" value="{{ percentiles_table_data }}">
+        <input type="hidden" name="lrc_ajustada_data" value="{{ lrc_ajustada_data }}">
+        <button type="submit" class="btn btn-success">Descargar Resultados Excel</button>
+    </form>
+    </div>
+
+    <div class="card shadow p-3 mb-5 bg-white rounded">
+        <button class="btn btn-primary" onclick="window.print()">Guardar como PDF</button>
+        <br>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('form') }}'">Volver a simular</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        var graphJSON = {{ graphJSON | safe }};
+        Plotly.newPlot('graph', graphJSON.data, graphJSON.layout);
+    </script>
+    <script>
+        var graphJSON2 = {{ graphJSON2 | safe }};
+        Plotly.newPlot('graph2', graphJSON2.data, graphJSON2.layout);
+    </script>
+</body>
+</html>
