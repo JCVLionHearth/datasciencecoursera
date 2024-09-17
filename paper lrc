@@ -1,3 +1,77 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Estimación del Límite de Responsabilidad Contractual (LRC) mediante Simulaciones de Monte Carlo}
+\author{Nombre del Autor}
+\date{Septiembre 2024}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Este documento tiene como objetivo describir en detalle el funcionamiento de una aplicación prototipo que estima el Límite de Responsabilidad Contractual (LRC) mediante simulaciones estadísticas, incluyendo modelos de Monte Carlo. El propósito de este documento es servir tanto como una guía de usuario para personas no expertas, como un manual replicable para especialistas que deseen implementar una metodología similar.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+La estimación del Límite de Responsabilidad Contractual (LRC) es una tarea crítica en la gestión de riesgos. Para este propósito, se ha desarrollado una aplicación prototipo que utiliza simulaciones estadísticas y métodos probabilísticos para calcular el LRC, considerando diferentes escenarios de riesgo y distribuciones estadísticas. Este documento describe el funcionamiento de dicha aplicación y su metodología subyacente.
+
+\section{Objetivo}
+El objetivo de esta aplicación es proporcionar una herramienta que permita a los usuarios calcular el LRC mediante métodos de simulación. Las simulaciones están basadas en distribuciones de probabilidad para el impacto y la probabilidad de ocurrencia de riesgos, permitiendo una estimación más precisa y adaptable.
+
+\section{Metodología}
+
+\subsection{Modelos Estadísticos Utilizados}
+El cálculo del LRC se basa en modelos estadísticos que representan diferentes escenarios de riesgo. Se pueden considerar dos tipos de entradas:
+\begin{itemize}
+    \item Distribuciones triangulares, que consideran un valor optimista, un valor probable y un valor pesimista para el impacto y la probabilidad.
+    \item Distribución normal, en la cual se asume un valor esperado para el impacto, junto con la probabilidad esperada y su desviación estándar.
+\end{itemize}
+
+La aplicación realiza simulaciones de Monte Carlo para generar múltiples escenarios posibles, estimando así percentiles que ayudan en la toma de decisiones sobre el límite de responsabilidad.
+
+\subsection{Simulaciones de Monte Carlo}
+Las simulaciones de Monte Carlo permiten generar una distribución de resultados basada en los parámetros de entrada (impacto y probabilidad). Para cada simulación, se generan miles de iteraciones que simulan diferentes escenarios de riesgos. A partir de estas simulaciones, se generan percentiles que permiten al usuario evaluar el riesgo y establecer un límite de responsabilidad contractual adecuado.
+
+La función de simulación sigue el siguiente modelo:
+\begin{equation}
+X_i = \text{Impacto} \times \text{Probabilidad}
+\end{equation}
+
+Donde \( X_i \) es el resultado de cada iteración de la simulación. Los valores de \( \text{Impacto} \) y \( \text{Probabilidad} \) varían según las distribuciones definidas por el usuario.
+
+\section{Arquitectura de la Aplicación}
+La aplicación está desarrollada utilizando el marco Flask en Python, y se ejecuta en un entorno virtual. La arquitectura está compuesta por los siguientes componentes:
+
+\begin{itemize}
+    \item Archivos estáticos, que incluyen recursos como hojas de estilo y archivos JavaScript.
+    \item Plantillas HTML para la interfaz gráfica del usuario.
+    \item Un archivo Python que maneja la lógica de backend, incluyendo las simulaciones de Monte Carlo y la integración con archivos Excel.
+\end{itemize}
+
+El flujo de trabajo de la aplicación es el siguiente:
+\begin{enumerate}
+    \item El usuario carga un archivo de riesgos en formato Excel.
+    \item La aplicación procesa el archivo, genera simulaciones y muestra los resultados mediante gráficos interactivos (Plotly).
+    \item El usuario puede descargar los resultados en formato Excel.
+\end{enumerate}
+
+\section{Conclusiones}
+Esta aplicación prototipo proporciona una herramienta robusta para la estimación del LRC mediante simulaciones estadísticas. Permite a los usuarios analizar diferentes escenarios de riesgo y tomar decisiones informadas basadas en modelos probabilísticos.
+
+\section{Descargo de Responsabilidad}
+Este documento y la aplicación descrita son prototipos en desarrollo y no deben utilizarse para la toma de decisiones críticas sin una validación adicional. La aplicación está diseñada para fines educativos y de investigación, y su implementación en situaciones reales debe realizarse con precaución.
+\end{document}
+
 Hola, quiero crear una nota tecnica, en donde explique a detalle el funcionamiento de la aplicación (prototipo) en la que permite visualizar los intervalos en los que estaría la estimación del limite de responsabilidad contractual (LRC) por medio de simulaciones.
 1. Deseo que esta nota tecnica esta hecha en latex
 2. Muestre matemáticamente los modelos usados para la simulación de monte carlo
