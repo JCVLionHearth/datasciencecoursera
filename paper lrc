@@ -1,3 +1,89 @@
+A continuación te propongo las secciones para el análisis de la simulación de Monte Carlo y la configuración de archivos que deseas. Se incluirán tanto las fórmulas matemáticas de las distribuciones utilizadas como la configuración de los archivos de riesgos. Puedes ajustar según lo que consideres necesario.
+
+### Sección 1: Análisis y Modelos Matemáticos para la Simulación de Monte Carlo
+
+```latex
+\section{Análisis de la Simulación de Monte Carlo}
+La simulación de Monte Carlo es una técnica estadística que utiliza el muestreo aleatorio para obtener resultados aproximados de problemas complejos. En este caso, se utiliza para estimar los límites de responsabilidad contractual (LRC) bajo diferentes escenarios de riesgo.
+
+\subsection{Distribución Triangular}
+La distribución triangular se utiliza para representar variables inciertas cuando se conocen tres valores: el mínimo, el máximo y el más probable. La función de densidad de probabilidad (PDF) para una variable \(X\) con distribución triangular se define como:
+
+\[
+f(x) = 
+\begin{cases} 
+\frac{2(x - a)}{(b - a)(c - a)}, & a \leq x < c \\
+\frac{2(b - x)}{(b - a)(b - c)}, & c \leq x \leq b
+\end{cases}
+\]
+
+Donde:
+\begin{itemize}
+    \item \(a\) es el valor mínimo (optimista).
+    \item \(b\) es el valor máximo (pesimista).
+    \item \(c\) es el valor más probable.
+\end{itemize}
+
+La simulación de Monte Carlo genera números aleatorios para la variable de interés utilizando esta distribución y evalúa el resultado bajo diferentes escenarios.
+
+\subsection{Distribución Normal}
+En escenarios donde se dispone de un valor esperado y una desviación estándar, se utiliza la distribución normal para modelar el riesgo. La función de densidad de probabilidad para la distribución normal está dada por:
+
+\[
+f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}
+\]
+
+Donde:
+\begin{itemize}
+    \item \(\mu\) es el valor esperado.
+    \item \(\sigma\) es la desviación estándar.
+\end{itemize}
+
+El modelo genera escenarios de riesgo en base a los valores esperados y sus desviaciones, permitiendo una estimación del LRC bajo distintos niveles de confianza.
+```
+
+### Sección 2: Configuración de los Archivos de Riesgo
+
+```latex
+\section{Configuración de Archivos para la Simulación}
+Los archivos de entrada para el aplicativo deben estar en formato CSV o Excel y seguir una estructura definida. A continuación, se describe la configuración para cada tipo de distribución.
+
+\subsection{Archivo para la Distribución Triangular}
+Este archivo contiene los parámetros para los escenarios de riesgo utilizando la distribución triangular. El formato del archivo incluye las siguientes columnas:
+
+\begin{verbatim}
+| Riesgo | Impacto Mínimo | Impacto Máximo | Impacto Probable | Probabilidad Mínima | Probabilidad Máxima | Probabilidad Probable |
+\end{verbatim}
+
+Un ejemplo de este archivo sería:
+
+\begin{verbatim}
+| Riesgo 1 | 50000 | 200000 | 100000 | 0.1 | 0.5 | 0.3 |
+| Riesgo 2 | 10000 | 50000  | 30000  | 0.05 | 0.2 | 0.1 |
+\end{verbatim}
+
+\subsection{Archivo para la Distribución Normal}
+Este archivo contiene los parámetros para la configuración del riesgo basado en la distribución normal. Las columnas que se deben incluir son las siguientes:
+
+\begin{verbatim}
+| Riesgo | Valor Esperado (Impacto) | Desviación Estándar (Impacto) | Valor Esperado (Probabilidad) | Desviación Estándar (Probabilidad) |
+\end{verbatim}
+
+Un ejemplo sería:
+
+\begin{verbatim}
+| Riesgo 1 | 120000 | 25000 | 0.3 | 0.05 |
+| Riesgo 2 | 40000  | 10000 | 0.15 | 0.02 |
+\end{verbatim}
+
+Estos archivos se cargarán en el sistema para la configuración de los riesgos y la simulación de escenarios.
+
+\section{Visualización de Resultados}
+El aplicativo genera una visualización gráfica de los resultados de las simulaciones, incluyendo los límites de confianza para cada escenario, las predicciones y los umbrales de riesgo. A continuación se presentan ejemplos de gráficos generados por el sistema para la toma de decisiones basada en el análisis de riesgos.
+```
+
+Con estas secciones puedes incluir las fórmulas matemáticas, la configuración de los archivos y una breve descripción de cómo se visualizan los resultados en la interfaz. Si necesitas agregar más detalle o cambiar algo, házmelo saber.
+
 \documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
