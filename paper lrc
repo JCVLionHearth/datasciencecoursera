@@ -1,3 +1,82 @@
+\appendix
+\section{Paquetes Necesarios}
+
+A continuación, se describen los paquetes necesarios para la ejecución del proyecto, los cuales están listados en el archivo \texttt{requirements.txt}. Para instalar estos paquetes se puede utilizar el siguiente comando:
+
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+
+\subsection{Paquetes y Explicaciones}
+
+\begin{itemize}
+    \item \texttt{Flask} (versión X.X.X): Es un microframework para Python utilizado para desarrollar aplicaciones web. Se usa en este proyecto para crear el servidor web que aloja la interfaz de la aplicación, permitiendo la interacción del usuario con las simulaciones.
+    \item \texttt{pandas} (versión X.X.X): Biblioteca esencial para la manipulación y análisis de datos. En este proyecto, se utiliza para gestionar los datos de entrada y salida, incluyendo la manipulación de archivos Excel y la creación de reportes.
+    \item \texttt{numpy} (versión X.X.X): Biblioteca fundamental para cálculos numéricos. Es clave en la generación de simulaciones de Monte Carlo, al proporcionar soporte para la creación de distribuciones numéricas y matrices de datos.
+    \item \texttt{scipy} (versión X.X.X): Extiende las capacidades de \texttt{numpy} con funciones adicionales para estadísticas, optimización y simulación. En este proyecto se utiliza para generar distribuciones normales y triangulares en las simulaciones.
+    \item \texttt{matplotlib} (versión X.X.X): Utilizada para la generación de gráficos. En esta aplicación, se emplea para visualizar los resultados de las simulaciones.
+    \item \texttt{openpyxl} (versión X.X.X): Permite la manipulación de archivos Excel. Se utiliza para exportar los resultados de las simulaciones a formato Excel, que luego puede ser descargado por el usuario.
+\end{itemize}
+
+\section{Código del Proyecto}
+
+A continuación se incluye un extracto del código fuente de la aplicación. Se describen los principales componentes y su función dentro del sistema.
+
+\subsection{Estructura de la Aplicación}
+
+La aplicación está construida usando \texttt{Flask}, con las siguientes rutas clave:
+\begin{itemize}
+    \item \texttt{app.py}: Archivo principal de la aplicación. Define las rutas y los controladores que manejan la lógica del lado del servidor.
+    \item \texttt{templates/}: Carpeta donde se alojan los archivos HTML que conforman la interfaz gráfica de usuario.
+    \item \texttt{static/}: Contiene los archivos estáticos como hojas de estilo CSS o scripts JavaScript.
+\end{itemize}
+
+\subsection{Fragmentos de Código con Comentarios}
+
+\begin{verbatim}
+from flask import Flask, render_template, request
+import pandas as pd
+import numpy as np
+from scipy.stats import norm, triang
+import matplotlib.pyplot as plt
+
+# Inicialización de la aplicación Flask
+app = Flask(__name__)
+
+# Definición de la ruta principal de la aplicación
+@app.route('/')
+def index():
+    # Renderiza el archivo HTML principal
+    return render_template('index.html')
+
+# Ruta para procesar los archivos Excel subidos por el usuario
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    # Se obtiene el archivo subido por el usuario
+    file = request.files['file']
+    
+    # Se lee el archivo Excel utilizando pandas
+    df = pd.read_excel(file)
+    
+    # Aquí se ejecutaría la simulación de Monte Carlo utilizando numpy y scipy
+    # Ejemplo: simulación de distribución normal
+    mean = df['Impacto'].mean()
+    std_dev = df['Impacto'].std()
+    simulacion_normal = np.random.normal(mean, std_dev, 1000)
+    
+    # Retorna el resultado al HTML para su visualización
+    return render_template('result.html', data=simulacion_normal)
+\end{verbatim}
+
+\begin{itemize}
+    \item \texttt{from flask import Flask, render_template, request}: Importa las funciones necesarias para iniciar el servidor y manejar peticiones HTTP. Flask es el núcleo del backend de esta aplicación.
+    \item \texttt{from scipy.stats import norm, triang}: Se importa el módulo \texttt{scipy.stats} que proporciona funciones estadísticas, incluidas las distribuciones normal y triangular, utilizadas para las simulaciones de Monte Carlo.
+    \item \texttt{app = Flask(\_\_name\_\_)}: Inicializa la aplicación Flask. Esto es necesario para que Flask comience a escuchar solicitudes y sirva las rutas.
+    \item \texttt{def index()}: Esta función maneja la ruta raíz (`/`) de la aplicación y renderiza el archivo HTML principal.
+    \item \texttt{def upload\_file()}: Esta ruta maneja la carga de archivos por parte del usuario y procesa los archivos Excel para ejecutar las simulaciones.
+    \item \texttt{np.random.normal(mean, std\_dev, 1000)}: Utiliza la función \texttt{normal()} de \texttt{numpy} para generar una simulación de Monte Carlo basada en una distribución normal, con media y desviación estándar calculadas a partir de los datos cargados.
+\end{itemize}
+
 A continuación te propongo las secciones para el análisis de la simulación de Monte Carlo y la configuración de archivos que deseas. Se incluirán tanto las fórmulas matemáticas de las distribuciones utilizadas como la configuración de los archivos de riesgos. Puedes ajustar según lo que consideres necesario.
 
 ### Sección 1: Análisis y Modelos Matemáticos para la Simulación de Monte Carlo
