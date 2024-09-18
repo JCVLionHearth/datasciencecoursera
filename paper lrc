@@ -1,3 +1,60 @@
+\section{Descargo de responsabilidad}
+
+Este documento y el aplicativo asociado han sido diseñados con el propósito de proporcionar una herramienta de análisis para la estimación del límite de responsabilidad contractual (LRC) mediante simulaciones basadas en metodologías estadísticas, como la simulación de Monte Carlo. Es importante enfatizar que esta herramienta es un \textbf{prototipo} y no debe ser considerada como una solución definitiva para la toma de decisiones en la gestión de riesgos. Las conclusiones obtenidas a partir del uso de este aplicativo son únicamente sugerencias basadas en los datos y parámetros ingresados por el usuario, y \textbf{no deben ser tomadas como la única fuente de información} o el criterio final en la toma de decisiones empresariales o contractuales.
+
+\subsection{No sustitución de la toma de decisiones}
+
+Este prototipo tiene como objetivo proporcionar estimaciones estadísticas para facilitar el análisis de riesgos, sin embargo, en ningún caso pretende reemplazar la toma de decisiones informada por parte de los profesionales involucrados. La decisión final respecto al límite de responsabilidad contractual o cualquier otro aspecto relacionado con la gestión de riesgos debe ser tomada por el usuario, quien deberá considerar múltiples factores, incluyendo pero no limitándose a:
+
+\begin{itemize}
+    \item Comparaciones con estándares del mercado.
+    \item Asesoría profesional en la materia.
+    \item Análisis de escenarios adicionales no contemplados por el aplicativo.
+    \item Experiencia y juicio profesional en la materia.
+\end{itemize}
+
+El aplicativo no pretende ser una herramienta exhaustiva ni un sustituto del análisis profesional y especializado, sino más bien un \textbf{apoyo complementario} que pueda ayudar en el proceso de análisis. El uso de esta herramienta debe ser acompañado por una revisión profunda y exhaustiva por parte del usuario, quien deberá corroborar los resultados con otras metodologías y fuentes de información.
+
+\subsection{Dependencia de los datos ingresados}
+
+Es fundamental que el usuario comprenda que los resultados proporcionados por el aplicativo \textbf{dependen enteramente de los datos y configuraciones} que sean cargados en el sistema. El límite de responsabilidad contractual estimado está directamente asociado a los siguientes factores, entre otros:
+
+\begin{itemize}
+    \item La configuración de los riesgos ingresados, incluyendo sus distribuciones y parámetros estadísticos.
+    \item Los escenarios seleccionados por el usuario, ya sea que estos se basen en valores optimistas, pesimistas o probables, o en configuraciones de valor esperado y desviación estándar.
+    \item La experiencia previa, la información histórica disponible y los datos específicos que el usuario utilice para alimentar el sistema.
+\end{itemize}
+
+Dado que la calidad de los resultados obtenidos es proporcional a la calidad de los datos ingresados, es responsabilidad del usuario asegurarse de que los datos y los parámetros utilizados sean precisos, representativos y estén alineados con la realidad del contexto en el que se aplicará el análisis. Cualquier error o imprecisión en los datos cargados puede afectar significativamente la validez de los resultados obtenidos.
+
+\subsection{Flexibilidad y futuras mejoras}
+
+Este prototipo está diseñado para ser flexible y adaptable a las necesidades de diferentes usuarios y contextos de aplicación. Esto significa que está sujeto a \textbf{cambios, mejoras, sustituciones y adiciones} futuras, con el objetivo de optimizar su rendimiento y precisión en la estimación de los límites de responsabilidad contractual. Se recomienda que los usuarios estén atentos a las actualizaciones que se puedan realizar a la herramienta, y que consulten con el desarrollador o equipo responsable para asegurar que cuentan con la versión más actualizada y adecuada para sus necesidades.
+
+\subsection{Limitaciones del prototipo}
+
+Como se ha mencionado anteriormente, este prototipo tiene limitaciones inherentes debido a su naturaleza experimental. Entre estas limitaciones se incluyen:
+
+\begin{itemize}
+    \item La dependencia de los supuestos estadísticos y las distribuciones de probabilidad seleccionadas, como las distribuciones triangular y normal.
+    \item La posibilidad de que las simulaciones no reflejen adecuadamente ciertos eventos extremos o poco probables debido a la metodología de modelado utilizada.
+    \item La necesidad de realizar comparaciones adicionales con otros métodos de análisis de riesgos y de verificar los resultados con profesionales del área.
+\end{itemize}
+
+El prototipo no está diseñado para prever todos los posibles escenarios de riesgo, y puede no ser adecuado en contextos donde los riesgos sean altamente dinámicos o impredecibles. Es posible que el modelo subyacente no contemple todas las variables o dependencias que un entorno real podría presentar.
+
+\subsection{Responsabilidad del usuario}
+
+El uso de esta herramienta es responsabilidad exclusiva del usuario. Se recomienda encarecidamente que el usuario realice análisis complementarios y busque el asesoramiento de profesionales antes de tomar cualquier decisión basada en los resultados obtenidos mediante el uso del prototipo. La estimación del límite de responsabilidad contractual es una tarea compleja que involucra múltiples factores, y ningún modelo, por sí solo, puede proporcionar una solución única y definitiva.
+
+Los resultados generados por el prototipo \textbf{no deben ser interpretados como recomendaciones} o sugerencias de acción por parte del desarrollador de esta herramienta. Los desarrolladores no asumen responsabilidad alguna por decisiones tomadas con base en los resultados proporcionados por el aplicativo.
+
+\subsection{Conclusión}
+
+Este prototipo es una herramienta en desarrollo, diseñada para servir como apoyo en la estimación de límites de responsabilidad contractual mediante simulaciones. Sin embargo, no debe ser utilizado como la única base para la toma de decisiones en la gestión de riesgos. Los usuarios deben ser conscientes de las limitaciones del modelo y de la importancia de complementar los resultados con análisis adicionales y con el criterio profesional correspondiente.
+
+\textbf{En resumen}, la herramienta está diseñada para facilitar el análisis y proporcionar una guía preliminar, pero la decisión final, así como la responsabilidad sobre su implementación, recae enteramente en el usuario final.
+
 \section{Creación y activación de un entorno virtual en Visual Studio Code}
 
 Para garantizar que el aplicativo funcione correctamente, es necesario crear un entorno virtual que contenga todas las dependencias necesarias. A continuación, se describen los pasos para crear y activar dicho entorno en Visual Studio Code.
