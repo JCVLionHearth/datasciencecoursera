@@ -1,3 +1,60 @@
+\section{Creación y activación de un entorno virtual en Visual Studio Code}
+
+Para garantizar que el aplicativo funcione correctamente, es necesario crear un entorno virtual que contenga todas las dependencias necesarias. A continuación, se describen los pasos para crear y activar dicho entorno en Visual Studio Code.
+
+\subsection{Paso 1: Instalación de Python}
+Primero, es necesario tener instalado Python en el sistema. Se recomienda instalar la última versión disponible en el sitio oficial \href{https://www.python.org/downloads/}{https://www.python.org/downloads/}.
+
+\subsection{Paso 2: Crear el entorno virtual}
+
+1. Abre Visual Studio Code y abre la carpeta de tu proyecto.
+2. Abre la terminal integrada en Visual Studio Code, lo puedes hacer desde el menú \textit{Terminal} > \textit{New Terminal}.
+3. Una vez en la terminal, navega a la carpeta de tu proyecto (si no estás ya en ella), usando el comando \texttt{cd}.
+
+\begin{lstlisting}[language=bash]
+cd ruta/al/proyecto
+\end{lstlisting}
+
+4. Para crear el entorno virtual, ejecuta el siguiente comando:
+\begin{lstlisting}[language=bash]
+python -m venv venv
+\end{lstlisting}
+
+\noindent Aquí \texttt{venv} es el nombre del entorno virtual que se creará. Puedes cambiarlo por cualquier otro nombre si lo prefieres.
+
+\subsection{Paso 3: Activar el entorno virtual}
+
+\textbf{En Windows:}  
+Ejecuta el siguiente comando en la terminal para activar el entorno virtual:
+\begin{lstlisting}[language=bash]
+.\venv\Scripts\activate
+\end{lstlisting}
+
+\textbf{En macOS o Linux:}  
+Ejecuta el siguiente comando para activar el entorno virtual:
+\begin{lstlisting}[language=bash]
+source venv/bin/activate
+\end{lstlisting}
+
+\subsection{Paso 4: Verificar que el entorno esté activado}
+Cuando el entorno esté activado, deberías ver el prefijo del entorno virtual (por ejemplo, \texttt{(venv)}) antes de la ruta en la terminal. Esto indicará que estás trabajando dentro del entorno virtual.
+
+\subsection{Paso 5: Instalación de dependencias}
+Con el entorno activado, ahora es posible instalar las dependencias necesarias. Puedes hacer esto utilizando el archivo \texttt{requirements.txt}, que contiene todas las bibliotecas requeridas para el proyecto. Para instalar dichas dependencias, ejecuta el siguiente comando en la terminal:
+
+\begin{lstlisting}[language=bash]
+pip install -r requirements.txt
+\end{lstlisting}
+
+\noindent Este comando instalará todas las bibliotecas listadas en el archivo \texttt{requirements.txt}.
+
+\subsection{Paso 6: Desactivación del entorno virtual}
+Una vez que hayas terminado de trabajar, puedes desactivar el entorno virtual usando el comando:
+\begin{lstlisting}[language=bash]
+deactivate
+\end{lstlisting}
+\noindent Esto cerrará el entorno virtual y te devolverá a tu entorno de sistema operativo normal.
+
 \appendix
 \section{Paquetes Necesarios}
 
