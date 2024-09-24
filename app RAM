@@ -1,0 +1,36 @@
+crear una aplicación en python, usando flask, para valoración de riesgos. Actualmente se hace en excel, el proceso actual hace lo siguiente:
+1. Hay una hoja llamada valoracion en la que se define el riesgo (para cada riesgo se crea una hoja individual) en esta hoja se indica el codigo del riesgo, el nombre del riesgo, el escenario de valoracion (es decir el suceso que materializa el riesgo)
+2. En esta valoracion se describe la probabilidad inherente (raro, improbable, possible, probable, con certeza) la cual está asociada a un valor de 1 a 5
+3. se define el impacto inherente (un valor de 1 a 5 para cada una de cinco categorias) al final el valor del impacto inherente total es el maximo de estas 5 categorias
+4. Se describe en nuevas columnas a partir de la combinacion de probabilidad e impacto una puntuación para cada categoria, que se obtiene de otra hoja llamada RAM, de las cuales se obtiene la maxima puntuación y con esto se califica el riesgo total inherente (muy bajo, Bajo, Medio, Alto o Muy Alto)
+5. En la hoja valoración se agregan los controles especificos para la mitigación de este riesgo, este control puede ser: preventivo, detectivo o correctivo.
+6. el control debe mitigar alguna o todas las categorias de impacto.
+7. Tambien se define la clase de control (manual, manual TI, automatico) cada uno de estos da una puntuacion (5,10,15 respectivamente)
+8. Se establece si el control es inefectivo o efectivo, si es inefectivo obtiene una puntuacion de 0 y si es efectivo la puntuacion es 70
+9. Se establece para el control el nivel de cubrimiento para la causa y la consecuencia, que puede ser: ninguna=0 puntos, parcial=10 puntos o completa = 15 puntos
+10. Se obtiene un total de puntos por causa que es la suma de los puntos por clase de control + puntos por efectividad control + puntos por cubrimiento de causa
+11. Se obtiene un total de puntos por consecuencia que es la suma de los puntos por clase de control + puntos por efectividad control + puntos por cubrimiento de consecuencia
+12. esto se hace para cada uno de los controles asociados al riesgo
+13. se promedia los puntos por causa y se promedia los puntos por consecuencia, el total está ponderado por el 30% que es la asignación de mitigantes por controles
+14. el otro 70% está asociado a acciones de tratamiento asociados a planes que mitigan las consecuancias del riesgo
+15. las acciones de tratamiento estan clasificadas por categoria, tambien descritas en una hoja del documento llamada AT cada una de estas tiene una puntuación.
+16. las acciones de tratamiento tienen puntos por cubrimiento de causa y por cubrimiento de la consecuencia que puede ser: ninguna=0 puntos, parcial=50 puntos o completa = 100 puntos
+17. Se calcula el total de puntos por causa como el promedio entre los puntos dados por el tipo o clase de acción de tratamiento y los puntos por cubrimiento de causa
+18. Se calcula el total de puntos por consecuencia como el promedio entre los puntos dados por el tipo o clase de acción de tratamiento y los puntos por cubrimiento de consecuencia.
+19. esto se hace para cada una de las acciones de tratamiento asociados al riesgo
+20. se promedia los puntos por causa y se promedia los puntos por consecuencia de las acciones de tratamiento, el total está ponderado por el 70% que es la asignación de mitigantes por acciones de tratamiento
+21. finalmente se obtiene un gran total por causa que es la suma de la ponderación de causa de controles y de la acciones de tratamiento y un gran total por consecuencia que es la suma de la ponderación de consecuencia de controles y de la acciones de tratamiento
+22. Con estos valores se calcula la reduccion del riesgo, si las anteriores sumas estan entre 0 y 60 se le asigna 0, si es entre 60 y 80 se le asigna 1 y si es mayor a 80 se le asigna 2, tanto para causa=probabilidad y consecuencia=impacto
+23. se calcula la probabilidad residual como la diferencia entre el valor obtenido anteriormente de causa(probabilidad) y el valor de la probabilidad inherente descrita en el numeral 2.
+24. se calcula el impacto residual como la diferencia entre el valor obtenido del numeral 22 consecuencia(impacto) y el valor del impacto inherente descrita en el numeral 3.
+25. con estos dos valores se le asigna un nuevo nivel de riesgo (muy bajo, Bajo, Medio, Alto o Muy Alto) que se obtiene de la misma hoja RAM
+26. con estos datos se obtiene un grafico que muestra la variacion del nivel inherente vs el nuevo valor en el nivel residual, consolidado para todos los riesgos.
+
+necesito que me ayudes a crear una aplicacion que me permita hacer los siguiente:
+1. una ventana de parametros, en esta se definirá cuantos riesgos hay y con base a esto se creará la valoración de cada riesgo.
+2. se debe permitir crear la cantidad de controles y de acciones de tratamiento asociadas al risgos
+3. una ventana que me permita hacer la valoración del riesgo seleccionado y que esta se guarde en una base de datos sql (sqllite, sqlAclhemy)
+4. dashboard que permitan ver las variaciones visuales de los niveles de riesgo inherente a residual. (estas graficas deben ser dinamicas y en lo posible mostrar la matriz ram)
+5. debe permitir realizar cambios en vivo del riesgo para identificar la variacion del riesgo resisual al realizar algun cambio, pero debe mantener el anterior para hacer comparaciones.
+
+crea toda la arquitectura de la aplicación, usando visual studio code, los codigos de python, y todo lo necesario paso a paso, continua la respuesta si llegas a quedarte sin espacio
