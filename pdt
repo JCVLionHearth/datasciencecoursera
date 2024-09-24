@@ -1,3 +1,46 @@
+Aquí tienes los hitos generales para cada plazo, enfocados en el pilar de tecnología, con énfasis en la arquitectura digital, gestión de datos, herramientas para la toma de datos, monitoreo de riesgo, y análisis de datos avanzado:
+
+### **Corto Plazo (0-12 meses):**
+1. **Diseño de la Arquitectura Digital y Modelo de Gestión de Datos**  
+   - Definición de una arquitectura digital inicial que integre la captura, almacenamiento y gestión de datos.
+   
+2. **Implementación de Herramientas Básicas para la Toma y Monitoreo de Datos**  
+   - Desarrollo e implementación de herramientas esenciales para la captura y monitoreo de datos relevantes.
+   
+3. **Desarrollo de Plataformas para Monitoreo de Riesgo**  
+   - Creación de una plataforma inicial para el monitoreo de riesgos basada en los datos capturados.
+   
+4. **Validación Inicial de Modelos y Herramientas de Análisis de Datos**  
+   - Validación y ajuste de las herramientas y modelos para garantizar su funcionalidad en el análisis avanzado de datos.
+
+### **Mediano Plazo (12-24 meses):**
+1. **Optimización y Escalamiento de la Arquitectura Digital**  
+   - Optimización de la arquitectura digital y escalamiento para soportar un mayor volumen y complejidad de datos.
+   
+2. **Implementación de Proyectos Piloto de Análisis y Reporte de Datos**  
+   - Despliegue de proyectos piloto que utilicen las herramientas y plataformas para el análisis de datos avanzado y generación de reportes.
+   
+3. **Mejora de Herramientas para la Toma de Datos y Monitoreo de Riesgo**  
+   - Actualización y optimización de herramientas para mejorar la captura y monitoreo de datos críticos.
+   
+4. **Evaluación de Resultados y Ajuste de Modelos Analíticos**  
+   - Evaluación de los resultados de los proyectos piloto y ajuste de los modelos analíticos para aumentar su precisión y relevancia.
+
+### **Largo Plazo (24+ meses):**
+1. **Consolidación de la Arquitectura Digital y Gestión de Datos**  
+   - Consolidación de una arquitectura digital robusta y completamente integrada para la gestión eficiente de grandes volúmenes de datos.
+   
+2. **Automatización de Procesos de Monitoreo de Riesgo y Reporte**  
+   - Implementación de automatización avanzada para el monitoreo continuo de riesgos y generación de reportes dinámicos.
+   
+3. **Evolución y Adaptación de Herramientas y Modelos de Análisis Avanzado**  
+   - Incorporación de nuevas tecnologías y metodologías en las herramientas de análisis avanzado de datos.
+   
+4. **Mejora Continua Basada en KPI y Evolución Tecnológica**  
+   - Evaluación constante de los KPI y adaptación de las herramientas y modelos para mantener su competitividad y relevancia en el largo plazo.
+
+Estos hitos resumen los avances tecnológicos en cada periodo, garantizando un enfoque integral en la gestión de datos, monitoreo de riesgos, y análisis avanzado de datos dentro del pilar de tecnología.
+
 Ayudame creando los hitos mas relevantes que generalicen las siguentes ideas:
 Implementación de Analítica avanzada, por medio de la comprensión de Problemas y los Resultados que se desean, identificacion de metricas claves, establecer criterios de éxito, identificacion de fuentes de datos, aplicación de técnicas de mineria y analisis de datos, implementaciones de producción
 "Fase 1: Formación del equipo y levantamiento de la información.
