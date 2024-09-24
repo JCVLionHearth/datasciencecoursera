@@ -1,3 +1,388 @@
+### Arquitectura de la aplicación de valoración de riesgos
+
+Vamos a construir la aplicación paso a paso. La aplicación será creada usando **Flask** para el backend, **SQLAlchemy** para interactuar con una base de datos **SQLite**, y **Flask-WTF** para los formularios. Además, utilizaremos **Plotly** o **Matplotlib** para los gráficos en el dashboard y **Jinja2** para el manejo de plantillas.
+
+#### Paso 1: Estructura del proyecto
+
+Crea la siguiente estructura de carpetas en **Visual Studio Code**:
+
+```
+risk_app/
+│
+├── app/
+│   ├── static/         # Archivos estáticos como CSS, JS
+│   ├── templates/      # Archivos HTML (Jinja2 templates)
+│   ├── __init__.py     # Inicialización de la aplicación
+│   ├── models.py       # Definición de la base de datos
+│   ├── forms.py        # Definición de formularios
+│   ├── routes.py       # Rutas de la aplicación
+│   └── utils.py        # Funciones de utilidades para el cálculo del riesgo
+│
+├── instance/
+│   └── risk_db.sqlite  # Base de datos SQLite
+│
+├── .env                # Archivo de configuración
+├── config.py           # Configuración de Flask
+├── run.py              # Ejecuta la aplicación
+└── requirements.txt    # Dependencias del proyecto
+```
+
+#### Paso 2: Crear un entorno virtual y dependencias
+
+En la terminal de **Visual Studio Code**, crea un entorno virtual y activa el entorno:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # En Windows sería venv\Scripts\activate
+```
+
+Instala las dependencias:
+
+```bash
+pip install flask flask-sqlalchemy flask-wtf plotly matplotlib
+```
+
+Guarda las dependencias en el archivo `requirements.txt`:
+
+```bash
+pip freeze > requirements.txt
+```
+
+#### Paso 3: Configuración de Flask
+
+En el archivo **config.py**, define la configuración básica de Flask y SQLAlchemy:
+
+```python
+import os
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'supersecretkey'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/risk_db.sqlite'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+```
+
+#### Paso 4: Inicialización de la aplicación
+
+En el archivo **app/__init__.py**, inicializa la aplicación y SQLAlchemy:
+
+```python
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
+from config import Config
+
+db = SQLAlchemy()
+csrf = CSRFProtect()
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    db.init_app(app)
+    csrf.init_app(app)
+
+    from .routes import main
+    app.register_blueprint(main)
+
+    return app
+```
+
+#### Paso 5: Modelo de base de datos
+
+En **app/models.py**, define los modelos de base de datos para almacenar riesgos, controles y acciones de tratamiento:
+
+```python
+from . import db
+
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
+
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(50), nullable=False)  # preventivo, detectivo, correctivo
+    clase = db.Column(db.String(50), nullable=False)  # manual, manual TI, automatico
+    efectividad = db.Column(db.Integer, nullable=False)  # 0 = inefectivo, 70 = efectivo
+    cubrimiento_causa = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    cubrimiento_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    categoria = db.Column(db.String(100), nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+```
+
+#### Paso 6: Formularios con Flask-WTF
+
+En **app/forms.py**, crea los formularios para la creación de riesgos, controles y acciones de tratamiento:
+
+```python
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, SelectField, SubmitField
+from wtforms.validators import DataRequired
+
+class RiskForm(FlaskForm):
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    escenario = StringField('Escenario de Valoración', validators=[DataRequired()])
+    probabilidad_inherente = SelectField('Probabilidad Inherente', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_inherente = IntegerField('Impacto Inherente', validators=[DataRequired()])
+    submit = SubmitField('Guardar')
+
+class ControlForm(FlaskForm):
+    tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+    clase = SelectField('Clase de Control', choices=[('manual', 'Manual'), ('manual TI', 'Manual TI'), ('automatico', 'Automático')])
+    efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+    cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+class AccionTratamientoForm(FlaskForm):
+    categoria = StringField('Categoría de la Acción', validators=[DataRequired()])
+    puntos_causa = SelectField('Puntos por Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Puntos por Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+```
+
+#### Paso 7: Rutas principales
+
+En **app/routes.py**, define las rutas para visualizar, crear y actualizar los riesgos:
+
+```python
+from flask import render_template, redirect, url_for, flash
+from . import db
+from .models import Risk, Control, AccionTratamiento
+from .forms import RiskForm, ControlForm, AccionTratamientoForm
+
+@main.route('/')
+def index():
+    riesgos = Risk.query.all()
+    return render_template('index.html', riesgos=riesgos)
+
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+    if form.validate_on_submit():
+        form.populate_obj(riesgo)
+        db.session.commit()
+        flash('Riesgo actualizado', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+```
+
+### Continuaré explicando la lógica de cálculos, gráficos y control de versiones en los siguientes pasos.
+
+### Paso 8: Implementación de la lógica para cálculos de riesgos
+
+En el archivo **app/utils.py**, implementaremos las funciones necesarias para los cálculos de riesgos inherentes y residuales. Estas funciones calcularán la puntuación máxima de probabilidad e impacto, así como la mitigación por controles y acciones de tratamiento.
+
+```python
+def calcular_puntaje_inherente(probabilidad_inherente, impacto_inherente):
+    """
+    Calcula la puntuación inherente del riesgo combinando probabilidad e impacto.
+    Se asume que el impacto es la puntuación máxima de las categorías de impacto.
+    """
+    return probabilidad_inherente * impacto_inherente
+
+def calcular_reduccion_por_controles(controles):
+    """
+    Calcula la reducción de riesgo basada en los controles asociados al riesgo.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    for control in controles:
+        puntos_causa = control.clase_control_puntos() + control.efectividad + control.cubrimiento_causa
+        puntos_consecuencia = control.clase_control_puntos() + control.efectividad + control.cubrimiento_consecuencia
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(controles), puntos_consecuencia_total / len(controles))
+
+def calcular_reduccion_por_acciones(acciones):
+    """
+    Calcula la reducción de riesgo basada en las acciones de tratamiento.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    for accion in acciones:
+        puntos_causa = (accion.puntos_causa + accion.clase_accion_puntos()) / 2
+        puntos_consecuencia = (accion.puntos_consecuencia + accion.clase_accion_puntos()) / 2
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(acciones), puntos_consecuencia_total / len(acciones))
+
+def calcular_riesgo_residual(riesgo, controles, acciones):
+    """
+    Calcula el riesgo residual después de aplicar controles y acciones de tratamiento.
+    El resultado se obtiene ponderando el 30% por controles y el 70% por acciones de tratamiento.
+    """
+    # Calcular reducciones por controles y acciones
+    reduccion_controles = calcular_reduccion_por_controles(controles)
+    reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+    # Ponderación de la reducción
+    causa_residual = (reduccion_controles[0] * 0.30) + (reduccion_acciones[0] * 0.70)
+    consecuencia_residual = (reduccion_controles[1] * 0.30) + (reduccion_acciones[1] * 0.70)
+
+    return causa_residual, consecuencia_residual
+
+def obtener_nivel_riesgo(puntaje):
+    """
+    Asigna el nivel de riesgo con base en el puntaje.
+    """
+    if puntaje <= 1:
+        return 'Muy Bajo'
+    elif puntaje <= 2:
+        return 'Bajo'
+    elif puntaje <= 3:
+        return 'Medio'
+    elif puntaje <= 4:
+        return 'Alto'
+    else:
+        return 'Muy Alto'
+```
+
+Estas funciones son críticas para los cálculos, incluyendo la evaluación de riesgos inherentes y el cálculo de los riesgos residuales después de aplicar los controles y acciones de tratamiento.
+
+### Paso 9: Actualización de las vistas y rutas para cálculos dinámicos
+
+En **app/routes.py**, actualizaremos la lógica para integrar los cálculos de riesgo inherente y residual al realizar las valoraciones:
+
+```python
+from flask import render_template, redirect, url_for, flash, request
+from . import db
+from .models import Risk, Control, AccionTratamiento
+from .forms import RiskForm, ControlForm, AccionTratamientoForm
+from .utils import calcular_puntaje_inherente, calcular_riesgo_residual, obtener_nivel_riesgo
+
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if form.validate_on_submit():
+        form.populate_obj(riesgo)
+        db.session.commit()
+        flash('Riesgo actualizado', 'success')
+
+        # Calcular riesgo inherente
+        puntaje_inherente = calcular_puntaje_inherente(
+            riesgo.probabilidad_inherente, 
+            riesgo.impacto_inherente
+        )
+
+        # Obtener controles y acciones asociadas
+        controles = Control.query.filter_by(riesgo_id=riesgo.id).all()
+        acciones = AccionTratamiento.query.filter_by(riesgo_id=riesgo.id).all()
+
+        # Calcular riesgo residual
+        causa_residual, consecuencia_residual = calcular_riesgo_residual(riesgo, controles, acciones)
+
+        # Evaluar el nuevo nivel de riesgo inherente y residual
+        nivel_inherente = obtener_nivel_riesgo(puntaje_inherente)
+        nivel_residual = obtener_nivel_riesgo(causa_residual + consecuencia_residual)
+
+        return render_template('resultados_riesgo.html', 
+                               riesgo=riesgo, 
+                               puntaje_inherente=puntaje_inherente, 
+                               causa_residual=causa_residual, 
+                               consecuencia_residual=consecuencia_residual,
+                               nivel_inherente=nivel_inherente, 
+                               nivel_residual=nivel_residual)
+    
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+```
+
+### Paso 10: Dashboard con gráficos dinámicos
+
+Para la visualización dinámica, utilizaremos **Plotly** para generar gráficos interactivos de los niveles de riesgo.
+
+En **app/routes.py**, agrega una nueva ruta para mostrar el dashboard:
+
+```python
+import plotly.graph_objs as go
+from flask import jsonify
+
+@main.route('/dashboard')
+def dashboard():
+    riesgos = Risk.query.all()
+    
+    # Datos para el gráfico
+    nombres_riesgos = [riesgo.nombre for riesgo in riesgos]
+    niveles_inherentes = [calcular_puntaje_inherente(r.probabilidad_inherente, r.impacto_inherente) for r in riesgos]
+    
+    # Ejemplo de nivel residual (esto sería calculado dinámicamente)
+    niveles_residuales = [r.impacto_inherente - 1 for r in riesgos]  # Simplificado para el ejemplo
+
+    # Gráfico
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=nombres_riesgos, y=niveles_inherentes, name='Riesgo Inherente', marker_color='red'))
+    fig.add_trace(go.Bar(x=nombres_riesgos, y=niveles_residuales, name='Riesgo Residual', marker_color='green'))
+
+    fig.update_layout(title='Riesgo Inherente vs Residual', barmode='group')
+
+    return render_template('dashboard.html', graph_json=fig.to_json())
+```
+
+Y en el template **dashboard.html**, renderiza el gráfico:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Riesgos</h1>
+    <div id="grafico"></div>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+```
+
+### Paso 11: Implementar comparaciones dinámicas
+
+Para permitir cambios en tiempo real, puedes utilizar **AJAX** o **WebSockets** para actualizar los valores y comparaciones en el dashboard sin necesidad de recargar toda la página. Esto se puede integrar más adelante si es necesario.
+
+### Paso 12: Ejecutar la aplicación
+
+En **run.py**, inicializa y corre la aplicación:
+
+```python
+from app import create_app, db
+
+app = create_app()
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()  # Crea las tablas en la base de datos si no existen
+    app.run(debug=True)
+```
+
+Con estos pasos, tu aplicación estará lista para gestionar la valoración de riesgos de manera dinámica y permitir comparaciones de riesgos inherentes y residuales con gráficas en tiempo real. 
+
+¿Te gustaría profundizar en alguna funcionalidad en particular o en la integración de más gráficos y funcionalidades en tiempo real?
 crear una aplicación en python, usando flask, para valoración de riesgos. Actualmente se hace en excel, el proceso actual hace lo siguiente:
 1. Hay una hoja llamada valoracion en la que se define el riesgo (para cada riesgo se crea una hoja individual) en esta hoja se indica el codigo del riesgo, el nombre del riesgo, el escenario de valoracion (es decir el suceso que materializa el riesgo)
 2. En esta valoracion se describe la probabilidad inherente (raro, improbable, possible, probable, con certeza) la cual está asociada a un valor de 1 a 5
