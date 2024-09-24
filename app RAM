@@ -1,3 +1,216 @@
+Entiendo. La función `crear_riesgo` a la que haces referencia es una **vista** en Flask que se encarga de manejar el formulario para crear un nuevo riesgo. Esto implica tanto la creación de la función en **routes.py** como la plantilla **HTML** que se encargará de mostrar el formulario para capturar los datos del riesgo.
+
+Voy a rehacer todo el archivo de rutas y las plantillas HTML necesarias asociadas a las rutas para asegurarnos de que estén correctamente conectadas.
+
+### 1. **Archivo de rutas (`routes.py`)**
+Este archivo define las vistas (rutas) necesarias para listar, crear y valorar riesgos.
+
+```python
+from flask import render_template, redirect, url_for, flash, request
+from flask import Blueprint
+from app import db
+from app.models import Risk
+from app.forms import RiskForm
+
+main = Blueprint('main', __name__)
+
+# Ruta para la página principal, donde se listan los riesgos
+@main.route('/')
+def index():
+    riesgos = Risk.query.all()
+    return render_template('index.html', riesgos=riesgos)
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    form = RiskForm()
+    if form.validate_on_submit():
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad=form.probabilidad.data,
+            impacto=form.impacto.data
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    
+    return render_template('crear_riesgo.html', form=form)
+
+# Ruta para valorar un riesgo existente
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if form.validate_on_submit():
+        riesgo.nombre = form.nombre.data
+        riesgo.codigo = form.codigo.data
+        riesgo.escenario = form.escenario.data
+        riesgo.probabilidad = form.probabilidad.data
+        riesgo.impacto = form.impacto.data
+
+        db.session.commit()
+        flash('Valoración del riesgo actualizada', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+```
+
+### 2. **Plantillas HTML**
+
+#### `index.html` - Página principal para listar los riesgos
+
+Este archivo muestra todos los riesgos creados y ofrece la opción de valorarlos o crear uno nuevo.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración de Riesgos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Listado de Riesgos</h1>
+    
+    <ul>
+        {% for riesgo in riesgos %}
+        <li>
+            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}">
+                {{ riesgo.nombre }} (Código: {{ riesgo.codigo }})
+            </a>
+        </li>
+        {% else %}
+        <li>No hay riesgos definidos.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('main.crear_riesgo') }}">Crear Nuevo Riesgo</a>
+</body>
+</html>
+```
+
+#### `crear_riesgo.html` - Página para crear un nuevo riesgo
+
+Este archivo contiene el formulario para crear un nuevo riesgo.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Crear Nuevo Riesgo</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.nombre.label }}: {{ form.nombre }}
+        </div>
+        <div>
+            {{ form.codigo.label }}: {{ form.codigo }}
+        </div>
+        <div>
+            {{ form.escenario.label }}: {{ form.escenario }}
+        </div>
+        <div>
+            {{ form.probabilidad.label }}: {{ form.probabilidad }}
+        </div>
+        <div>
+            {{ form.impacto.label }}: {{ form.impacto }}
+        </div>
+
+        <button type="submit">Crear Riesgo</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+```
+
+#### `valoracion_riesgo.html` - Página para valorar un riesgo existente
+
+Este archivo permite editar la valoración de un riesgo ya creado.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración del Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Valoración del Riesgo: {{ riesgo.nombre }}</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.nombre.label }}: {{ form.nombre }}
+        </div>
+        <div>
+            {{ form.codigo.label }}: {{ form.codigo }}
+        </div>
+        <div>
+            {{ form.escenario.label }}: {{ form.escenario }}
+        </div>
+        <div>
+            {{ form.probabilidad.label }}: {{ form.probabilidad }}
+        </div>
+        <div>
+            {{ form.impacto.label }}: {{ form.impacto }}
+        </div>
+
+        <button type="submit">Guardar Valoración</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+```
+
+### 3. **Formularios (`forms.py`)**
+
+Asegúrate de que tu archivo `forms.py` contenga el formulario para manejar los datos de los riesgos:
+
+```python
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, SelectField
+from wtforms.validators import DataRequired
+
+class RiskForm(FlaskForm):
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    escenario = StringField('Escenario de Valoración', validators=[DataRequired()])
+    probabilidad = SelectField('Probabilidad Inherente', 
+                               choices=[('1', 'Raro'), ('2', 'Improbable'), ('3', 'Posible'), 
+                                        ('4', 'Probable'), ('5', 'Con certeza')],
+                               validators=[DataRequired()])
+    impacto = SelectField('Impacto Inherente', 
+                          choices=[('1', 'Muy Bajo'), ('2', 'Bajo'), ('3', 'Medio'), 
+                                   ('4', 'Alto'), ('5', 'Muy Alto')],
+                          validators=[DataRequired()])
+```
+
+### Resumen de las rutas:
+
+- **Ruta `/`**: Lista todos los riesgos.
+- **Ruta `/crear_riesgo`**: Muestra el formulario para crear un nuevo riesgo.
+- **Ruta `/riesgo/<int:id>`**: Muestra la valoración de un riesgo ya creado.
+
+### Verifica que las plantillas HTML estén ubicadas en la carpeta **`templates`** dentro de la estructura de la aplicación y que las rutas estén correctamente registradas.
+
 Aquí te dejo las plantillas HTML que faltaban para que la aplicación funcione correctamente.
 
 ### `index.html`
