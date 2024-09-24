@@ -1,3 +1,132 @@
+Aquí te dejo las plantillas HTML que faltaban para que la aplicación funcione correctamente.
+
+### `index.html`
+
+Este archivo se usará para mostrar la página principal donde listarás los riesgos creados.
+
+Guárdalo en la carpeta `app/templates/`.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración de Riesgos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Listado de Riesgos</h1>
+    
+    <ul>
+        {% for riesgo in riesgos %}
+        <li>
+            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}">
+                {{ riesgo.nombre }} (Código: {{ riesgo.codigo }})
+            </a>
+        </li>
+        {% else %}
+        <li>No hay riesgos definidos.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('main.crear_riesgo') }}">Crear Nuevo Riesgo</a>
+</body>
+</html>
+```
+
+Este archivo lista todos los riesgos y permite seleccionar un riesgo para valorarlo. También incluye un enlace para crear un nuevo riesgo.
+
+### `valoracion_riesgo.html`
+
+Este archivo permitirá mostrar la valoración de un riesgo específico. Guárdalo también en la carpeta `app/templates/`.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración del Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Valoración del Riesgo: {{ riesgo.nombre }}</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.probabilidad.label }}: {{ form.probabilidad }}
+        </div>
+        <div>
+            {{ form.impacto.label }}: {{ form.impacto }}
+        </div>
+
+        <h3>Controles</h3>
+        <!-- Aquí irían los campos del formulario relacionados a los controles -->
+
+        <h3>Acciones de Tratamiento</h3>
+        <!-- Aquí irían los campos del formulario relacionados a las acciones de tratamiento -->
+
+        <button type="submit">Guardar Valoración</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+```
+
+En este archivo puedes realizar la valoración del riesgo. Aquí se renderizarán los formularios relacionados con la probabilidad, impacto, controles y acciones de tratamiento.
+
+### `styles.css` (opcional)
+
+Si quieres un archivo CSS para mejorar la apariencia básica, puedes crear un archivo llamado `styles.css` en la carpeta `app/static/`:
+
+```css
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1, h3 {
+    color: #333;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+form div {
+    margin-bottom: 10px;
+}
+```
+
+### Verifica la estructura de carpetas:
+
+Tu estructura de carpetas debería verse así:
+
+```
+project_folder/
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── templates/
+│   │   ├── index.html
+│   │   ├── valoracion_riesgo.html
+│   └── static/
+│       └── styles.css  # Si agregas el CSS opcional
+├── run.py
+```
+
+Con estos archivos ya deberías poder navegar entre la página principal y la valoración de riesgos. Si necesitas más modificaciones, no dudes en decirlo.
+
 El error que mencionas ocurre porque en el archivo **app/routes.py**, donde se definen las rutas, parece que no se ha definido la variable `main`, que debería referirse al blueprint que estamos utilizando para manejar las rutas.
 
 Vamos a corregirlo:
