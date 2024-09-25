@@ -1,3 +1,5 @@
+ya aparece una ventana para agregar el riesgo, pero al ehjecutar el boton sale el siguiente error: TypeError: 'probabilidad' is an invalid keyword argument for Risk
+
 El error que estás viendo, `'app.forms.RiskForm object' has no attribute 'probabilidad'`, significa que en el formulario `RiskForm`, definido en el archivo `forms.py`, no has declarado el campo `probabilidad`, aunque estás intentando usarlo en la plantilla HTML `crear_riesgo.html`.
 
 Vamos a solucionar este problema asegurándonos de que todos los campos necesarios estén definidos correctamente en el formulario. 
