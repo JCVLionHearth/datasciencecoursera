@@ -1,3 +1,118 @@
+Parece que el error proviene del hecho de que el objeto `Control` no tiene un atributo llamado `clase_control_puntos`, lo cual sugiere un problema en la forma en que estás accediendo a los datos de los controles.
+
+### Solución al error de `'Control' object has no attribute 'clase_control_puntos'`
+
+1. **Verifica el Modelo de Control**:
+   Asegúrate de que en tu modelo de base de datos (en **`models.py`** o donde sea que esté definido el modelo de `Control`) tienes correctamente definido el campo `clase_control_puntos` o el campo equivalente que estás intentando acceder. Si el campo se llama de otra manera, asegúrate de usar el nombre correcto.
+
+2. **Revisión del Acceso a Atributos**:
+   Verifica el código que hace referencia a `clase_control_puntos`. Si no existe un atributo con ese nombre en tu modelo `Control`, intenta renombrarlo por el campo correcto que debería estar accediendo.
+
+   Revisa esta parte del código donde se calcula la reducción por controles:
+
+   ```python
+   reduccion_controles = calcular_reduccion_por_controles(controles)
+   ```
+
+   Asegúrate de que la función **`calcular_reduccion_por_controles`** está accediendo correctamente a los atributos de `Control` y que esos atributos existen.
+
+   Si el modelo `Control` no tiene el campo `clase_control_puntos`, debes revisar el campo correcto que debe ser utilizado, por ejemplo, puede ser algo como `puntos` o `eficacia`, etc. Cambia este campo en la función de reducción de controles.
+
+### Agregar Botones para Navegar en la Aplicación
+
+Para agregar botones que permitan navegar entre las diferentes rutas de tu aplicación, como el **Dashboard**, **Agregar Controles**, **Agregar Acciones**, y otros parámetros, puedes modificar tu plantilla **base.html** o la plantilla donde deseas agregar los botones de navegación.
+
+#### Ejemplo de menú de navegación con botones:
+
+1. **Editar `base.html` (o tu archivo principal de layout)**:
+
+   Si ya tienes una plantilla base de HTML donde usas un layout general para todas las páginas, puedes agregar un menú de navegación con botones como este:
+
+   ```html
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>{% block title %}My App{% endblock %}</title>
+       <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+   </head>
+   <body>
+       <nav>
+           <ul>
+               <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+               <li><a href="{{ url_for('main.parametros') }}">Parámetros</a></li>
+               <li><a href="{{ url_for('main.agregar_controles') }}">Agregar Controles</a></li>
+               <li><a href="{{ url_for('main.agregar_acciones') }}">Agregar Acciones</a></li>
+           </ul>
+       </nav>
+
+       <div class="content">
+           {% block content %}
+           {% endblock %}
+       </div>
+   </body>
+   </html>
+   ```
+
+   ### Explicación del código:
+
+   - **Menú de Navegación**: Los enlaces (`<a>`) dentro del menú son botones que permiten la navegación. Cada uno apunta a una ruta específica de tu aplicación usando **`url_for`**.
+   - Asegúrate de que las rutas como `dashboard`, `parametros`, `agregar_controles`, y `agregar_acciones` estén definidas en **`routes.py`**.
+
+2. **Agregar Enlaces a las Plantillas Específicas**:
+
+   Si no estás usando una plantilla base, simplemente agrega estos botones o enlaces en las plantillas donde los necesites:
+
+   ```html
+   <nav>
+       <ul>
+           <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+           <li><a href="{{ url_for('main.parametros') }}">Parámetros</a></li>
+           <li><a href="{{ url_for('main.agregar_controles') }}">Agregar Controles</a></li>
+           <li><a href="{{ url_for('main.agregar_acciones') }}">Agregar Acciones</a></li>
+       </ul>
+   </nav>
+   ```
+
+3. **Asegúrate de Tener las Rutas en `routes.py`**:
+
+   En tu archivo **`routes.py`**, debes tener rutas para cada una de las funcionalidades que mencionas, como el Dashboard, parámetros, agregar controles y agregar acciones.
+
+   Ejemplo:
+
+   ```python
+   @main.route('/dashboard')
+   def dashboard():
+       # Lógica del Dashboard aquí
+       return render_template('dashboard.html')
+
+   @main.route('/parametros')
+   def parametros():
+       # Lógica para mostrar parámetros
+       return render_template('parametros.html')
+
+   @main.route('/agregar_controles', methods=['GET', 'POST'])
+   def agregar_controles():
+       # Lógica para agregar controles
+       return render_template('agregar_controles.html')
+
+   @main.route('/agregar_acciones', methods=['GET', 'POST'])
+   def agregar_acciones():
+       # Lógica para agregar acciones
+       return render_template('agregar_acciones.html')
+   ```
+
+### Resumen de los Cambios
+
+1. **Solucionar el error de `'clase_control_puntos'**: Asegúrate de que el modelo `Control` tiene ese atributo o usa el atributo correcto que representa los puntos del control.
+
+2. **Agregar un Menú de Navegación**: Añade botones o enlaces para navegar entre el Dashboard, parámetros, agregar controles y agregar acciones.
+
+3. **Definir Rutas**: Verifica que las rutas correspondientes estén definidas en **`routes.py`**.
+
+Con estas modificaciones, deberías poder visualizar el Dashboard sin el error y tener una interfaz con botones para navegar entre las distintas funcionalidades de tu aplicación.
+
 cuando ejecuto este enlace http://127.0.0.1:5000/dashboard sale el siguiente error AttributeError: 'Control' object has no attribute 'clase_control_puntos', adicionalmente no hay botones para llamar al dashboard, parametros y a las rutas de agregar controles y acciones
 
 Para implementar la lógica en la ruta **Dashboard** en **`routes.py`**, donde primero calcules los controles y las acciones, y luego obtengas el puntaje del riesgo residual, debes seguir estos pasos:
