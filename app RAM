@@ -1,3 +1,136 @@
+Para implementar la lógica en la ruta **Dashboard** en **`routes.py`**, donde primero calcules los controles y las acciones, y luego obtengas el puntaje del riesgo residual, debes seguir estos pasos:
+
+### Paso 1: Importar las funciones necesarias en `routes.py`
+
+Primero, asegúrate de haber importado las funciones que necesitas desde **`utils.py`**:
+
+```python
+from app.utils import calcular_reduccion_por_controles, calcular_reduccion_por_acciones, calcular_riesgo_residual, obtener_nivel_riesgo
+```
+
+### Paso 2: Modificar la ruta `dashboard`
+
+En la ruta del **Dashboard**, deberás seguir los siguientes pasos:
+
+1. Obtener todos los riesgos desde la base de datos.
+2. Para cada riesgo, obtener los controles y las acciones de tratamiento.
+3. Utilizar las funciones para calcular la reducción de riesgo por controles y acciones.
+4. Calcular el riesgo residual.
+5. Preparar la información para mostrarla gráficamente en el dashboard.
+
+### Ejemplo de la ruta `dashboard`:
+
+```python
+@main.route('/dashboard')
+def dashboard():
+    # Obtener todos los riesgos
+    riesgos = Risk.query.all()
+
+    # Preparar datos para el gráfico
+    data_graficos = {
+        'data': [],
+        'layout': {'title': 'Variaciones del Riesgo Inherente y Residual'}
+    }
+
+    for riesgo in riesgos:
+        # Obtener los controles y acciones asociados al riesgo
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+
+        # Calcular la reducción por controles y acciones
+        if controles and acciones:
+            reduccion_controles = calcular_reduccion_por_controles(controles)
+            reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+            # Calcular riesgo residual
+            puntaje_residual = calcular_riesgo_residual(riesgo, controles, acciones)
+
+            # Puntaje inherente del riesgo
+            puntaje_inherente = riesgo.probabilidad_inherente * riesgo.impacto_inherente
+
+            # Convertir puntajes a niveles de riesgo
+            nivel_inherente = obtener_nivel_riesgo(puntaje_inherente)
+            nivel_residual = obtener_nivel_riesgo(sum(puntaje_residual) / 2)
+
+            # Preparar los datos para el gráfico
+            data_graficos['data'].append({
+                'x': ['Riesgo Inherente', 'Riesgo Residual'],
+                'y': [puntaje_inherente, sum(puntaje_residual) / 2],
+                'name': riesgo.nombre,
+                'type': 'bar'
+            })
+
+        else:
+            # En caso de no tener controles o acciones, solo mostrar el inherente
+            puntaje_inherente = riesgo.probabilidad_inherente * riesgo.impacto_inherente
+            nivel_inherente = obtener_nivel_riesgo(puntaje_inherente)
+
+            data_graficos['data'].append({
+                'x': ['Riesgo Inherente'],
+                'y': [puntaje_inherente],
+                'name': riesgo.nombre,
+                'type': 'bar'
+            })
+
+    # Convertir los datos a formato JSON para el gráfico
+    graph_json = json.dumps(data_graficos)
+
+    return render_template('dashboard.html', graph_json=graph_json)
+```
+
+### Explicación del código:
+
+1. **Obtención de riesgos**: Se obtienen todos los riesgos desde la base de datos.
+   
+2. **Calcular reducción por controles y acciones**:
+    - Para cada riesgo, se obtienen sus controles y acciones.
+    - Si el riesgo tiene controles y acciones, se calcula la reducción de riesgo por controles y acciones usando las funciones de **`utils.py`**.
+    - Se calcula el **puntaje inherente** multiplicando la probabilidad por el impacto inherente.
+    - Se calcula el **puntaje residual** usando la función **`calcular_riesgo_residual`**.
+    - Si no tiene controles o acciones, solo se mostrará el puntaje inherente.
+
+3. **Generar gráfico**:
+    - Se construyen las barras de riesgo inherente y residual para cada riesgo, y se preparan los datos para enviarlos al **dashboard**.
+    - Los datos se envían como un JSON a la plantilla.
+
+### Paso 3: Modificar `dashboard.html` para mostrar el gráfico
+
+En el archivo **`dashboard.html`**, asegúrate de incluir el siguiente código para generar el gráfico con **Plotly**:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Riesgos</h1>
+    <div id="grafico"></div>
+
+    <script>
+        // Datos del gráfico generados por la ruta
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+```
+
+### Explicación de la plantilla:
+
+- La librería **Plotly** se utiliza para generar gráficos.
+- El código JavaScript toma los datos JSON generados en la ruta **dashboard** y crea un gráfico dinámico mostrando la variación de los riesgos inherentes y residuales.
+
+### Resultado esperado:
+El **Dashboard** mostrará una gráfica de barras donde se puede visualizar la diferencia entre el **riesgo inherente** y el **riesgo residual** para cada riesgo. Esto permitirá analizar cómo los controles y las acciones de tratamiento impactan en la reducción del riesgo.
+
+### Paso 4: Visualización dinámica de los cambios
+
+Si deseas hacer cambios en vivo para visualizar variaciones del riesgo residual, puedes implementar AJAX o WebSockets para actualizar el gráfico en tiempo real cuando se modifican los controles o las acciones. Esto se puede implementar en un paso posterior.
+
 Para abordar tus objetivos, vamos a desglosar cada uno en partes más manejables:
 
 ### 1. **Ventana de Parámetros para Definir Riesgos**
