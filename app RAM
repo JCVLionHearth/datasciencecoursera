@@ -1,3 +1,104 @@
+El error que estás viendo, `'app.forms.RiskForm object' has no attribute 'probabilidad'`, significa que en el formulario `RiskForm`, definido en el archivo `forms.py`, no has declarado el campo `probabilidad`, aunque estás intentando usarlo en la plantilla HTML `crear_riesgo.html`.
+
+Vamos a solucionar este problema asegurándonos de que todos los campos necesarios estén definidos correctamente en el formulario. 
+
+### 1. Actualiza el formulario en `forms.py`
+
+Verifica que el archivo `forms.py` esté declarando correctamente todos los campos requeridos, incluyendo `probabilidad` e `impacto`.
+
+#### `forms.py`
+```python
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField
+from wtforms.validators import DataRequired
+
+class RiskForm(FlaskForm):
+    # Nombre del riesgo
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    
+    # Código del riesgo
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    
+    # Escenario de valoración
+    escenario = StringField('Escenario de Valoración', validators=[DataRequired()])
+    
+    # Probabilidad inherente del riesgo (1-5)
+    probabilidad = SelectField('Probabilidad Inherente', 
+                               choices=[('1', 'Raro'), 
+                                        ('2', 'Improbable'), 
+                                        ('3', 'Posible'), 
+                                        ('4', 'Probable'), 
+                                        ('5', 'Con certeza')],
+                               validators=[DataRequired()])
+    
+    # Impacto inherente del riesgo (1-5)
+    impacto = SelectField('Impacto Inherente', 
+                          choices=[('1', 'Muy Bajo'), 
+                                   ('2', 'Bajo'), 
+                                   ('3', 'Medio'), 
+                                   ('4', 'Alto'), 
+                                   ('5', 'Muy Alto')],
+                          validators=[DataRequired()])
+    
+    # Botón de envío
+    submit = SubmitField('Crear Riesgo')
+```
+
+### 2. Actualiza la plantilla HTML `crear_riesgo.html`
+
+Verifica que en tu plantilla HTML `crear_riesgo.html`, los campos están siendo referenciados correctamente. El error ocurrió porque intentaste acceder a `form.probabilidad`, pero en el formulario `RiskForm`, ese campo no estaba definido. Después de asegurarnos de que está definido en el formulario, actualiza el HTML para que use ese campo.
+
+#### `crear_riesgo.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Crear Nuevo Riesgo</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.nombre.label }}: {{ form.nombre }}
+        </div>
+        <div>
+            {{ form.codigo.label }}: {{ form.codigo }}
+        </div>
+        <div>
+            {{ form.escenario.label }}: {{ form.escenario }}
+        </div>
+        <div>
+            {{ form.probabilidad.label }}: {{ form.probabilidad }}
+        </div>
+        <div>
+            {{ form.impacto.label }}: {{ form.impacto }}
+        </div>
+
+        <button type="submit">Crear Riesgo</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+```
+
+### 3. Verifica el envío del formulario
+
+El botón de envío ya está correctamente configurado en el formulario HTML, usando el campo `submit` del formulario `RiskForm`. También hemos agregado una validación con `DataRequired()` para asegurarnos de que los campos `probabilidad` e `impacto` siempre sean rellenados.
+
+### Resumen:
+1. **Formulario**: Asegúrate de que `probabilidad` e `impacto` estén correctamente definidos en el archivo `forms.py`.
+2. **Plantilla HTML**: Verifica que los campos del formulario están siendo referenciados en `crear_riesgo.html`.
+3. **Validación**: Los campos requeridos deben estar validados con `DataRequired()` para evitar entradas vacías.
+
+Con estos cambios, deberías poder crear nuevos riesgos sin que Flask arroje errores relacionados con los campos del formulario.
+
 UndefinedError
 jinja2.exceptions.UndefinedError: 'app.forms.RiskForm object' has no attribute 'probabilidad'
 
