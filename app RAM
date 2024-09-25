@@ -1,3 +1,5 @@
+cuando ejecuto este enlace http://127.0.0.1:5000/dashboard sale el siguiente error AttributeError: 'Control' object has no attribute 'clase_control_puntos', adicionalmente no hay botones para llamar al dashboard, parametros y a las rutas de agregar controles y acciones
+
 Para implementar la lógica en la ruta **Dashboard** en **`routes.py`**, donde primero calcules los controles y las acciones, y luego obtengas el puntaje del riesgo residual, debes seguir estos pasos:
 
 ### Paso 1: Importar las funciones necesarias en `routes.py`
