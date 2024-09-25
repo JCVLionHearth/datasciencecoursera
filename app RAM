@@ -1,3 +1,214 @@
+Para abordar tus objetivos, vamos a desglosar cada uno en partes más manejables:
+
+### 1. **Ventana de Parámetros para Definir Riesgos**
+Dado que ya puedes crear y valorar riesgos, vamos a refinar la lógica para que, con base en la cantidad de riesgos especificada, puedas gestionarlos de manera dinámica.
+
+#### En tu archivo **`routes.py`**, podrías añadir una vista para esta "ventana de parámetros":
+
+```python
+# Ruta para la ventana de parámetros
+@main.route('/parametros', methods=['GET', 'POST'])
+def parametros():
+    if request.method == 'POST':
+        cantidad_riesgos = int(request.form.get('cantidad_riesgos', 1))
+        return redirect(url_for('main.crear_riesgo', cantidad=cantidad_riesgos))
+    
+    return render_template('parametros.html')
+```
+
+Y el HTML para **`parametros.html`**:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definir Parámetros</title>
+</head>
+<body>
+    <h1>Definir Parámetros de Riesgos</h1>
+
+    <form method="POST">
+        <label for="cantidad_riesgos">Cantidad de Riesgos:</label>
+        <input type="number" name="cantidad_riesgos" id="cantidad_riesgos" min="1" required>
+        <button type="submit">Definir</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar</a>
+</body>
+</html>
+```
+
+### 2. **Crear Controles y Acciones de Tratamiento Asociadas al Riesgo**
+
+Ahora puedes implementar las rutas para añadir controles y acciones a un riesgo específico.
+
+#### **Rutas para Crear Controles y Acciones de Tratamiento**:
+
+En **`routes.py`**, agrega estas rutas:
+
+```python
+from app.forms import ControlForm, AccionTratamientoForm
+from app.models import Control, AccionTratamiento
+
+# Ruta para agregar un control a un riesgo
+@main.route('/riesgo/<int:id>/agregar_control', methods=['GET', 'POST'])
+def agregar_control(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = ControlForm()
+
+    if form.validate_on_submit():
+        nuevo_control = Control(
+            tipo=form.tipo.data,
+            clase=form.clase.data,
+            efectividad=form.efectividad.data,
+            cubrimiento_causa=form.cubrimiento_causa.data,
+            cubrimiento_consecuencia=form.cubrimiento_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nuevo_control)
+        db.session.commit()
+        flash('Control añadido con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_control.html', form=form, riesgo=riesgo)
+
+# Ruta para agregar una acción de tratamiento a un riesgo
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        nueva_accion = AccionTratamiento(
+            categoria=form.categoria.data,
+            puntos_causa=form.puntos_causa.data,
+            puntos_consecuencia=form.puntos_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nueva_accion)
+        db.session.commit()
+        flash('Acción de tratamiento añadida con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+```
+
+En cuanto a las plantillas, para **`agregar_control.html`** y **`agregar_accion.html`**, serán bastante similares:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Control</title>
+</head>
+<body>
+    <h1>Añadir Control para el Riesgo: {{ riesgo.nombre }}</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div>
+            {{ form.tipo.label }}: {{ form.tipo }}
+        </div>
+        <div>
+            {{ form.clase.label }}: {{ form.clase }}
+        </div>
+        <div>
+            {{ form.efectividad.label }}: {{ form.efectividad }}
+        </div>
+        <div>
+            {{ form.cubrimiento_causa.label }}: {{ form.cubrimiento_causa }}
+        </div>
+        <div>
+            {{ form.cubrimiento_consecuencia.label }}: {{ form.cubrimiento_consecuencia }}
+        </div>
+
+        <button type="submit">Guardar Control</button>
+    </form>
+
+    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}">Regresar</a>
+</body>
+</html>
+```
+
+### 3. **Ventana para Valorar el Riesgo y Guardarlo en la Base de Datos**
+
+Esto ya lo tienes implementado parcialmente. La funcionalidad de actualizar un riesgo está definida en la ruta de **`valoracion_riesgo`**, donde ya estás guardando los cambios en la base de datos usando SQLAlchemy. 
+
+Asegúrate de que, al actualizar, se calculen los valores de riesgo residual con base en los controles y las acciones aplicadas, usando las funciones de `utils.py`.
+
+### 4. **Dashboard con Variaciones Visuales (Plotly)**
+
+Para hacer las gráficas dinámicas, integrando los riesgos inherentes y residuales, puedes usar Plotly.
+
+En **`routes.py`**, crea una ruta para el **dashboard**:
+
+```python
+import json
+from flask import jsonify
+
+@main.route('/dashboard')
+def dashboard():
+    riesgos = Risk.query.all()
+
+    # Aquí calcula el riesgo inherente y residual
+    graficos = {
+        'data': [],
+        'layout': {'title': 'Variaciones del Riesgo'}
+    }
+
+    for riesgo in riesgos:
+        # Asumimos que obtendrás controles y acciones del riesgo
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+
+        puntaje_inherente = calcular_puntaje_inherente(riesgo.probabilidad_inherente, riesgo.impacto_inherente)
+        riesgo_residual = calcular_riesgo_residual(riesgo, controles, acciones)
+
+        # Datos para Plotly
+        graficos['data'].append({
+            'x': ['Inherente', 'Residual'],
+            'y': [puntaje_inherente, sum(riesgo_residual)],
+            'type': 'bar',
+            'name': riesgo.nombre
+        })
+
+    return render_template('dashboard.html', graph_json=json.dumps(graficos))
+```
+
+Y la plantilla para **`dashboard.html`**:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Riesgos</h1>
+    <div id="grafico"></div>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+```
+
+### 5. **Comparaciones en Vivo del Riesgo Residual**
+
+Para hacer comparaciones en tiempo real, se puede hacer una funcionalidad que capture el valor anterior del riesgo y permita ver cómo varía a medida que se aplican controles y acciones de tratamiento. Esto puede lograrse con AJAX para actualizar los datos sin refrescar toda la página, pero esto podría implicar una implementación adicional más avanzada.
+
+Si te interesa esta parte, te puedo guiar en cómo implementarlo. ¿Te gustaría que lo desarrollemos ahora?
+
 modificando los codigos y demás lógicas ya he logrado que cree los riesgos y dado el caso realizar una nueva valoración, ahora quiero con cada riesgo trabajar los controles y las acciones de tratamiento, asume que las acciones de tratamiento y los controles se obtienen de archivos excel construidos previamente. de acuerdo con esto tengo los siguientes codigos
 
 ## models.py
