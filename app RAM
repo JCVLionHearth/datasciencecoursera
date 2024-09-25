@@ -1,3 +1,87 @@
+El error `TypeError: 'probabilidad' is an invalid keyword argument for Risk` ocurre porque estás intentando pasar un argumento llamado `probabilidad` (u otro campo del formulario) al crear una instancia del modelo `Risk`, pero este modelo no tiene un atributo o columna llamada `probabilidad`.
+
+Vamos a revisar los siguientes pasos para solucionar este problema:
+
+### 1. Verifica el modelo `Risk` en `models.py`
+
+Es probable que en el archivo `models.py` el modelo `Risk` no tenga columnas definidas para algunos campos que estás enviando desde el formulario, como `probabilidad` e `impacto`. Asegúrate de que el modelo `Risk` tenga todos los campos que el formulario está enviando.
+
+#### `models.py`
+Revisa el modelo `Risk` y agrega las columnas correspondientes:
+
+```python
+from app import db
+
+class Risk(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    codigo = db.Column(db.String(50), nullable=False)
+    escenario = db.Column(db.String(200), nullable=False)
+    
+    # Agregar columnas para probabilidad e impacto
+    probabilidad = db.Column(db.Integer, nullable=False)  # valor 1-5
+    impacto = db.Column(db.Integer, nullable=False)  # valor 1-5
+
+    def __repr__(self):
+        return f'<Risk {self.nombre}>'
+```
+
+### 2. Migración de la Base de Datos
+
+Si has actualizado el modelo `Risk` agregando nuevos campos, necesitarás crear y aplicar una nueva migración para que estos cambios se reflejen en la base de datos.
+
+#### Generar migración:
+```bash
+flask db migrate -m "Added probabilidad and impacto fields to Risk"
+```
+
+#### Aplicar migración:
+```bash
+flask db upgrade
+```
+
+### 3. Actualiza la función para crear el riesgo en `routes.py`
+
+Cuando el formulario envía los datos, la función que procesa la solicitud debe recoger estos datos y guardarlos en la base de datos correctamente. Asegúrate de que la función `crear_riesgo` esté recibiendo los datos correctamente y asignándolos al modelo.
+
+#### `routes.py`
+Actualiza la función de creación de riesgo:
+
+```python
+from flask import render_template, url_for, flash, redirect
+from app import db
+from app.forms import RiskForm
+from app.models import Risk
+from app.main import bp
+
+@bp.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    form = RiskForm()
+    if form.validate_on_submit():
+        # Crea un nuevo riesgo con los datos del formulario
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad=int(form.probabilidad.data),  # Asegúrate de que probabilidad es un entero
+            impacto=int(form.impacto.data)  # Asegúrate de que impacto es un entero
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        
+        flash('Nuevo riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    
+    return render_template('crear_riesgo.html', form=form)
+```
+
+### Resumen de los cambios:
+1. **Modelo `Risk`**: Asegúrate de que el modelo tiene las columnas `probabilidad` e `impacto`.
+2. **Migración de la base de datos**: Si agregaste columnas nuevas, realiza la migración y actualización de la base de datos.
+3. **Función para crear el riesgo**: Asegúrate de pasar los datos correctos del formulario al modelo.
+
+Con estos cambios, el botón "Crear Riesgo" debería funcionar correctamente y guardar los datos del formulario en la base de datos sin errores.
+
 ya aparece una ventana para agregar el riesgo, pero al ehjecutar el boton sale el siguiente error: TypeError: 'probabilidad' is an invalid keyword argument for Risk
 
 El error que estás viendo, `'app.forms.RiskForm object' has no attribute 'probabilidad'`, significa que en el formulario `RiskForm`, definido en el archivo `forms.py`, no has declarado el campo `probabilidad`, aunque estás intentando usarlo en la plantilla HTML `crear_riesgo.html`.
