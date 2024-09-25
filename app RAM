@@ -1,3 +1,333 @@
+modificando los codigos y demás lógicas ya he logrado que cree los riesgos y dado el caso realizar una nueva valoración, ahora quiero con cada riesgo trabajar los controles y las acciones de tratamiento, asume que las acciones de tratamiento y los controles se obtienen de archivos excel construidos previamente. de acuerdo con esto tengo los siguientes codigos
+
+## models.py
+
+from . import db
+
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
+
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(50), nullable=False)  # preventivo, detectivo, correctivo
+    clase = db.Column(db.String(50), nullable=False)  # manual, manual TI, automatico
+    efectividad = db.Column(db.Integer, nullable=False)  # 0 = inefectivo, 70 = efectivo
+    cubrimiento_causa = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    cubrimiento_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    categoria = db.Column(db.String(100), nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+## forms.py
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField
+from wtforms.validators import DataRequired
+
+class RiskForm(FlaskForm):
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    escenario = StringField('Escenario de Valoración', validators=[DataRequired()])
+    probabilidad_inherente = SelectField('Probabilidad Inherente', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_inherente = SelectField('Impacto Inherente', 
+                          choices=[('1', 'Muy Bajo'), 
+                                   ('2', 'Bajo'), 
+                                   ('3', 'Medio'), 
+                                   ('4', 'Alto'), 
+                                   ('5', 'Muy Alto')],
+                          validators=[DataRequired()])
+    submit = SubmitField('Guardar')
+
+class ControlForm(FlaskForm):
+    tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+    clase = SelectField('Clase de Control', choices=[('manual', 'Manual'), ('manual TI', 'Manual TI'), ('automatico', 'Automático')])
+    efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+    cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+class AccionTratamientoForm(FlaskForm):
+    categoria = StringField('Categoría de la Acción', validators=[DataRequired()])
+    puntos_causa = SelectField('Puntos por Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Puntos por Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')   
+
+## routes.py
+
+from flask import render_template, redirect, url_for, flash, request
+from flask import Blueprint
+from app import db
+from app.models import Risk
+from app.forms import RiskForm
+
+main = Blueprint('main', __name__)
+
+# Ruta para la página principal, donde se listan los riesgos
+@main.route('/')
+def index():
+    riesgos = Risk.query.all()
+    return render_template('index.html', riesgos=riesgos)
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    form = RiskForm()
+    if form.validate_on_submit():
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad_inherente=form.probabilidad_inherente.data,
+            impacto_inherente=form.impacto_inherente.data
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    
+    return render_template('crear_riesgo.html', form=form)
+
+# Ruta para valorar un riesgo existente
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if form.validate_on_submit():
+        riesgo.nombre = form.nombre.data
+        riesgo.codigo = form.codigo.data
+        riesgo.escenario = form.escenario.data
+        riesgo.probabilidad_inherente = form.probabilidad_inherente.data
+        riesgo.impacto_inherente = form.impacto_inherente.data
+
+        db.session.commit()
+        flash('Valoración del riesgo actualizada', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+
+## utils.py (este aun no se ha usado)
+
+def calcular_puntaje_inherente(probabilidad_inherente, impacto_inherente):
+    """
+    Calcula la puntuación inherente del riesgo combinando probabilidad e impacto.
+    Se asume que el impacto es la puntuación máxima de las categorías de impacto.
+    """
+    return probabilidad_inherente * impacto_inherente
+
+def calcular_reduccion_por_controles(controles):
+    """
+    Calcula la reducción de riesgo basada en los controles asociados al riesgo.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    for control in controles:
+        puntos_causa = control.clase_control_puntos() + control.efectividad + control.cubrimiento_causa
+        puntos_consecuencia = control.clase_control_puntos() + control.efectividad + control.cubrimiento_consecuencia
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(controles), puntos_consecuencia_total / len(controles))
+
+def calcular_reduccion_por_acciones(acciones):
+    """
+    Calcula la reducción de riesgo basada en las acciones de tratamiento.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    for accion in acciones:
+        puntos_causa = (accion.puntos_causa + accion.clase_accion_puntos()) / 2
+        puntos_consecuencia = (accion.puntos_consecuencia + accion.clase_accion_puntos()) / 2
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(acciones), puntos_consecuencia_total / len(acciones))
+
+def calcular_riesgo_residual(riesgo, controles, acciones):
+    """
+    Calcula el riesgo residual después de aplicar controles y acciones de tratamiento.
+    El resultado se obtiene ponderando el 30% por controles y el 70% por acciones de tratamiento.
+    """
+    # Calcular reducciones por controles y acciones
+    reduccion_controles = calcular_reduccion_por_controles(controles)
+    reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+    # Ponderación de la reducción
+    causa_residual = (reduccion_controles[0] * 0.30) + (reduccion_acciones[0] * 0.70)
+    consecuencia_residual = (reduccion_controles[1] * 0.30) + (reduccion_acciones[1] * 0.70)
+
+    return causa_residual, consecuencia_residual
+
+def obtener_nivel_riesgo(puntaje):
+    """
+    Asigna el nivel de riesgo con base en el puntaje.
+    """
+    if puntaje <= 1:
+        return 'Muy Bajo'
+    elif puntaje <= 2:
+        return 'Bajo'
+    elif puntaje <= 3:
+        return 'Medio'
+    elif puntaje <= 4:
+        return 'Alto'
+    else:
+        return 'Muy Alto'
+
+# Plantillas
+
+## index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración de Riesgos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Listado de Riesgos</h1>
+    
+    <ul>
+        {% for riesgo in riesgos %}
+        <li>
+            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}">
+                {{ riesgo.nombre }} (Código: {{ riesgo.codigo }})
+            </a>
+        </li>
+        {% else %}
+        <li>No hay riesgos definidos.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('main.crear_riesgo') }}">Crear Nuevo Riesgo</a>
+</body>
+</html>
+
+## crear_riesgo.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Crear Nuevo Riesgo</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.nombre.label }}: {{ form.nombre }}
+        </div>
+        <div>
+            {{ form.codigo.label }}: {{ form.codigo }}
+        </div>
+        <div>
+            {{ form.escenario.label }}: {{ form.escenario }}
+        </div>
+        <div>
+            {{ form.probabilidad_inherente.label }}: {{ form.probabilidad_inherente }}
+        </div>
+        <div>
+            {{ form.impacto_inherente.label }}: {{ form.impacto_inherente }}
+        </div>
+
+        <button type="submit">Crear Riesgo</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+
+## valoracion_riesgo.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración del Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Valoración del Riesgo: {{ riesgo.nombre }}</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.nombre.label }}: {{ form.nombre }}
+        </div>
+        <div>
+            {{ form.codigo.label }}: {{ form.codigo }}
+        </div>
+        <div>
+            {{ form.escenario.label }}: {{ form.escenario }}
+        </div>
+        <div>
+            {{ form.probabilidad_inherente.label }}: {{ form.probabilidad_inherente }}
+        </div>
+        <div>
+            {{ form.impacto_inherente.label }}: {{ form.impacto_inherente }}
+        </div>
+
+        <button type="submit">Guardar Valoración</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar al listado de riesgos</a>
+</body>
+</html>
+
+## dashboard.html (esta aun no la veo integrada en el despligue final)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Riesgos</h1>
+    <div id="grafico"></div>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+
+Ayudame a seguir completando mis objetivos:
+
+necesito que me ayudes a crear una aplicacion que me permita hacer los siguiente:
+1. una ventana de parametros, en esta se definirá cuantos riesgos hay y con base a esto se creará la valoración de cada riesgo. (este al parecer ya se hace)
+2. se debe permitir crear la cantidad de controles y de acciones de tratamiento asociadas al risgos
+3. una ventana que me permita hacer la valoración del riesgo seleccionado y que esta se guarde en una base de datos sql (sqllite, sqlAclhemy)
+4. dashboard que permitan ver las variaciones visuales de los niveles de riesgo inherente a residual. (estas graficas deben ser dinamicas y en lo posible mostrar la matriz ram)
+5. debe permitir realizar cambios en vivo del riesgo para identificar la variacion del riesgo resisual al realizar algun cambio, pero debe mantener el anterior para hacer comparaciones.
+
+
 El error `TypeError: 'probabilidad' is an invalid keyword argument for Risk` ocurre porque estás intentando pasar un argumento llamado `probabilidad` (u otro campo del formulario) al crear una instancia del modelo `Risk`, pero este modelo no tiene un atributo o columna llamada `probabilidad`.
 
 Vamos a revisar los siguientes pasos para solucionar este problema:
