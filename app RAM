@@ -1,3 +1,6 @@
+UndefinedError
+jinja2.exceptions.UndefinedError: 'app.forms.RiskForm object' has no attribute 'probabilidad'
+
 Entiendo. La función `crear_riesgo` a la que haces referencia es una **vista** en Flask que se encarga de manejar el formulario para crear un nuevo riesgo. Esto implica tanto la creación de la función en **routes.py** como la plantilla **HTML** que se encargará de mostrar el formulario para capturar los datos del riesgo.
 
 Voy a rehacer todo el archivo de rutas y las plantillas HTML necesarias asociadas a las rutas para asegurarnos de que estén correctamente conectadas.
