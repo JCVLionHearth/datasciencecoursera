@@ -1,3 +1,121 @@
+Quiero que en esta ruta, actualmente hace una grafica para cada riesgo mostrando el cambio en la probabilidad inherente y la residual, , quiero que las lineas 'line': {'width': 2, 'dash': 'dot'} que une los dos puntos tuviesen forma de flecha para indicar el estado final del riesgo, esta e mi ruta actual:
+
+@main.route('/dashboard')
+def dashboard():
+    # Obtener todos los riesgos
+    riesgos = Risk.query.all()
+    riesgos_data = []
+
+    for riesgo in riesgos:
+        # Obtener los controles y acciones asociados al riesgo
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+
+        # Calcular la reducción por controles y acciones
+        if controles and acciones:
+            reduccion_controles = calcular_reduccion_por_controles(controles)
+            reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+            # Calcular riesgo residual
+            puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones)
+        else:
+            # En caso de no tener controles o acciones, solo mostrar el inherente
+            puntaje_residual_causa = 0
+            puntaje_residual_consecuencia = 0
+
+        # Puntaje inherente del riesgo
+        probabilidad_inherente = riesgo.probabilidad_inherente
+        consecuencia_inherente = riesgo.impacto_inherente
+
+        # Calcular puntaje final
+        puntaje_final_causa = probabilidad_inherente - puntaje_residual_causa
+        puntaje_final_consecuencia = consecuencia_inherente - puntaje_residual_consecuencia
+
+        # Agregar los datos del riesgo a la lista
+        riesgos_data.append({
+            'nombre': riesgo.codigo,
+            'probabilidad_inherente': probabilidad_inherente,
+            'consecuencia_inherente': consecuencia_inherente,
+            'reduccion_residual_causa': puntaje_residual_causa,
+            'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+            'puntaje_final_causa': puntaje_final_causa,
+            'puntaje_final_consecuencia': puntaje_final_consecuencia
+        })
+
+    # Preparar datos para la gráfica
+    graph_data = {
+        'data': [
+            {
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'x': [riesgo['probabilidad_inherente'], riesgo['puntaje_final_causa']],
+                'y': [riesgo['consecuencia_inherente'], riesgo['puntaje_final_consecuencia']],
+                'text': [riesgo['nombre'], riesgo['nombre']],
+                'marker': {'size': 12},
+                'line': {'width': 2, 'dash': 'dot'},
+                'name': riesgo['nombre']  # Añadir el nombre del riesgo aquí
+            } for riesgo in riesgos_data
+        ],
+        'layout': {
+            'title': 'Cambio del Valor de Cada Riesgo',
+            'xaxis': {'title': 'Probabilidad', 'range': [0, 5]},
+            'yaxis': {'title': 'Impacto', 'range': [0, 5]}
+        }
+    }
+
+    return render_template('dashboard.html', riesgos_data=riesgos_data, graph_json=graph_data)
+
+y aqui la muestra
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Riesgos</h1>
+    <div id="grafico"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Riesgo</th>
+                <th>Probabilidad Inherente</th>
+                <th>Impacto Inherente</th>
+                <th>Reducción(Causa)</th>
+                <th>Reducción(Consecuencia)</th>
+                <th>Probabilidad Residual</th>
+                <th>Impacto Residual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for riesgo in riesgos_data %}
+            <tr>
+                <td>{{ riesgo.nombre }}</td>
+                <td>{{ riesgo.probabilidad_inherente }}</td>
+                <td>{{ riesgo.consecuencia_inherente }}</td>
+                <td>{{ riesgo.reduccion_residual_causa }}</td>
+                <td>{{ riesgo.reduccion_residual_consecuencia }}</td>
+                <td>{{ riesgo.puntaje_final_causa }}</td>
+                <td>{{ riesgo.puntaje_final_consecuencia }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+
+###########
+
+
 Parece que el error proviene del hecho de que el objeto `Control` no tiene un atributo llamado `clase_control_puntos`, lo cual sugiere un problema en la forma en que estás accediendo a los datos de los controles.
 
 ### Solución al error de `'Control' object has no attribute 'clase_control_puntos'`
