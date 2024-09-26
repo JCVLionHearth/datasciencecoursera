@@ -1,3 +1,161 @@
+
+estas son mis rutas en routes.py
+
+from flask import render_template, redirect, url_for, flash, request
+from flask import Blueprint
+from app import db
+from app.models import Risk
+from app.forms import RiskForm
+from app.forms import ControlForm, AccionTratamientoForm
+from app.models import Control, AccionTratamiento
+from werkzeug.utils import secure_filename
+import json
+from flask import jsonify
+from app.utils import calcular_puntaje_inherente, calcular_riesgo_residual,calcular_reduccion_por_controles,calcular_reduccion_por_acciones,obtener_nivel_riesgo,cargar_controles, cargar_acciones
+import random
+import colorsys
+
+main = Blueprint('main', __name__)
+
+# Ruta para la página principal, donde se listan los riesgos
+@main.route('/')
+def index():
+    riesgos = Risk.query.all()
+    return render_template('index.html', riesgos=riesgos)
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    form = RiskForm()
+    if form.validate_on_submit():
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad_inherente=form.probabilidad_inherente.data,
+            impacto_personas = form.impacto_personas.data,
+            impacto_ambiente = form.impacto_ambiente.data,
+            impacto_recursos_economicos = form.impacto_recursos_economicos.data,
+            impacto_reputacional = form.impacto_reputacional.data,
+            impacto_clientes = form.impacto_clientes.data,
+            #impacto_inherente = calcular_puntaje_inherente(form.impacto_personas,form.impacto_ambiente,form.impacto_recursos_economicos,form.impacto_reputacional,form.impacto_clientes)
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    
+    return render_template('crear_riesgo.html', form=form)
+
+# Ruta para valorar un riesgo existente
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if form.validate_on_submit():
+        riesgo.nombre = form.nombre.data
+        riesgo.codigo = form.codigo.data
+        riesgo.escenario = form.escenario.data
+        riesgo.probabilidad_inherente = form.probabilidad_inherente.data
+        riesgo.impacto_personas = form.impacto_personas.data
+        riesgo.impacto_ambiente = form.impacto_ambiente.data
+        riesgo.impacto_recursos_economicos = form.impacto_recursos_economicos.data
+        riesgo.impacto_reputacional = form.impacto_reputacional.data
+        riesgo.impacto_clientes = form.impacto_clientes.data
+        riesgo.impacto_inherente = calcular_puntaje_inherente(riesgo.impacto_personas,riesgo.impacto_ambiente,riesgo.impacto_recursos_economicos,riesgo.impacto_reputacional,riesgo.impacto_clientes)
+
+        db.session.commit()
+        flash('Valoración del riesgo actualizada', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+
+esta es mi función utils.py
+
+def calcular_puntaje_inherente(impacto_personas,impacto_ambiente,impacto_recursos_economicos,impacto_reputacional,impacto_clientes):
+    """
+    Calcula el impacto inherente como la puntuación máxima de las categorías de impacto.
+    """
+    impacto_inherente=max(impacto_personas,impacto_ambiente,impacto_recursos_economicos,impacto_reputacional,impacto_clientes)
+    return (impacto_inherente)
+
+esta es mi class en forms.py
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField
+from wtforms.validators import DataRequired
+from app.utils import cargar_controles, cargar_acciones
+
+class RiskForm(FlaskForm):
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    escenario = StringField('Escenario de Valoración', validators=[DataRequired()])
+    probabilidad_inherente = SelectField('Probabilidad Inherente', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_personas = SelectField('Impacto Inherente', 
+                          choices=[('1', 'Muy Bajo'), 
+                                   ('2', 'Bajo'), 
+                                   ('3', 'Medio'), 
+                                   ('4', 'Alto'), 
+                                   ('5', 'Muy Alto')],
+                          validators=[DataRequired()])
+    impacto_ambiente = SelectField('Impacto Inherente', 
+                        choices=[('1', 'Muy Bajo'), 
+                                ('2', 'Bajo'), 
+                                ('3', 'Medio'), 
+                                ('4', 'Alto'), 
+                                ('5', 'Muy Alto')],
+                        validators=[DataRequired()])
+    impacto_recursos_economicos = SelectField('Impacto Inherente', 
+                        choices=[('1', 'Muy Bajo'), 
+                                ('2', 'Bajo'), 
+                                ('3', 'Medio'), 
+                                ('4', 'Alto'), 
+                                ('5', 'Muy Alto')],
+                        validators=[DataRequired()])
+    impacto_reputacional = SelectField('Impacto Inherente', 
+                        choices=[('1', 'Muy Bajo'), 
+                                ('2', 'Bajo'), 
+                                ('3', 'Medio'), 
+                                ('4', 'Alto'), 
+                                ('5', 'Muy Alto')],
+                        validators=[DataRequired()])
+    impacto_clientes = SelectField('Impacto Inherente', 
+                        choices=[('1', 'Muy Bajo'), 
+                                ('2', 'Bajo'), 
+                                ('3', 'Medio'), 
+                                ('4', 'Alto'), 
+                                ('5', 'Muy Alto')],
+                        validators=[DataRequired()])
+    submit = SubmitField('Guardar')
+
+
+y este es mi class Risk en models.py
+
+from . import db
+
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_personas=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_ambiente=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_recursos_economicos=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_reputacional=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_clientes=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
+
+me sale el siguiente error jinja2.exceptions.UndefinedError: 'app.forms.RiskForm object' has no attribute 'impacto_inherente'
+
+##########
+
 Para implementar las funcionalidades adicionales que deseas en la ventana `valoracion_riesgo.html` y la ventana `index.html`, te proporciono una guía de cómo lograrlo:
 
 ### 1. Visualizar controles y acciones asociados con opciones de editar y eliminar
