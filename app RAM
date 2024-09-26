@@ -1,3 +1,103 @@
+¡Perfecto! Me alegra que todo esté funcionando bien. A continuación te explico cómo puedes ajustar la flecha para que sea punteada y más delgada, y además cómo garantizar que los colores sean únicos y no se repitan entre los riesgos.
+
+### 1. **Hacer la flecha punteada y más delgada**
+
+Para que la flecha sea punteada, puedes ajustar el atributo `dash` de las flechas. Así como lo haces para las líneas, puedes especificar un patrón para las flechas, y también reducir el ancho para hacerlas más delgadas.
+
+Aquí te muestro cómo modificar las propiedades de la flecha:
+
+```python
+graph_data = {
+    'data': [
+        {
+            'type': 'scatter',
+            'mode': 'lines+markers',
+            'x': [riesgo['probabilidad_inherente'], riesgo['puntaje_final_causa']],
+            'y': [riesgo['consecuencia_inherente'], riesgo['puntaje_final_consecuencia']],
+            'text': [riesgo['nombre'], riesgo['nombre']],
+            'marker': {'size': 12},
+            'line': {'width': 2, 'dash': 'dot', 'color': riesgo['color']},  # Línea punteada
+            'name': riesgo['nombre']  
+        } for riesgo in riesgos_data
+    ],
+    'layout': {
+        'title': 'Cambio del Valor de Cada Riesgo',
+        'xaxis': {'title': 'Probabilidad', 'range': [0, 5]},
+        'yaxis': {'title': 'Impacto', 'range': [0, 5]},
+        'annotations': [
+            {
+                'ax': riesgo['probabilidad_inherente'],
+                'ay': riesgo['consecuencia_inherente'],
+                'axref': 'x',
+                'ayref': 'y',
+                'x': riesgo['puntaje_final_causa'],
+                'y': riesgo['puntaje_final_consecuencia'],
+                'xref': 'x',
+                'yref': 'y',
+                'showarrow': True,
+                'arrowhead': 3,
+                'arrowsize': 1.5,
+                'arrowwidth': 1,  # Flecha más delgada
+                'arrowcolor': riesgo['color'],  # Color único para la flecha
+                'dash': 'dot'  # Flecha punteada
+            } for riesgo in riesgos_data
+        ]
+    }
+}
+```
+
+### 2. **Garantizar que los colores no se repitan y sean únicos**
+
+Para evitar que los colores se repitan y asegurarte de que cada riesgo tenga un color único, puedes generar una paleta de colores basada en colores únicos. Una buena opción es usar una paleta que asegure que los colores estén bien distribuidos en el espectro de colores, como una paleta HSV (Hue, Saturation, Value), que permite generar colores que no se parecen entre sí.
+
+Aquí hay un ejemplo de cómo generar una paleta de colores única para un conjunto de riesgos:
+
+```python
+import colorsys
+
+def generar_paleta_unica(n):
+    """Genera n colores únicos distribuidos uniformemente en el espectro de color."""
+    colores = []
+    for i in range(n):
+        # Distribuir colores en el espacio HSV y convertirlos a RGB
+        hue = i / n
+        saturation = 0.8  # Saturación del color
+        value = 0.9  # Brillo del color
+        rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+        # Convertir de RGB [0, 1] a formato hexadecimal
+        color_hex = '#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255))
+        colores.append(color_hex)
+    return colores
+
+# En tu lógica del dashboard
+riesgos_data = []
+colores_unicos = generar_paleta_unica(len(riesgos))
+
+for i, riesgo in enumerate(riesgos):
+    color_riesgo = colores_unicos[i]  # Asignar color único
+
+    # El resto del código...
+    riesgos_data.append({
+        'nombre': riesgo.codigo,
+        'probabilidad_inherente': riesgo.probabilidad_inherente,
+        'consecuencia_inherente': riesgo.impacto_inherente,
+        'reduccion_residual_causa': puntaje_residual_causa,
+        'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+        'puntaje_final_causa': puntaje_final_causa,
+        'puntaje_final_consecuencia': puntaje_final_consecuencia,
+        'color': color_riesgo  # Asignar el color único aquí
+    })
+```
+
+### Explicación:
+
+- **Flecha punteada y delgada**: La flecha ahora es punteada y más delgada gracias a los atributos `'dash': 'dot'` y `'arrowwidth': 1`.
+- **Colores únicos**: El método `generar_paleta_unica` distribuye los colores en el espectro HSV, lo que asegura que sean lo más diferentes posible entre ellos. El número de colores generados es igual al número de riesgos que tienes.
+
+### 3. **Resultado esperado**
+
+Ahora, cada riesgo tendrá su propia flecha punteada y delgada, con un color único garantizado, y no habrá riesgos con colores similares o repetidos. Las gráficas serán más claras visualmente y ayudarán a distinguir los riesgos de manera efectiva.
+
 ¡Me alegra saber que la gráfica ya se está mostrando correctamente con las flechas!
 
 Para que cada flecha tenga un color diferente y esté asociado a cada uno de los riesgos, puedes generar un color único para cada riesgo dentro de tu estructura de datos antes de pasarla a Plotly. Aquí te doy una manera de hacerlo:
