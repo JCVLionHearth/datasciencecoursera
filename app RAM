@@ -1,3 +1,117 @@
+¡Me alegra saber que la gráfica ya se está mostrando correctamente con las flechas!
+
+Para que cada flecha tenga un color diferente y esté asociado a cada uno de los riesgos, puedes generar un color único para cada riesgo dentro de tu estructura de datos antes de pasarla a Plotly. Aquí te doy una manera de hacerlo:
+
+### 1. **Generar colores únicos para cada riesgo**
+
+Primero, puedes generar un color aleatorio o asignar colores específicos a cada riesgo en tu código de backend. Por ejemplo, podrías usar una paleta de colores predefinida o generar colores aleatorios en formato hexadecimal.
+
+#### Ejemplo con colores predefinidos:
+
+```python
+import random
+
+def generar_color_aleatorio():
+    return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+
+# En tu lógica del dashboard
+riesgos_data = []
+
+for riesgo in riesgos:
+    # Generar color único para cada riesgo
+    color_riesgo = generar_color_aleatorio()
+
+    # Obtener los controles y acciones asociados al riesgo
+    controles = riesgo.controles
+    acciones = riesgo.acciones_tratamiento
+
+    # Calcular la reducción por controles y acciones
+    if controles and acciones:
+        reduccion_controles = calcular_reduccion_por_controles(controles)
+        reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+        # Calcular riesgo residual
+        puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones)
+    else:
+        # En caso de no tener controles o acciones, solo mostrar el inherente
+        puntaje_residual_causa = 0
+        puntaje_residual_consecuencia = 0
+
+    # Puntaje inherente del riesgo
+    probabilidad_inherente = riesgo.probabilidad_inherente
+    consecuencia_inherente = riesgo.impacto_inherente
+
+    # Calcular puntaje final
+    puntaje_final_causa = probabilidad_inherente - puntaje_residual_causa
+    puntaje_final_consecuencia = consecuencia_inherente - puntaje_residual_consecuencia
+
+    # Agregar los datos del riesgo a la lista
+    riesgos_data.append({
+        'nombre': riesgo.codigo,
+        'probabilidad_inherente': probabilidad_inherente,
+        'consecuencia_inherente': consecuencia_inherente,
+        'reduccion_residual_causa': puntaje_residual_causa,
+        'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+        'puntaje_final_causa': puntaje_final_causa,
+        'puntaje_final_consecuencia': puntaje_final_consecuencia,
+        'color': color_riesgo  # Añadir el color único aquí
+    })
+```
+
+### 2. **Asignar el color a las flechas en el gráfico**
+
+En el código de `graph_data`, asigna el color del riesgo al atributo `arrowcolor` en las anotaciones y también para el trazo del riesgo (`line`):
+
+```python
+graph_data = {
+    'data': [
+        {
+            'type': 'scatter',
+            'mode': 'lines+markers',
+            'x': [riesgo['probabilidad_inherente'], riesgo['puntaje_final_causa']],
+            'y': [riesgo['consecuencia_inherente'], riesgo['puntaje_final_consecuencia']],
+            'text': [riesgo['nombre'], riesgo['nombre']],
+            'marker': {'size': 12},
+            'line': {'width': 2, 'dash': 'dot', 'color': riesgo['color']},  # Color único para la línea
+            'name': riesgo['nombre']  
+        } for riesgo in riesgos_data
+    ],
+    'layout': {
+        'title': 'Cambio del Valor de Cada Riesgo',
+        'xaxis': {'title': 'Probabilidad', 'range': [0, 5]},
+        'yaxis': {'title': 'Impacto', 'range': [0, 5]},
+        'annotations': [
+            {
+                'ax': riesgo['probabilidad_inherente'],
+                'ay': riesgo['consecuencia_inherente'],
+                'axref': 'x',
+                'ayref': 'y',
+                'x': riesgo['puntaje_final_causa'],
+                'y': riesgo['puntaje_final_consecuencia'],
+                'xref': 'x',
+                'yref': 'y',
+                'showarrow': True,
+                'arrowhead': 3,
+                'arrowsize': 1.5,
+                'arrowwidth': 2,
+                'arrowcolor': riesgo['color']  # Color único para la flecha
+            } for riesgo in riesgos_data
+        ]
+    }
+}
+```
+
+### 3. **Resultado esperado**
+
+Cada riesgo ahora tendrá un color único tanto en la línea que conecta los puntos como en la flecha que indica la dirección. Esto permitirá que los usuarios identifiquen visualmente cada riesgo por su color. Puedes personalizar los colores según tu preferencia, ya sea con una paleta de colores específica o generando colores aleatorios.
+
+Si quieres controlar mejor la paleta de colores, también puedes usar una lista fija de colores:
+
+```python
+colores_predefinidos = ['#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#33FFF3']
+color_riesgo = random.choice(colores_predefinidos)
+```
+
 @main.route('/dashboard')
 def dashboard():
     # Obtener todos los riesgos
