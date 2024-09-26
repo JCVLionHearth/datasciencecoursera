@@ -1,3 +1,158 @@
+Para implementar las funcionalidades adicionales que deseas en la ventana `valoracion_riesgo.html` y la ventana `index.html`, te proporciono una guía de cómo lograrlo:
+
+### 1. Visualizar controles y acciones asociados con opciones de editar y eliminar
+
+Modifica la plantilla `valoracion_riesgo.html` para mostrar los controles y acciones de tratamiento asociados al riesgo, agregando botones para editar o eliminar cada elemento.
+
+```html
+<h2>Controles Asociados</h2>
+<ul>
+    {% for control in riesgo.controles %}
+        <li>
+            {{ control.nombre_control }} - {{ control.tipo }} 
+            <a href="{{ url_for('main.editar_control', id=control.id) }}">Editar</a>
+            <a href="{{ url_for('main.eliminar_control', id=control.id) }}" 
+               onclick="return confirm('¿Estás seguro de que deseas eliminar este control?');">Eliminar</a>
+        </li>
+    {% else %}
+        <li>No hay controles asociados a este riesgo.</li>
+    {% endfor %}
+</ul>
+
+<h2>Acciones de Tratamiento Asociadas</h2>
+<ul>
+    {% for accion in riesgo.acciones_tratamiento %}
+        <li>
+            {{ accion.categoria }} - Puntos de Causa: {{ accion.puntos_causa }} 
+            <a href="{{ url_for('main.editar_accion', id=accion.id) }}">Editar</a>
+            <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" 
+               onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
+        </li>
+    {% else %}
+        <li>No hay acciones de tratamiento asociadas a este riesgo.</li>
+    {% endfor %}
+</ul>
+```
+
+### 2. Alerta de confirmación antes de guardar la nueva valoración
+
+Para agregar la ventana de confirmación al guardar la nueva valoración, puedes usar JavaScript en la plantilla. Modifica el botón de guardado para activar un mensaje de confirmación.
+
+```html
+<button type="submit" onclick="return confirm('Esta operación cambiará la valoración inicial de riesgo. ¿Deseas continuar?');">
+    Guardar Valoración
+</button>
+```
+
+### 3. Añadir opciones de editar y eliminar en `index.html`
+
+Para la ventana de `index.html`, agrega botones junto a cada riesgo para editar o eliminar el riesgo, con advertencias de confirmación.
+
+```html
+<ul>
+    {% for riesgo in riesgos %}
+        <li>
+            {{ riesgo.nombre }} (Código: {{ riesgo.codigo }})
+            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}">Editar</a>
+            <a href="{{ url_for('main.eliminar_riesgo', id=riesgo.id) }}" 
+               onclick="return confirm('Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?');">
+                Eliminar
+            </a>
+        </li>
+    {% else %}
+        <li>No hay riesgos definidos.</li>
+    {% endfor %}
+</ul>
+```
+
+### 4. Rutas para editar y eliminar controles, acciones y riesgos
+
+Añade las rutas correspondientes en `routes.py` para editar y eliminar controles, acciones y riesgos.
+
+#### Rutas para editar y eliminar controles
+
+```python
+@main.route('/control/<int:id>/editar', methods=['GET', 'POST'])
+def editar_control(id):
+    control = Control.query.get_or_404(id)
+    form = ControlForm(obj=control)
+
+    if form.validate_on_submit():
+        control.nombre_control = form.nombre_control.data
+        control.tipo = form.tipo.data
+        control.clase = form.clase.data
+        control.efectividad = form.efectividad.data
+        control.cubrimiento_causa = form.cubrimiento_causa.data
+        control.cubrimiento_consecuencia = form.cubrimiento_consecuencia.data
+        db.session.commit()
+        flash('Control actualizado con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=control.riesgo_id))
+
+    return render_template('agregar_control.html', form=form, riesgo=control.riesgo)
+
+
+@main.route('/control/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_control(id):
+    control = Control.query.get_or_404(id)
+    db.session.delete(control)
+    db.session.commit()
+    flash('Control eliminado con éxito', 'success')
+    return redirect(url_for('main.valoracion_riesgo', id=control.riesgo_id))
+```
+
+#### Rutas para editar y eliminar acciones
+
+```python
+@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
+def editar_accion(id):
+    accion = AccionTratamiento.query.get_or_404(id)
+    form = AccionTratamientoForm(obj=accion)
+
+    if form.validate_on_submit():
+        accion.categoria = form.categoria.data
+        accion.puntos_causa = form.puntos_causa.data
+        accion.puntos_consecuencia = form.puntos_consecuencia.data
+        db.session.commit()
+        flash('Acción de tratamiento actualizada con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
+
+
+@main.route('/accion/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_accion(id):
+    accion = AccionTratamiento.query.get_or_404(id)
+    db.session.delete(accion)
+    db.session.commit()
+    flash('Acción de tratamiento eliminada con éxito', 'success')
+    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+```
+
+#### Ruta para eliminar riesgos
+
+```python
+@main.route('/riesgo/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    
+    # Eliminar los controles y acciones asociados
+    for control in riesgo.controles:
+        db.session.delete(control)
+    for accion in riesgo.acciones_tratamiento:
+        db.session.delete(accion)
+        
+    db.session.delete(riesgo)
+    db.session.commit()
+    flash('Riesgo y sus elementos asociados eliminados con éxito', 'success')
+    return redirect(url_for('main.index'))
+```
+
+### Consideraciones adicionales
+- **Mensajes Flash:** Ya que estás utilizando mensajes flash para notificar al usuario, asegúrate de tener la lógica en las plantillas para mostrar estos mensajes.
+- **Confirmación en eliminación:** Asegúrate de tener las confirmaciones de eliminación en los enlaces `onclick` como se indicó en los templates.
+
+Con estos cambios, podrás implementar las funcionalidades adicionales que deseas en tu aplicación de valoración de riesgos.
+
 tengo este html que me muestra la valoracion del riesgo
 
 valoracion_riesgo.html
