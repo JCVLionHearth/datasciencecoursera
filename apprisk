@@ -1,0 +1,446 @@
+Actualmente tengo las siguientes funciones para cargar un listado de opciones a partir de archivos creados previamente en excel
+
+
+en un archivo utils.py
+
+import pandas as pd
+
+def cargar_controles():
+    df = pd.read_excel('Controles.xlsx')
+    return df['Nombre_control'].tolist()
+
+def cargar_acciones():
+    df = pd.read_excel('Acciones.xlsx')
+    return [(row['Puntaje_AT'], row['AT']) for index, row in df.iterrows()]
+
+de los cuales para unos formularios las opciones están dadas por el contenido del archivo
+
+
+forms.py
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired
+from app.utils import cargar_controles, cargar_acciones
+
+class ControlForm(FlaskForm):
+    nombre_control = SelectField('Nombre del Control', choices=[(control, control) for control in cargar_controles()])
+    tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+    clase = SelectField('Clase de Control', choices=[(5, 'Manual'), (10, 'Manual TI'), (15, 'Automático')])
+    efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+    cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+class AccionTratamientoForm(FlaskForm):
+    categoria = SelectField('Categoría de la Acción', choices=cargar_acciones(), coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')   
+
+
+quisiera que previamente estos archivos de excel sean cargados una vez o las veces que se necesiten, ya que el listado puede cambiar, pero una vez cargados las opciones esten habilitadas, despues cualquier usuario puede diligenciar el formulario porque ya estan cargados los archivos, sin embargo si ningun archivo estuviera cargado no se debe permitir el ingreso de datos en estos formularios y se debe dar aviso que no hay ningun archivo cargado, actualmente tengo el siguiente html que cargaria los archivos
+
+parametros.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definir Parámetros</title>
+</head>
+<body>
+    <h1>Definir Parámetros de Riesgos</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+       
+        <label for="archivo_controles">Archivo de Controles:</label>
+        <input type="file" name="archivo_controles" id="archivo_controles" accept=".xlsx" required>
+        
+        <label for="archivo_acciones">Archivo de Acciones:</label>
+        <input type="file" name="archivo_acciones" id="archivo_acciones" accept=".xlsx" required>
+        
+        <button type="submit">Definir</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar</a>
+</body>
+</html>
+
+
+algunas de las rutas son
+
+routes.py:
+
+from flask import render_template, redirect, url_for, flash, request
+from flask import Blueprint
+from app import db
+from app.models import Risk
+from app.forms import RiskForm
+from app.forms import ControlForm, AccionTratamientoForm
+from app.models import Control, AccionTratamiento
+from werkzeug.utils import secure_filename
+import json
+from flask import jsonify
+from app.utils import calcular_puntaje_inherente, calcular_riesgo_residual,calcular_reduccion_por_controles,calcular_reduccion_por_acciones,obtener_nivel_riesgo,cargar_controles, cargar_acciones
+from app.matriz_riesgo import generar_matriz_riesgo
+import random
+import colorsys
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+
+main = Blueprint('main', __name__)
+
+# Ruta para la página principal, donde se listan los riesgos
+@main.route('/')
+def index():
+    riesgos = Risk.query.all()
+    return render_template('index.html', riesgos=riesgos)
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    form = RiskForm()
+    if form.validate_on_submit():
+        impacto_inherente = calcular_puntaje_inherente(form.impacto_personas.data,form.impacto_ambiente.data,form.impacto_recursos_economicos.data,form.impacto_reputacional.data,form.impacto_clientes.data)
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad_inherente=form.probabilidad_inherente.data,
+            impacto_personas = form.impacto_personas.data,
+            impacto_ambiente = form.impacto_ambiente.data,
+            impacto_recursos_economicos = form.impacto_recursos_economicos.data,
+            impacto_reputacional = form.impacto_reputacional.data,
+            impacto_clientes = form.impacto_clientes.data,
+            impacto_inherente=impacto_inherente            
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    
+    return render_template('crear_riesgo.html', form=form)
+
+# Ruta para valorar un riesgo existente
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if form.validate_on_submit():
+        riesgo.nombre = form.nombre.data
+        riesgo.codigo = form.codigo.data
+        riesgo.escenario = form.escenario.data
+        riesgo.probabilidad_inherente = form.probabilidad_inherente.data
+        riesgo.impacto_personas = form.impacto_personas.data
+        riesgo.impacto_ambiente = form.impacto_ambiente.data
+        riesgo.impacto_recursos_economicos = form.impacto_recursos_economicos.data
+        riesgo.impacto_reputacional = form.impacto_reputacional.data
+        riesgo.impacto_clientes = form.impacto_clientes.data
+        riesgo.impacto_inherente = calcular_puntaje_inherente(riesgo.impacto_personas,riesgo.impacto_ambiente,riesgo.impacto_recursos_economicos,riesgo.impacto_reputacional,riesgo.impacto_clientes)
+
+        db.session.commit()
+        flash('Valoración del riesgo actualizada', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+
+# Ruta para la ventana de parámetros
+@main.route('/parametros', methods=['GET', 'POST'])
+def parametros():
+    if request.method == 'POST':
+        cantidad_riesgos = int(request.form.get('cantidad_riesgos', 1))
+        
+        archivo_controles = request.files['archivo_controles']
+        archivo_acciones = request.files['archivo_acciones']
+        
+        if archivo_controles and archivo_acciones:
+            filename_controles = secure_filename(archivo_controles.filename)
+            filename_acciones = secure_filename(archivo_acciones.filename)
+            
+            archivo_controles.save(os.path.join('uploads', filename_controles))
+            archivo_acciones.save(os.path.join('uploads', filename_acciones))
+            
+            # Procesar los archivos y actualizar las opciones de los formularios
+            controles = cargar_controles()
+            acciones = cargar_acciones()
+            
+            flash('Archivos cargados y parámetros definidos con éxito', 'success')
+            return redirect(url_for('main.crear_riesgo', cantidad=cantidad_riesgos))
+    
+    return render_template('parametros.html')
+
+# Ruta para agregar un control a un riesgo
+@main.route('/riesgo/<int:id>/agregar_control', methods=['GET', 'POST'])
+def agregar_control(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = ControlForm()
+
+    if form.validate_on_submit():
+        nuevo_control = Control(
+            nombre_control=form.nombre_control.data,
+            tipo=form.tipo.data,
+            clase=form.clase.data,
+            efectividad=form.efectividad.data,
+            cubrimiento_causa=form.cubrimiento_causa.data,
+            cubrimiento_consecuencia=form.cubrimiento_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nuevo_control)
+        db.session.commit()
+        flash('Control añadido con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_control.html', form=form, riesgo=riesgo)
+
+# Ruta para agregar una acción de tratamiento a un riesgo
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        at=dict(form.categoria.choices).get(form.categoria.data)
+        nueva_accion = AccionTratamiento(
+            at=at,
+            categoria=form.categoria.data,
+            puntos_causa=form.puntos_causa.data,
+            puntos_consecuencia=form.puntos_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nueva_accion)
+        db.session.commit()
+        flash('Acción de tratamiento añadida con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+
+## Rutas para editar y eliminar controles
+
+@main.route('/control/<int:id>/editar', methods=['GET', 'POST'])
+def editar_control(id):
+    control = Control.query.get_or_404(id)
+    form = ControlForm(obj=control)
+
+    if form.validate_on_submit():
+        control.nombre_control = form.nombre_control.data
+        control.tipo = form.tipo.data
+        control.clase = form.clase.data
+        control.efectividad = form.efectividad.data
+        control.cubrimiento_causa = form.cubrimiento_causa.data
+        control.cubrimiento_consecuencia = form.cubrimiento_consecuencia.data
+        db.session.commit()
+        flash('Control actualizado con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=control.riesgo_id))
+
+    return render_template('agregar_control.html', form=form, riesgo=control.riesgo)
+
+
+@main.route('/control/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_control(id):
+    control = Control.query.get_or_404(id)
+    db.session.delete(control)
+    db.session.commit()
+    flash('Control eliminado con éxito', 'success')
+    return redirect(url_for('main.valoracion_riesgo', id=control.riesgo_id))
+
+
+## Rutas para editar y eliminar acciones
+
+@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
+def editar_accion(id):
+    accion = AccionTratamiento.query.get_or_404(id)
+    form = AccionTratamientoForm(obj=accion)
+
+    if form.validate_on_submit():
+        accion.categoria = form.categoria.data
+        accion.puntos_causa = form.puntos_causa.data
+        accion.puntos_consecuencia = form.puntos_consecuencia.data
+        db.session.commit()
+        flash('Acción de tratamiento actualizada con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
+
+
+@main.route('/accion/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_accion(id):
+    accion = AccionTratamiento.query.get_or_404(id)
+    db.session.delete(accion)
+    db.session.commit()
+    flash('Acción de tratamiento eliminada con éxito', 'success')
+    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+## Ruta para eliminar riesgos
+
+@main.route('/riesgo/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    
+    # Eliminar los controles y acciones asociados
+    for control in riesgo.controles:
+        db.session.delete(control)
+    for accion in riesgo.acciones_tratamiento:
+        db.session.delete(accion)
+        
+    db.session.delete(riesgo)
+    db.session.commit()
+    flash('Riesgo y sus elementos asociados eliminados con éxito', 'success')
+    return redirect(url_for('main.index'))
+
+y aqui es donde agrego un control
+
+agregar_control.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Control</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Añadir Control para el Riesgo: {{ riesgo.nombre }}</h1>
+
+        <form method="POST" class="form-horizontal">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label for="nombre_control" class="col-sm-2 control-label">{{ form.nombre_control.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.nombre_control(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tipo" class="col-sm-2 control-label">{{ form.tipo.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.tipo(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="clase" class="col-sm-2 control-label">{{ form.clase.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.clase(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="efectividad" class="col-sm-2 control-label">{{ form.efectividad.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.efectividad(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="cubrimiento_causa" class="col-sm-2 control-label">{{ form.cubrimiento_causa.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.cubrimiento_causa(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="cubrimiento_consecuencia" class="col-sm-2 control-label">{{ form.cubrimiento_consecuencia.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.cubrimiento_consecuencia(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-success" >Guardar Control</button>
+                </div>
+            </div>
+        </form>
+
+        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-default">Regresar</a>
+    </div>
+</body>
+</html>
+
+agregar_accion.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Acción de Tratamiento</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Añadir Acción de Tratamiento: {{ riesgo.nombre }}</h1>
+
+        <form method="POST" class="form-horizontal">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label for="categoria" class="col-sm-2 control-label">{{ form.categoria.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.categoria(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="puntos_causa" class="col-sm-2 control-label">{{ form.puntos_causa.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.puntos_causa(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="puntos_consecuencia" class="col-sm-2 control-label">{{ form.puntos_consecuencia.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.puntos_consecuencia(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-success">Guardar AT</button>
+                </div>
+            </div>
+        </form>
+
+        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-default">Regresar</a>
+    </div>
+</body>
+</html>
+
+este es mi archivo __init__.py:
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
+from config import Config
+
+db = SQLAlchemy()
+csrf = CSRFProtect()
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///risks.db'
+    app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
+
+    db.init_app(app)
+
+    # Registro del blueprint
+    from .routes import main
+    app.register_blueprint(main)
+
+    return app
+
+
+este es mi archivo run.py:
+
+from app import create_app, db
+
+app = create_app()
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()  # Crea las tablas en la base de datos si no existen
+    app.run(debug=True)
+
+
+
+es claro lo que deseo?
