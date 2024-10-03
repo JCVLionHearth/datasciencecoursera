@@ -1,3 +1,318 @@
+#parte 2
+
+Modificaciones en utils.py
+
+Agreguemos una variable que indique si los archivos han sido cargados, y modifiquemos las funciones de carga para actualizar este estado:
+
+import pandas as pd
+
+# Variables para controlar si los archivos han sido cargados
+archivos_cargados = {
+    "controles": False,
+    "acciones": False
+}
+
+def cargar_controles():
+    try:
+        df = pd.read_excel('Controles.xlsx')
+        archivos_cargados['controles'] = True  # Actualiza el estado de controles cargados
+        return df['Nombre_control'].tolist()
+    except FileNotFoundError:
+        archivos_cargados['controles'] = False  # No se encontró el archivo
+        return []
+
+def cargar_acciones():
+    try:
+        df = pd.read_excel('Acciones.xlsx')
+        archivos_cargados['acciones'] = True  # Actualiza el estado de acciones cargadas
+        return [(row['Puntaje_AT'], row['AT']) for index, row in df.iterrows()]
+    except FileNotFoundError:
+        archivos_cargados['acciones'] = False  # No se encontró el archivo
+        return []
+
+En estas funciones de carga, hemos añadido un manejo de excepciones para detectar si los archivos de Excel no existen o no se pueden cargar correctamente. Si esto sucede, las funciones retornarán una lista vacía y se actualizará la variable archivos_cargados para indicar que los archivos no se han cargado.
+
+Modificaciones en forms.py
+
+Ahora, podemos ajustar los formularios para verificar si los archivos han sido cargados antes de permitir que el usuario los use. En caso contrario, mostraremos un mensaje o deshabilitaremos los formularios:
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField, TextAreaField, ValidationError
+from wtforms.validators import DataRequired
+from app.utils import cargar_controles, cargar_acciones, archivos_cargados
+
+controles = cargar_controles()
+acciones = cargar_acciones()
+
+class RiskForm(FlaskForm):
+    # Campos del formulario de riesgos
+
+    def validate(self):
+        # Validación adicional para asegurarse de que los controles y acciones se han cargado
+        if not archivos_cargados['controles'] or not archivos_cargados['acciones']:
+            raise ValidationError('No se han cargado los archivos necesarios para completar el formulario.')
+        return super().validate()
+
+class ControlForm(FlaskForm):
+    # Validación de controles cargados
+    nombre_control = SelectField('Nombre del Control', choices=[(control, control) for control in controles])
+    
+    def validate(self):
+        if not archivos_cargados['controles']:
+            raise ValidationError('No se han cargado los controles. Por favor, cargue el archivo correspondiente.')
+        return super().validate()
+
+class AccionTratamientoForm(FlaskForm):
+    # Validación de acciones cargadas
+    categoria = SelectField('Categoría de la Acción', choices=acciones, coerce=int)
+    
+    def validate(self):
+        if not archivos_cargados['acciones']:
+            raise ValidationError('No se han cargado las acciones. Por favor, cargue el archivo correspondiente.')
+        return super().validate()
+
+Explicación de los cambios:
+
+	1.	Carga inicial: Las variables archivos_cargados mantienen el estado de si los archivos se han cargado o no. Esto se actualiza en las funciones cargar_controles() y cargar_acciones().
+	2.	Validaciones en los formularios: Se agrega una validación adicional en cada formulario (mediante la función validate) que asegura que si los archivos no han sido cargados, el formulario arrojará un error y no permitirá su envío.
+	3.	Manejo de excepciones: Si no se encuentran los archivos de Excel, los formularios presentarán un error para que el usuario sepa que primero deben cargarse los archivos antes de proceder.
+
+Una vez implementados estos cambios, lo siguiente será asegurarnos de que haya una interfaz o proceso que permita cargar los archivos de Excel nuevamente si se actualizan o cambian.
+
+¿Te parece si seguimos con esa parte en la siguiente etapa?
+
+Gracias por compartir el código completo. Hasta ahora, veo que has implementado rutas para la creación y valoración de riesgos, así como la gestión de controles y acciones de tratamiento. También has incluido la funcionalidad para cargar archivos de parámetros como controles y acciones.
+
+Vamos a enfocarnos en lo siguiente:
+
+	1.	Validación de la carga de archivos: Asegurarnos de que las rutas que dependen de los archivos de Excel (como controles y acciones) verifiquen si los archivos están disponibles antes de permitir la interacción con los formularios.
+	2.	Validación de los formularios: Revisar que cada formulario haga una validación apropiada sobre la disponibilidad de los datos cargados antes de la interacción.
+
+Para lograr esto, podemos agregar las siguientes modificaciones en routes.py y en la plantilla de la interfaz de usuario.
+
+Modificaciones en routes.py
+
+Primero, modificaremos la ruta de creación de riesgos y controles para verificar si los archivos de parámetros han sido cargados antes de permitir que se renderice el formulario. Para ello, aprovechamos las funciones cargar_controles() y cargar_acciones() para verificar si los archivos han sido cargados.
+
+Modificamos el método crear_riesgo y las demás rutas dependientes de parámetros:
+
+from app.utils import archivos_cargados  # Verificar archivos cargados
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    if not archivos_cargados['controles'] or not archivos_cargados['acciones']:
+        flash('Debe cargar los archivos de controles y acciones antes de continuar', 'warning')
+        return redirect(url_for('main.parametros'))
+
+    form = RiskForm()
+    if form.validate_on_submit():
+        # Lógica de creación de riesgo
+        impacto_inherente = calcular_puntaje_inherente(
+            form.impacto_personas.data, form.impacto_ambiente.data,
+            form.impacto_recursos_economicos.data, form.impacto_reputacional.data,
+            form.impacto_clientes.data)
+        
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad_inherente=form.probabilidad_inherente.data,
+            impacto_personas=form.impacto_personas.data,
+            impacto_ambiente=form.impacto_ambiente.data,
+            impacto_recursos_economicos=form.impacto_recursos_economicos.data,
+            impacto_reputacional=form.impacto_reputacional.data,
+            impacto_clientes=form.impacto_clientes.data,
+            impacto_inherente=impacto_inherente
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('crear_riesgo.html', form=form)
+
+# Validación de controles y acciones antes de agregar
+@main.route('/riesgo/<int:id>/agregar_control', methods=['GET', 'POST'])
+def agregar_control(id):
+    if not archivos_cargados['controles']:
+        flash('Debe cargar el archivo de controles antes de agregar un control', 'warning')
+        return redirect(url_for('main.parametros'))
+
+    riesgo = Risk.query.get_or_404(id)
+    form = ControlForm()
+
+    if form.validate_on_submit():
+        nuevo_control = Control(
+            nombre_control=form.nombre_control.data,
+            tipo=form.tipo.data,
+            clase=form.clase.data,
+            efectividad=form.efectividad.data,
+            cubrimiento_causa=form.cubrimiento_causa.data,
+            cubrimiento_consecuencia=form.cubrimiento_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nuevo_control)
+        db.session.commit()
+        flash('Control añadido con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_control.html', form=form, riesgo=riesgo)
+
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    if not archivos_cargados['acciones']:
+        flash('Debe cargar el archivo de acciones antes de agregar una acción de tratamiento', 'warning')
+        return redirect(url_for('main.parametros'))
+
+    riesgo = Risk.query.get_or_404(id)
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        at = dict(form.categoria.choices).get(form.categoria.data)
+        nueva_accion = AccionTratamiento(
+            at=at,
+            categoria=form.categoria.data,
+            puntos_causa=form.puntos_causa.data,
+            puntos_consecuencia=form.puntos_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nueva_accion)
+        db.session.commit()
+        flash('Acción de tratamiento añadida con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+
+Explicación
+
+	•	Verificación de archivos cargados: Antes de permitir al usuario crear un riesgo o agregar controles/acciones, verificamos que los archivos de parámetros (controles y acciones) hayan sido cargados.
+	•	Redirección a la página de parámetros: Si los archivos no han sido cargados, redirigimos al usuario a la página de parámetros y mostramos un mensaje de advertencia.
+
+Interfaz de Usuario (Plantilla HTML)
+
+En las plantillas crear_riesgo.html, agregar_control.html y agregar_accion.html, puedes agregar una validación condicional que también muestre un mensaje si los archivos no han sido cargados.
+
+{% if not archivos_cargados['controles'] or not archivos_cargados['acciones'] %}
+    <div class="alert alert-warning">
+        Debe cargar los archivos de parámetros antes de continuar.
+    </div>
+{% endif %}
+
+Con estos cambios, el sistema asegura que los archivos de parámetros estén disponibles antes de permitir que el usuario interactúe con los formularios.
+
+¿Te gustaría avanzar con las siguientes partes?
+
+Con toda la información que me has proporcionado, puedo ayudarte a consolidar y mejorar el flujo de trabajo de tu aplicación Flask para la gestión y valoración de riesgos. A continuación te detallo algunas ideas clave y mejoras que puedes implementar en las distintas partes del código:
+
+1. Consolidación del Backend y Formularios
+
+Si no lo has hecho ya, puedes aprovechar WTForms o Flask-WTF para crear tus formularios, ya que ofrecen una validación más robusta y manejan las entradas de manera más segura. Los formularios que usas en tus plantillas como crear_riesgo.html, valoracion_riesgo.html, agregar_control.html, etc., pueden seguir este esquema.
+
+Ejemplo de Formulario con WTForms:
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, TextAreaField, SelectField, FileField
+from wtforms.validators import DataRequired, NumberRange
+
+class RiesgoForm(FlaskForm):
+    nombre = StringField('Nombre', validators=[DataRequired()])
+    codigo = StringField('Código', validators=[DataRequired()])
+    escenario = TextAreaField('Escenario')
+    probabilidad_inherente = IntegerField('Probabilidad Inherente', validators=[NumberRange(min=1, max=5)])
+
+    impacto_personas = IntegerField('Impacto Personas', validators=[NumberRange(min=1, max=5)])
+    impacto_ambiente = IntegerField('Impacto Ambiente', validators=[NumberRange(min=1, max=5)])
+    impacto_recursos_economicos = IntegerField('Impacto Recursos Económicos', validators=[NumberRange(min=1, max=5)])
+    impacto_reputacional = IntegerField('Impacto Reputacional', validators=[NumberRange(min=1, max=5)])
+    impacto_clientes = IntegerField('Impacto Clientes', validators=[NumberRange(min=1, max=5)])
+
+Control y Acción de Tratamiento:
+Si los formularios de Control y Acción de Tratamiento tienen muchos campos repetidos, considera un BaseForm que pueda ser extendido por otros formularios específicos.
+
+2. Carga de Archivos y Parámetros
+
+En la vista de parametros.html, donde se cargan los archivos de controles y acciones, asegúrate de que el procesamiento del archivo Excel (.xlsx) se maneje correctamente en tu backend. Para esto puedes usar bibliotecas como openpyxl o pandas para leer los archivos Excel.
+
+Backend para manejar la carga:
+
+from flask import request, redirect, url_for, flash
+import pandas as pd
+
+@app.route('/parametros', methods=['GET', 'POST'])
+def definir_parametros():
+    if request.method == 'POST':
+        cantidad_riesgos = request.form['cantidad_riesgos']
+        archivo_controles = request.files['archivo_controles']
+        archivo_acciones = request.files['archivo_acciones']
+        
+        # Leer los archivos Excel
+        controles_df = pd.read_excel(archivo_controles)
+        acciones_df = pd.read_excel(archivo_acciones)
+
+        # Procesa los datos y almacena en base de datos
+        # ...
+        
+        flash("Parámetros definidos correctamente.")
+        return redirect(url_for('main.index'))
+    return render_template('parametros.html')
+
+3. Dashboard y Visualización de Datos
+
+Para el dashboard, podrías implementar gráficos y tablas dinámicas usando Flask-Chart.js o Plotly. Estas librerías te permitirán visualizar las variaciones entre riesgos inherentes y residuales de manera atractiva.
+
+Ejemplo con Chart.js:
+
+En tu vista del dashboard (dashboard.html):
+
+<canvas id="riskChart"></canvas>
+
+<script>
+    var ctx = document.getElementById('riskChart').getContext('2d');
+    var riskChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Riesgo 1', 'Riesgo 2', 'Riesgo 3'], // Nombres de los riesgos
+            datasets: [{
+                label: 'Riesgo Inherente',
+                data: [5, 3, 4], // Valores de riesgo inherente
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            },
+            {
+                label: 'Riesgo Residual',
+                data: [3, 2, 1], // Valores de riesgo residual
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+Backend para el dashboard:
+
+@app.route('/dashboard')
+def dashboard():
+    riesgos = get_riesgos_con_valores()  # Función que trae los riesgos y sus valores
+    return render_template('dashboard.html', riesgos=riesgos)
+
+4. Flujos y Confirmaciones
+
+En tu código has implementado varias confirmaciones de acciones destructivas, como eliminar un control o riesgo. Asegúrate de que siempre exista un proceso de respaldo de los datos para evitar pérdidas permanentes.
+
+5. Final Touches y UX
+
+	•	Consistencia de Estilos: Usar Bootstrap es una buena elección para estilos consistentes. Sin embargo, asegúrate de revisar las clases como col-sm-2, col-sm-10, etc., para un mejor ajuste en pantallas más pequeñas.
+	•	Manejo de Errores: No olvides manejar errores de validación o excepciones durante la carga de archivos o procesos en segundo plano.
+	•	Documentación: Asegúrate de documentar bien el flujo de trabajo, especialmente si otros usuarios también interactuarán con los controles y acciones de tratamiento.
+
+Con estas mejoras, tu aplicación debería estar mucho más completa y funcional. ¿Hay algún aspecto específico que te gustaría que detalláramos más?
+
 # parte final
 
 agregar_accion.html
