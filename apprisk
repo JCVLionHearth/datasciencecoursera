@@ -1,7 +1,13 @@
-Actualmente tengo las siguientes funciones para cargar un listado de opciones a partir de archivos creados previamente en excel
+Actualmente tengo las siguientes funciones para cargar un listado de opciones a partir de archivos creados previamente en excel, lo que quiero es que previamente 
+estos archivos de excel sean cargados una vez o las veces que se necesiten, ya que el listado puede cambiar, pero una vez cargados las opciones esten habilitadas, 
+despues cualquier usuario puede diligenciar el formulario porque ya estan cargados los archivos, 
+sin embargo si ningun archivo estuviera cargado no se debe permitir el ingreso de datos en estos formularios y se debe dar aviso que no hay ningun archivo cargado, 
 
+Voy a compartirte fragmentos de codigo, en seis partes
 
-en un archivo utils.py
+#parte 1
+
+utils.py
 
 import pandas as pd
 
@@ -13,8 +19,70 @@ def cargar_acciones():
     df = pd.read_excel('Acciones.xlsx')
     return [(row['Puntaje_AT'], row['AT']) for index, row in df.iterrows()]
 
-de los cuales para unos formularios las opciones están dadas por el contenido del archivo
+def calcular_puntaje_inherente(impacto_personas,impacto_ambiente,impacto_recursos_economicos,impacto_reputacional,impacto_clientes):
+    """
+    Calcula el impacto inherente como la puntuación máxima de las categorías de impacto.
+    """
+    impacto_inherente=max(impacto_personas,impacto_ambiente,impacto_recursos_economicos,impacto_reputacional,impacto_clientes)
+    return (impacto_inherente)
 
+def calcular_reduccion_por_controles(controles):
+    """
+    Calcula la reducción de riesgo basada en los controles asociados al riesgo.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    for control in controles:
+        puntos_causa = control.clase + control.efectividad + control.cubrimiento_causa
+        puntos_consecuencia = control.clase + control.efectividad + control.cubrimiento_consecuencia
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(controles), puntos_consecuencia_total / len(controles))
+
+def calcular_reduccion_por_acciones(acciones):
+    """
+    Calcula la reducción de riesgo basada en las acciones de tratamiento.
+    """
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    puntaje_residual_causa=0
+    puntaje_residual_consecuencia=0
+    for accion in acciones:
+        puntos_causa = (accion.puntos_causa + accion.categoria) / 2
+        puntos_consecuencia = (accion.puntos_consecuencia + accion.categoria) / 2
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(acciones), puntos_consecuencia_total / len(acciones))
+
+def calcular_riesgo_residual(riesgo, controles, acciones):
+    """
+    Calcula el riesgo residual después de aplicar controles y acciones de tratamiento.
+    El resultado se obtiene ponderando el 30% por controles y el 70% por acciones de tratamiento.
+    """
+    # Calcular reducciones por controles y acciones
+    reduccion_controles = calcular_reduccion_por_controles(controles)
+    reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+
+    # Ponderación de la reducción
+    causa_residual = (reduccion_controles[0] * 0.30) + (reduccion_acciones[0] * 0.70)
+    if causa_residual < 60:
+        puntaje_residual_causa= 0
+    elif (60<=causa_residual < 80):
+        puntaje_residual_causa= 1
+    else:
+        puntaje_residual_causa= 2
+
+    consecuencia_residual = (reduccion_controles[1] * 0.30) + (reduccion_acciones[1] * 0.70)
+    if consecuencia_residual < 60:
+        puntaje_residual_consecuencia=0
+    elif (60<=consecuencia_residual < 80):
+        puntaje_residual_consecuencia=1
+    else:
+        puntaje_residual_consecuencia=2
+
+    return (puntaje_residual_causa, puntaje_residual_consecuencia)
+
+#########
 
 forms.py
 
@@ -22,6 +90,51 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired
 from app.utils import cargar_controles, cargar_acciones
+
+controles = cargar_controles()
+acciones = cargar_acciones()
+
+class RiskForm(FlaskForm):
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    escenario = TextAreaField('Escenario de Valoración', render_kw={"rows": 4})
+    probabilidad_inherente = SelectField('Probabilidad Inherente', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_personas = SelectField('Impacto Personas', 
+                          choices=[(1, 'Muy Bajo'), 
+                                   (2, 'Bajo'), 
+                                   (3, 'Medio'), 
+                                   (4, 'Alto'), 
+                                   (5, 'Muy Alto')],
+                          coerce=int)
+    impacto_ambiente = SelectField('Impacto Ambiente', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_recursos_economicos = SelectField('Impacto Recursos Económicos', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_reputacional = SelectField('Impacto Reputacional', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_clientes = SelectField('Impacto Clientes', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    submit = SubmitField('Guardar')
 
 class ControlForm(FlaskForm):
     nombre_control = SelectField('Nombre del Control', choices=[(control, control) for control in cargar_controles()])
@@ -33,45 +146,18 @@ class ControlForm(FlaskForm):
     submit = SubmitField('Guardar')
 
 class AccionTratamientoForm(FlaskForm):
+    # categoria = StringField('Categoría de la Acción', validators=[DataRequired()])
+    # categoria = SelectField('Categoría de la Acción', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
     categoria = SelectField('Categoría de la Acción', choices=cargar_acciones(), coerce=int)
     puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
     puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
     submit = SubmitField('Guardar')   
 
 
-quisiera que previamente estos archivos de excel sean cargados una vez o las veces que se necesiten, ya que el listado puede cambiar, pero una vez cargados las opciones esten habilitadas, despues cualquier usuario puede diligenciar el formulario porque ya estan cargados los archivos, sin embargo si ningun archivo estuviera cargado no se debe permitir el ingreso de datos en estos formularios y se debe dar aviso que no hay ningun archivo cargado, actualmente tengo el siguiente html que cargaria los archivos
-
-parametros.html:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Definir Parámetros</title>
-</head>
-<body>
-    <h1>Definir Parámetros de Riesgos</h1>
-
-    <form method="POST" enctype="multipart/form-data">
-       
-        <label for="archivo_controles">Archivo de Controles:</label>
-        <input type="file" name="archivo_controles" id="archivo_controles" accept=".xlsx" required>
-        
-        <label for="archivo_acciones">Archivo de Acciones:</label>
-        <input type="file" name="archivo_acciones" id="archivo_acciones" accept=".xlsx" required>
-        
-        <button type="submit">Definir</button>
-    </form>
-
-    <a href="{{ url_for('main.index') }}">Regresar</a>
-</body>
-</html>
+# parte 2/6
 
 
-algunas de las rutas son
-
-routes.py:
+routes.py
 
 from flask import render_template, redirect, url_for, flash, request
 from flask import Blueprint
@@ -90,6 +176,7 @@ import colorsys
 from flask import send_file
 import pandas as pd
 from io import BytesIO
+
 
 main = Blueprint('main', __name__)
 
@@ -152,8 +239,6 @@ def valoracion_riesgo(id):
 @main.route('/parametros', methods=['GET', 'POST'])
 def parametros():
     if request.method == 'POST':
-        cantidad_riesgos = int(request.form.get('cantidad_riesgos', 1))
-        
         archivo_controles = request.files['archivo_controles']
         archivo_acciones = request.files['archivo_acciones']
         
@@ -164,12 +249,8 @@ def parametros():
             archivo_controles.save(os.path.join('uploads', filename_controles))
             archivo_acciones.save(os.path.join('uploads', filename_acciones))
             
-            # Procesar los archivos y actualizar las opciones de los formularios
-            controles = cargar_controles()
-            acciones = cargar_acciones()
-            
             flash('Archivos cargados y parámetros definidos con éxito', 'success')
-            return redirect(url_for('main.crear_riesgo', cantidad=cantidad_riesgos))
+            return redirect(url_for('main.index'))
     
     return render_template('parametros.html')
 
@@ -291,146 +372,61 @@ def eliminar_riesgo(id):
     flash('Riesgo y sus elementos asociados eliminados con éxito', 'success')
     return redirect(url_for('main.index'))
 
-y aqui es donde agrego un control
 
-agregar_control.html:
+# parte 3/6
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Añadir Control</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center">Añadir Control para el Riesgo: {{ riesgo.nombre }}</h1>
+models.py
 
-        <form method="POST" class="form-horizontal">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-group">
-                <label for="nombre_control" class="col-sm-2 control-label">{{ form.nombre_control.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.nombre_control(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="tipo" class="col-sm-2 control-label">{{ form.tipo.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.tipo(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="clase" class="col-sm-2 control-label">{{ form.clase.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.clase(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="efectividad" class="col-sm-2 control-label">{{ form.efectividad.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.efectividad(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cubrimiento_causa" class="col-sm-2 control-label">{{ form.cubrimiento_causa.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.cubrimiento_causa(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cubrimiento_consecuencia" class="col-sm-2 control-label">{{ form.cubrimiento_consecuencia.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.cubrimiento_consecuencia(class="form-control") }}
-                </div>
-            </div>
+from . import db
 
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button type="submit" class="btn btn-success" >Guardar Control</button>
-                </div>
-            </div>
-        </form>
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_personas=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_ambiente=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_recursos_economicos=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_reputacional=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_clientes=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
 
-        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-default">Regresar</a>
-    </div>
-</body>
-</html>
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_control=db.Column(db.String(50), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # preventivo, detectivo, correctivo
+    clase = db.Column(db.Integer, nullable=False)  # manual=5, manual TI=10, automatico=15
+    efectividad = db.Column(db.Integer, nullable=False)  # 0 = inefectivo, 70 = efectivo
+    cubrimiento_causa = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    cubrimiento_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
 
-agregar_accion.html
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    at = db.Column(db.String(100), nullable=False)
+    categoria = db.Column(db.Integer, nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Añadir Acción de Tratamiento</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center">Añadir Acción de Tratamiento: {{ riesgo.nombre }}</h1>
+config.py
 
-        <form method="POST" class="form-horizontal">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-group">
-                <label for="categoria" class="col-sm-2 control-label">{{ form.categoria.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.categoria(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="puntos_causa" class="col-sm-2 control-label">{{ form.puntos_causa.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.puntos_causa(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="puntos_consecuencia" class="col-sm-2 control-label">{{ form.puntos_consecuencia.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.puntos_consecuencia(class="form-control") }}
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button type="submit" class="btn btn-success">Guardar AT</button>
-                </div>
-            </div>
-        </form>
+import os
 
-        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-default">Regresar</a>
-    </div>
-</body>
-</html>
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'supersecretkey'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/risk_db.sqlite'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-este es mi archivo __init__.py:
-
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import CSRFProtect
-from config import Config
-
-db = SQLAlchemy()
-csrf = CSRFProtect()
-
-def create_app():
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///risks.db'
-    app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
-
-    db.init_app(app)
-
-    # Registro del blueprint
-    from .routes import main
-    app.register_blueprint(main)
-
-    return app
-
-
-este es mi archivo run.py:
+run.py
 
 from app import create_app, db
 
@@ -441,6 +437,332 @@ if __name__ == "__main__":
         db.create_all()  # Crea las tablas en la base de datos si no existen
     app.run(debug=True)
 
+aun faltan dos partes
+
+# parte 4/6
 
 
-es claro lo que deseo?
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración de Riesgos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Listado de Riesgos</h1>
+        
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Riesgos</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    {% for riesgo in riesgos %}
+                        <li class="list-group-item bg-success">
+                            <strong>{{ riesgo.nombre }}</strong> (Código: {{ riesgo.codigo }})
+                            <div class="pull-right">
+                                <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-primary btn-xs">Editar</a>
+                                <a href="{{ url_for('main.eliminar_riesgo', id=riesgo.id) }}" class="btn btn-danger btn-xs" 
+                                onclick="return confirm('Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?');">
+                                    Eliminar
+                                </a>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item">No hay riesgos definidos.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('main.crear_riesgo') }}" class="btn btn-success">Crear Nuevo Riesgo</a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">DashBoard Variación Riesgo</a>
+        <a href="{{ url_for('main.download_excel') }}" class="btn btn-info">Descargar Excel</a>
+    </div>
+</body>
+</html>
+
+
+crear_riesgo.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <style>
+        .form-group {
+            margin-bottom: 1px; /* Reduce el margen inferior */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Crear Nuevo Riesgo</h1>
+
+        <form method="POST" class="form-horizontal">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="nombre" class="col-sm-2 control-label">{{ form.nombre.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.nombre(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="codigo" class="col-sm-2 control-label">{{ form.codigo.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.codigo(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="escenario" class="col-sm-2 control-label">{{ form.escenario.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.escenario(class="form-control", rows="2") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="probabilidad_inherente" class="col-sm-2 control-label">{{ form.probabilidad_inherente.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.probabilidad_inherente(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_personas" class="col-sm-2 control-label">{{ form.impacto_personas.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_personas(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_ambiente" class="col-sm-2 control-label">{{ form.impacto_ambiente.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_ambiente(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_recursos_economicos" class="col-sm-2 control-label">{{ form.impacto_recursos_economicos.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_recursos_economicos(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_reputacional" class="col-sm-2 control-label">{{ form.impacto_reputacional.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_reputacional(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_clientes" class="col-sm-2 control-label">{{ form.impacto_clientes.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_clientes(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-success">Crear Riesgo</button>
+                </div>
+            </div>
+        </form>
+
+        <a href="{{ url_for('main.index') }}" class="btn btn-default">Regresar al listado de riesgos</a>
+    </div>
+</body>
+</html>
+
+
+# parte 5/6
+
+valoracion_riesgo.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoración del Riesgo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <style>
+        .form-group {
+            margin-bottom: 1px; /* Reduce el margen inferior */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Valoración del Riesgo: {{ riesgo.nombre }}</h1>
+
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('main.parametros') }}">Parámetros</a></li>
+                    <li><a href="{{ url_for('main.agregar_control', id=riesgo.id) }}">Agregar Control</a></li>
+                    <li><a href="{{ url_for('main.agregar_accion', id=riesgo.id) }}">Agregar AT</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <form method="POST" class="form-horizontal">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="nombre" class="col-sm-2 control-label">{{ form.nombre.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.nombre(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="codigo" class="col-sm-2 control-label">{{ form.codigo.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.codigo(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="escenario" class="col-sm-2 control-label">{{ form.escenario.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.escenario(class="form-control", rows="2") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="probabilidad_inherente" class="col-sm-2 control-label">{{ form.probabilidad_inherente.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.probabilidad_inherente(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_personas" class="col-sm-2 control-label">{{ form.impacto_personas.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_personas(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_ambiente" class="col-sm-2 control-label">{{ form.impacto_ambiente.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_ambiente(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_recursos_economicos" class="col-sm-2 control-label">{{ form.impacto_recursos_economicos.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_recursos_economicos(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_reputacional" class="col-sm-2 control-label">{{ form.impacto_reputacional.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_reputacional(class="form-control") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="impacto_clientes" class="col-sm-2 control-label">{{ form.impacto_clientes.label }}</label>
+                <div class="col-sm-10">
+                    {{ form.impacto_clientes(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Esta operación cambiará la valoración inicial de riesgo. ¿Deseas continuar?');">
+                        Guardar Valoración
+                    </button>
+                </div>
+            </div>
+        </form>
+
+
+
+        <a href="{{ url_for('main.index') }}" class="btn btn-default">Regresar al listado de riesgos</a>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Controles Asociados</h2>
+            </div>
+        
+            <ul class="list-group">
+                {% for control in riesgo.controles %}
+                    <li class="list-group-item">
+                        {{ control.id }} - {{ control.nombre_control }} 
+                        <div class="pull-right">
+                            <a href="{{ url_for('main.editar_control', id=control.id) }}" class="btn btn-primary btn-xs" onclick="return confirm('Esta operación cambiará el valor inicial del control. ¿Deseas continuar?');">Editar</a>
+                            <a href="{{ url_for('main.eliminar_control', id=control.id) }}" class="btn btn-danger btn-xs" 
+                            onclick="return confirm('¿Estás seguro de que deseas eliminar este control?');">Eliminar</a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">No hay controles asociados a este riesgo.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Acciones de Tratamiento Asociadas</h2>
+            </div>
+        
+            <ul class="list-group">
+                {% for accion in riesgo.acciones_tratamiento %}
+                    <li class="list-group-item">
+                        {{ accion.id }} - {{ accion.at }} 
+                        <div class="pull-right">
+                            <a href="{{ url_for('main.editar_accion', id=accion.id) }}" class="btn btn-primary btn-xs" onclick="return confirm('Esta operación cambiará la valoración inicial de la Acción de Tratamiento. ¿Deseas continuar?');">Editar</a>
+                            <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" class="btn btn-danger btn-xs" 
+                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">No hay acciones de tratamiento asociadas a este riesgo.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+
+# parte 6
+
+Es en esta hoja donde quiero que se carguen los exceles
+
+parametros.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definir Parámetros</title>
+</head>
+<body>
+    <h1>Definir Parámetros de Riesgos</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label for="cantidad_riesgos">Cantidad de Riesgos:</label>
+        <input type="number" name="cantidad_riesgos" id="cantidad_riesgos" min="1" required>
+        
+        <label for="archivo_controles">Archivo de Controles:</label>
+        <input type="file" name="archivo_controles" id="archivo_controles" accept=".xlsx" required>
+        
+        <label for="archivo_acciones">Archivo de Acciones:</label>
+        <input type="file" name="archivo_acciones" id="archivo_acciones" accept=".xlsx" required>
+        
+        <button type="submit">Definir</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}">Regresar</a>
+</body>
+</html>
+
+es claro lo que busco?
