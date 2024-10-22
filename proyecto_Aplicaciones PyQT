@@ -1,3 +1,52 @@
+import sys
+from PyQt5 import uic, QtWidgets
+from funciones import cifrar, descifrar
+from PyQt5.QtWidgets import QMessageBox
+
+# Cargar el archivo .ui
+qtCreatorFile = "ventana.ui"  # Nombre del archivo .ui
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+
+class VentanaPrincipal(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        
+        # Conectar botones a las funciones
+        self.pushButton.clicked.connect(self.cifrar_datos)
+        self.pushButton_2.clicked.connect(self.descifrar_datos)
+    
+    def cifrar_datos(self):
+        numero = self.lineEdit.text()
+        if len(numero) != 6 or not numero.isdigit():
+            self.show_error("Debe ingresar un número de 6 dígitos")
+            return
+        
+        cifrado = cifrar(int(numero))
+        self.label.setText(f"Resultado cifrado: {cifrado}")
+    
+    def descifrar_datos(self):
+        numero = self.lineEdit_2.text()
+        if len(numero) != 6 or not numero.isdigit():
+            self.show_error("Debe ingresar un número de 6 dígitos")
+            return
+        
+        descifrado = descifrar(int(numero))
+        self.label_2.setText(f"Resultado descifrado: {descifrado}")
+    
+    def show_error(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.exec_()
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = VentanaPrincipal()
+    window.show()
+    sys.exit(app.exec_())
+
 Hola, estoy haciendo una aplicacion en Python usando PyQt en Visual Studio Code, utilicé Designer para hacer la interfaz grafica, cree un archivo llamado ventana.ui y tengo dos archivos Python uno que se llama funciones.py y otro programa_ventana.py
 
 en funciones.py tengo lo siguiente:
