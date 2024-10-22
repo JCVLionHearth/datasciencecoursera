@@ -1,3 +1,383 @@
+Hola, estoy haciendo una aplicacion en Python usando PyQt en Visual Studio Code, utilicé Designer para hacer la interfaz grafica, cree un archivo llamado ventana.ui y tengo dos archivos Python uno que se llama funciones.py y otro programa_ventana.py
+
+en funciones.py tengo lo siguiente:
+
+def cifrar(numero):
+    # Convertimos el número a una lista de dígitos
+    digitos = [int(d) for d in str(numero)]
+    
+    # Sumar 7 a cada dígito y tomar el residuo de dividir entre 10
+    cifrado = [(d + 7) % 10 for d in digitos]
+    
+    # Intercambiar los dígitos según la especificación
+    cifrado[0], cifrado[2] = cifrado[2], cifrado[0]
+    cifrado[1], cifrado[3] = cifrado[3], cifrado[1]
+    cifrado[4], cifrado[5] = cifrado[5], cifrado[4]
+    
+    # Convertir de nuevo a entero
+    return int(''.join(map(str, cifrado)))
+
+def descifrar(cifrado):
+    # Invertir los intercambios
+    digitos = [int(d) for d in str(cifrado)]
+    digitos[0], digitos[2] = digitos[2], digitos[0]
+    digitos[1], digitos[3] = digitos[3], digitos[1]
+    digitos[4], digitos[5] = digitos[5], digitos[4]
+    
+    # Restar 7 y ajustar valores
+    descifrado = [(d - 7 + 10) % 10 for d in digitos]
+    
+    return int(''.join(map(str, descifrado)))
+
+en programa_ventana.py lo siguiente:
+
+import sys #Importamos módulo sys
+from PyQt5 import uic, QtWidgets #Importamos módulo uic y Qtwidgets
+from funciones import cifrar, descifrar
+qtCreatorFile = "ventana.ui" # Nombre del archivo UI aquí.
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile) #El modulo ui carga el archivo
+
+
+
+class VentanaPrincipal (QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self): #Constructor de la clase
+        QtWidgets.QMainWindow.__init__(self) #Constructor
+        Ui_MainWindow.__init__(self) #Constructor
+        self.setupUi(self) # Método Constructor de la ventana
+
+if __name__ == "__main__":
+    app =  QtWidgets.QApplication(sys.argv)
+    window = VentanaPrincipal()
+    window.show()
+    sys.exit(app.exec_())
+
+y en ventana.ui lo siguiente:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>627</width>
+    <height>461</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>271</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Cifrar</string>
+    </property>
+    <widget class="QLineEdit" name="lineEdit">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>251</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>MS Serif</family>
+       <pointsize>36</pointsize>
+      </font>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>160</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>CIFRAR</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>210</y>
+       <width>131</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>MS Serif</family>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>231</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <underline>false</underline>
+       <strikeout>false</strikeout>
+      </font>
+     </property>
+     <property name="text">
+      <string>Ingrese un número de seis dígitos para Codificar</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>30</y>
+      <width>271</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Descifrar</string>
+    </property>
+    <widget class="QLineEdit" name="lineEdit_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>251</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>MS Serif</family>
+       <pointsize>36</pointsize>
+      </font>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>160</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>DESCIFRAR</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>210</y>
+       <width>131</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>MS Serif</family>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>231</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <underline>false</underline>
+       <strikeout>false</strikeout>
+      </font>
+     </property>
+     <property name="text">
+      <string>Ingrese un número de seis dígitos para Decodificar</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>627</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+
+
+y quiero que mi aplicación programa_ventana.py haga lo que hace este código:
+
+from PyQt5 import QtWidgets, QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+from funciones import cifrar, descifrar
+import sys
+
+def cifrar_datos():
+    numero = input_field.text()
+    if len(numero) != 6 or not numero.isdigit():
+        show_error("Debe ingresar un número de 6 dígitos")
+        return
+    
+    cifrado = cifrar(int(numero))
+    result_label.setText(f"Resultado cifrado: {cifrado}")
+
+def descifrar_datos():
+    numero = input_field.text()
+    if len(numero) != 6 or not numero.isdigit():
+        show_error("Debe ingresar un número de 6 dígitos")
+        return
+    
+    descifrado = descifrar(int(numero))
+    result_label.setText(f"Resultado descifrado: {descifrado}")
+
+def show_error(message):
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText(message)
+    msg.setWindowTitle("Error")
+    msg.exec_()
+
+def window():
+    app = QApplication(sys.argv)
+    win = QMainWindow()
+    win.setGeometry(200, 200, 400, 300)
+    win.setWindowTitle("Cifrado de Datos - PyQt")
+
+    global input_field
+    input_field = QtWidgets.QLineEdit(win)
+    input_field.setGeometry(100, 50, 200, 80)
+    font = QtGui.QFont()
+    font.setFamily("MS Serif")
+    font.setPointSize(36)
+
+    cifrar_button = QtWidgets.QPushButton(win)
+    cifrar_button.setText("Cifrar")
+    cifrar_button.setGeometry(100, 100, 100, 40)
+    cifrar_button.clicked.connect(cifrar_datos)
+
+    descifrar_button = QtWidgets.QPushButton(win)
+    descifrar_button.setText("Descifrar")
+    descifrar_button.setGeometry(200, 100, 100, 40)
+    descifrar_button.clicked.connect(descifrar_datos)
+
+    global result_label
+    result_label = QtWidgets.QLabel(win)
+    result_label.setGeometry(50, 150, 300, 40)
+
+    win.show()
+    sys.exit(app.exec_())
+
+window()
+
+me ayudas
+
+
+
+
 Para asegurarte de que las tres versiones (Tkinter, PyQt y Flask) estén configuradas correctamente en Visual Studio Code (VS Code), aquí te explico los pasos que debes seguir para cada una.
 
 Configuración General de Visual Studio Code para Python:
