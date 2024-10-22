@@ -1,0 +1,10 @@
+Necesito hacer en Python el siguente caso
+Caso práctico “Transmisión de datos”
+
+Una organización está interesada en transmitir datos a través de dispositivos móviles, pero le preocupa que sus teléfonos puedan estar intervenidos. Le han pedido a usted que desarrolle una aplicación de software que cifre sus datos, de manera que estos puedan transmitirse con mayor seguridad.
+
+Todos los datos se transmiten como enteros de 6 dígitos. Su aplicación debe leer un entero de 6 dígitos introducido por el usuario y cifrarlo de la siguiente manera: reemplace cada dígito con el resultado de sumar 7 al dígito y obtener el residuo después de dividir el nuevo valor entre 10. Luego intercambie el primer dígito con el tercero, e intercambie el segundo dígito con el cuarto y el quinto con el sexto. Después imprima el entero cifrado.
+
+3. Ahora, en otra ventana con interfaz grafica desarrolla una aplicación que reciba como entrada el entero de 6 dígitos cifrado y lo decodifique para obtener el número original. La actividad es individual y debe incluir el código fuente generado para la solución del caso práctico.
+
+quisiera hacerlo en tres versiones distintas la primera usando Tkinter, la segunda usando PyQt y la tercera versión del proyecto usando flask
