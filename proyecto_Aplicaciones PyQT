@@ -1,3 +1,205 @@
+Para implementar este caso práctico en tres versiones distintas (Tkinter, PyQt y Flask), aquí te proporciono la estructura básica para cada una:
+
+Versión 1: Usando Tkinter
+
+	1.	Lógica de cifrado y descifrado:
+
+def cifrar(numero):
+    # Convertimos el número a una lista de dígitos
+    digitos = [int(d) for d in str(numero)]
+    
+    # Sumar 7 a cada dígito y tomar el residuo de dividir entre 10
+    cifrado = [(d + 7) % 10 for d in digitos]
+    
+    # Intercambiar los dígitos según la especificación
+    cifrado[0], cifrado[2] = cifrado[2], cifrado[0]
+    cifrado[1], cifrado[3] = cifrado[3], cifrado[1]
+    cifrado[4], cifrado[5] = cifrado[5], cifrado[4]
+    
+    # Convertir de nuevo a entero
+    return int(''.join(map(str, cifrado)))
+
+def descifrar(cifrado):
+    # Invertir los intercambios
+    digitos = [int(d) for d in str(cifrado)]
+    digitos[0], digitos[2] = digitos[2], digitos[0]
+    digitos[1], digitos[3] = digitos[3], digitos[1]
+    digitos[4], digitos[5] = digitos[5], digitos[4]
+    
+    # Restar 7 y ajustar valores
+    descifrado = [(d - 7 + 10) % 10 for d in digitos]
+    
+    return int(''.join(map(str, descifrado)))
+
+	2.	Interfaz gráfica con Tkinter:
+
+import tkinter as tk
+from tkinter import messagebox
+
+def cifrar_datos():
+    numero = entry.get()
+    if len(numero) != 6 or not numero.isdigit():
+        messagebox.showerror("Error", "Debe ingresar un número de 6 dígitos")
+        return
+    
+    cifrado = cifrar(int(numero))
+    result_label.config(text=f"Resultado cifrado: {cifrado}")
+
+def descifrar_datos():
+    numero = entry.get()
+    if len(numero) != 6 or not numero.isdigit():
+        messagebox.showerror("Error", "Debe ingresar un número de 6 dígitos")
+        return
+    
+    descifrado = descifrar(int(numero))
+    result_label.config(text=f"Resultado descifrado: {descifrado}")
+
+# Interfaz gráfica
+root = tk.Tk()
+root.title("Cifrado de Datos - Tkinter")
+
+tk.Label(root, text="Ingrese un número de 6 dígitos:").pack()
+
+entry = tk.Entry(root)
+entry.pack()
+
+tk.Button(root, text="Cifrar", command=cifrar_datos).pack()
+tk.Button(root, text="Descifrar", command=descifrar_datos).pack()
+
+result_label = tk.Label(root, text="")
+result_label.pack()
+
+root.mainloop()
+
+Versión 2: Usando PyQt
+
+	1.	Instalar PyQt:
+	•	Primero instala PyQt: pip install PyQt5
+	2.	Interfaz gráfica con PyQt:
+
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+import sys
+
+def cifrar_datos():
+    numero = input_field.text()
+    if len(numero) != 6 or not numero.isdigit():
+        show_error("Debe ingresar un número de 6 dígitos")
+        return
+    
+    cifrado = cifrar(int(numero))
+    result_label.setText(f"Resultado cifrado: {cifrado}")
+
+def descifrar_datos():
+    numero = input_field.text()
+    if len(numero) != 6 or not numero.isdigit():
+        show_error("Debe ingresar un número de 6 dígitos")
+        return
+    
+    descifrado = descifrar(int(numero))
+    result_label.setText(f"Resultado descifrado: {descifrado}")
+
+def show_error(message):
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText(message)
+    msg.setWindowTitle("Error")
+    msg.exec_()
+
+def window():
+    app = QApplication(sys.argv)
+    win = QMainWindow()
+    win.setGeometry(200, 200, 400, 300)
+    win.setWindowTitle("Cifrado de Datos - PyQt")
+
+    global input_field
+    input_field = QtWidgets.QLineEdit(win)
+    input_field.setGeometry(50, 50, 200, 40)
+
+    cifrar_button = QtWidgets.QPushButton(win)
+    cifrar_button.setText("Cifrar")
+    cifrar_button.setGeometry(50, 100, 100, 40)
+    cifrar_button.clicked.connect(cifrar_datos)
+
+    descifrar_button = QtWidgets.QPushButton(win)
+    descifrar_button.setText("Descifrar")
+    descifrar_button.setGeometry(150, 100, 100, 40)
+    descifrar_button.clicked.connect(descifrar_datos)
+
+    global result_label
+    result_label = QtWidgets.QLabel(win)
+    result_label.setGeometry(50, 150, 300, 40)
+
+    win.show()
+    sys.exit(app.exec_())
+
+window()
+
+Versión 3: Usando Flask
+
+	1.	Instalar Flask:
+	•	Primero instala Flask: pip install flask
+	2.	Aplicación Flask:
+
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/cifrar', methods=['POST'])
+def cifrar_datos():
+    numero = request.form['numero']
+    if len(numero) != 6 or not numero.isdigit():
+        return render_template('index.html', error="Debe ingresar un número de 6 dígitos")
+    
+    cifrado = cifrar(int(numero))
+    return render_template('index.html', resultado=f"Resultado cifrado: {cifrado}")
+
+@app.route('/descifrar', methods=['POST'])
+def descifrar_datos():
+    numero = request.form['numero']
+    if len(numero) != 6 or not numero.isdigit():
+        return render_template('index.html', error="Debe ingresar un número de 6 dígitos")
+    
+    descifrado = descifrar(int(numero))
+    return render_template('index.html', resultado=f"Resultado descifrado: {descifrado}")
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+	3.	HTML (index.html):
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cifrado de Datos - Flask</title>
+</head>
+<body>
+    <h1>Cifrado de Datos</h1>
+    <form action="/cifrar" method="POST">
+        <input type="text" name="numero" placeholder="Ingrese 6 dígitos">
+        <button type="submit">Cifrar</button>
+    </form>
+    <form action="/descifrar" method="POST">
+        <input type="text" name="numero" placeholder="Ingrese 6 dígitos">
+        <button type="submit">Descifrar</button>
+    </form>
+    <p>{{ resultado }}</p>
+    <p style="color:red;">{{ error }}</p>
+</body>
+</html>
+
+Resumen:
+
+	•	Tkinter: Ligero y fácil de implementar.
+	•	PyQt: Ideal para interfaces más profesionales y complejas.
+	•	Flask: Para aplicaciones web, con una interfaz simple y accesible.
+
+Te puedo ayudar a ajustar cualquiera de estas versiones según tus necesidades.
+
 Necesito hacer en Python el siguente caso
 Caso práctico “Transmisión de datos”
 
