@@ -1,3 +1,80 @@
+Para abordar tus dos preguntas, aquí te presento las respuestas y mejoras sugeridas:
+
+1. Definir los umbrales apropiados para cada nivel de riesgo
+
+Siguiendo el mismo procedimiento que utilizas para el nivel “Muy Alto”, se pueden ajustar los umbrales para cada nivel. Al final, estos umbrales serán usados para definir cada nivel de riesgo en la matriz RAM.
+
+Añadiremos una función que calculará los umbrales para todos los niveles de riesgo. El objetivo es mantener la probabilidad de materialización dentro de los límites definidos para cada nivel.
+
+Aquí está la función actualizada para encontrar los umbrales de cada nivel:
+
+# Función para encontrar los umbrales adecuados para todos los niveles de riesgo
+find_thresholds <- function(datos, target_probs = c("Muy Bajo" = 0.8, "Bajo" = 0.5, "Medio" = 0.2, "Alto" = 0.05, "Muy Alto" = 0.01), num_simulations = 10000) {
+  thresholds <- c()
+  
+  for (nivel in names(target_probs)) {
+    threshold <- 10  # Umbral inicial bajo
+    prob_materialized <- 1
+    step_size <- 5  # Tamaño del paso para ajustar
+    
+    # Ajustar el umbral hasta alcanzar la probabilidad objetivo para cada nivel
+    while (prob_materialized > target_probs[nivel]) {
+      sensitivity_results <- simulate_sensitivity(datos, num_simulations)
+      materialized_risk_count <- sum(sensitivity_results$Riesgo >= threshold)
+      prob_materialized <- materialized_risk_count / num_simulations
+      if (prob_materialized > target_probs[nivel]) {
+        threshold <- threshold + step_size
+      } else {
+        threshold <- threshold - step_size
+        step_size <- step_size / 2  # Ajuste fino del paso
+      }
+    }
+    thresholds[nivel] <- threshold
+  }
+  
+  return(thresholds)
+}
+
+# Ejecutar para encontrar los umbrales de todos los niveles
+umbrales_riesgo <- find_thresholds(datos)
+print(umbrales_riesgo)
+
+Esto definirá los umbrales para los niveles de riesgo “Muy Bajo”, “Bajo”, “Medio”, “Alto”, y “Muy Alto”. Cada nivel ajustará su umbral en base a la probabilidad objetivo.
+
+2. Mejoras sugeridas
+
+	•	Optimización del cálculo de umbrales: La función find_thresholds puede ser optimizada reduciendo el número de simulaciones para la búsqueda de cada umbral y refinando el tamaño del paso más rápidamente.
+	•	Validación y visualización: Después de definir los umbrales, sería útil agregar un bloque de validación que verifique si las probabilidades calculadas para cada nivel de riesgo están dentro de los rangos definidos. Además, puedes visualizar cómo estos umbrales afectan la clasificación de riesgos, agregando una nueva gráfica que compare los riesgos bajo diferentes configuraciones de umbrales.
+
+Te muestro una manera de hacerlo:
+
+# Validar que los umbrales funcionan para mantener las probabilidades esperadas
+validate_thresholds <- function(sensitivity_results, thresholds) {
+  results <- sensitivity_results %>% mutate(Nivel_Riesgo = case_when(
+    Riesgo < thresholds["Muy Bajo"] ~ "Muy Bajo",
+    Riesgo < thresholds["Bajo"] ~ "Bajo",
+    Riesgo < thresholds["Medio"] ~ "Medio",
+    Riesgo < thresholds["Alto"] ~ "Alto",
+    TRUE ~ "Muy Alto"
+  ))
+  
+  # Recalcular las probabilidades de cada nivel de riesgo
+  prob_riesgos <- results %>%
+    group_by(Nivel_Riesgo) %>%
+    summarise(Count = n()) %>%
+    mutate(Probability = Count / nrow(sensitivity_results))
+  
+  return(prob_riesgos)
+}
+
+# Validar umbrales
+prob_riesgos_validated <- validate_thresholds(sensitivity_results, umbrales_riesgo)
+print(prob_riesgos_validated)
+
+Finalmente, puedes personalizar esta matriz RAM para diferentes categorías de riesgos añadiendo flexibilidad a la simulación (ej., diferentes distribuciones para impactos y probabilidades en distintos escenarios).
+
+Espero que estas sugerencias te sean útiles para ajustar los umbrales de los niveles de riesgo y mejorar tu modelo de simulación.
+
 código en R, en el que a partir de un listado de rangos para el impacto y unas frecuencias (que haria refrencia a la probabilidad de la ocurrencia de riesgos), esto con el fin de calcular el nivel de riesgo impacto por probabilidad, en esta primera parte del código se determina a partir de simulaciones el umbral en el que el nivel de riesgo es "Muy Alto". con la siguiente información, ayudame con:
 1. Definir los umbrales apropiados para cada nivel de Riesgo, es decir al igual como se ha calculado el umbral para el nivel de riesgo "Muy Alto" hacerlo para cada uno de los niveles.
 2. REvisa que mejoras en esta primera fase se pueden hacer, ya que este desarrollo pretende definir los niveles de riesgo y además los umbrales que se usarian para definir los riesgos, estos valores serán usados para crear una matriz RAM que sera customizada para las diferentes categorias de riesgo que puedan haber
