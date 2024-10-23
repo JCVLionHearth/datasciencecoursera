@@ -1,0 +1,89 @@
+código en R, en el que a partir de un listado de rangos para el impacto y unas frecuencias (que haria refrencia a la probabilidad de la ocurrencia de riesgos), esto con el fin de calcular el nivel de riesgo impacto por probabilidad, en esta primera parte del código se determina a partir de simulaciones el umbral en el que el nivel de riesgo es "Muy Alto". con la siguiente información, ayudame con:
+1. Definir los umbrales apropiados para cada nivel de Riesgo, es decir al igual como se ha calculado el umbral para el nivel de riesgo "Muy Alto" hacerlo para cada uno de los niveles.
+2. REvisa que mejoras en esta primera fase se pueden hacer, ya que este desarrollo pretende definir los niveles de riesgo y además los umbrales que se usarian para definir los riesgos, estos valores serán usados para crear una matriz RAM que sera customizada para las diferentes categorias de riesgo que puedan haber
+
+
+# Cargar librerías necesarias
+library(ggplot2)
+library(dplyr)
+# Datos de impacto y frecuencias por rangos
+rango_impacto <- list(
+  c(0, 10),
+  c(10, 20),
+  c(20, 60),
+  c(60, 100),
+  c(100, 150),
+  c(150, 300)
+)
+frecuencias <- c(500, 400, 300, 200, 200,200)
+# Crear un dataframe con los datos de impacto y frecuencias
+datos <- data.frame(Rango_Impacto = I(rango_impacto), Frecuencia = frecuencias)
+# Función para generar valores de impacto dentro de los rangos
+generate_impacts <- function(datos, num_simulations) {
+  impacts <- c()
+  for (i in 1:nrow(datos)) {
+    rango <- datos$Rango_Impacto[[i]]
+    freq <- datos$Frecuencia[i]
+    # Generar valores uniformes dentro del rango, ponderados por la frecuencia
+    impacts <- c(impacts, runif(freq * num_simulations / sum(frecuencias), min = rango[1], max = rango[2]))
+  }
+  return(impacts)
+}
+# Función para simular datos basados en frecuencias por rangos
+simulate_sensitivity <- function(datos, num_simulations = 1000) {
+  Impacto <- generate_impacts(datos, num_simulations)
+  Probabilidad <- runif(length(Impacto), 0, 1)
+  results <- data.frame(Probabilidad, Impacto)
+  results$Riesgo <- results$Probabilidad * results$Impacto
+  results <- results %>% mutate(Nivel_Riesgo = case_when(
+    Riesgo < 10 ~ "Muy Bajo",
+    Riesgo < 50 ~ "Bajo",
+    Riesgo < 120 ~ "Medio",
+    Riesgo < 200 ~ "Alto",
+    TRUE ~ "Muy Alto"
+  ))
+  return(results)
+}
+# Función para encontrar el umbral adecuado
+find_threshold <- function(datos, target_prob = 0.01, num_simulations = 10000) {
+  threshold <- 50  # Iniciar con un umbral inicial
+  prob_materialized <- 1  # Iniciar con una probabilidad alta
+  step_size <- 5  # Tamaño del paso para ajustar el umbral
+  while (prob_materialized > target_prob) {
+    sensitivity_results <- simulate_sensitivity(datos, num_simulations)
+    materialized_risk_count <- sum(sensitivity_results$Riesgo >= threshold)
+    prob_materialized <- materialized_risk_count / num_simulations
+    if (prob_materialized > target_prob) {
+      threshold <- threshold + step_size
+    } else {
+      threshold <- threshold - step_size
+      step_size <- step_size / 2  # Reducir el tamaño del paso para mayor precisión
+    }
+  }
+  return(threshold)
+}
+# Ejecutar simulación
+num_simulations <- 10000
+sensitivity_results <- simulate_sensitivity(datos, num_simulations)
+# Calcular la probabilidad actual de los niveles de riesgo
+prob_riesgos <- sensitivity_results %>%
+  group_by(Nivel_Riesgo) %>%
+  summarise(Count = n()) %>%
+  mutate(Probability = Count / num_simulations)
+# Mostrar las probabilidades de cada nivel de riesgo
+print(prob_riesgos)
+# Crear gráfico de resultados de sensibilidad
+risk_colors <- c("Muy Bajo" = "green","Bajo" = "darkgreen", "Medio" = "yellow", "Alto" = "orange", "Muy Alto" = "red")
+ggplot(sensitivity_results, aes(x = Probabilidad, y = Impacto, color = Nivel_Riesgo)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = risk_colors) +
+  labs(
+    title = "Análisis de Sensibilidad de Niveles de Riesgo",
+    x = "Probabilidad",
+    y = "Impacto (millones de dólares)",
+    color = "Nivel de Riesgo"
+  ) +
+  theme_minimal()
+# Encontrar el umbral adecuado para mantener la probabilidad de Riesgo "Muy Alto" por debajo de 0.01
+umbral <- find_threshold(datos, target_prob = 0.01)
+cat("El umbral para mantener la probabilidad de Riesgo 'Muy Alto' por debajo de 0.01 es:", umbral, "\n")
