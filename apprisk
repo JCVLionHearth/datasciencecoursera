@@ -1,3 +1,11 @@
+from openpyxl.utils import get_column_letter
+
+# Después de escribir los DataFrames en Excel:
+for column in writer.sheets['Riesgos'].columns:
+    max_length = max([len(str(cell.value)) for cell in column])
+    column_letter = get_column_letter(column[0].column)
+    writer.sheets['Riesgos'].column_dimensions[column_letter].width = max_length + 2  # Ajustar el ancho
+
 Actualmente tengo este codigo para descargar un excel en routes.py
 
 @main.route('/download_excel')
