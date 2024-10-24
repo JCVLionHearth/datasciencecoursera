@@ -1,0 +1,206 @@
+Actualmente tengo el siguiente código en R que permite a partir de datos históricos de impacto y frecuencias o probabilidades determinar los umbrales que definirian ciertos niveles de riesgo.
+con este código se pretende valorar los riesgos en escala de impacto y de probabilidad, pero a partir de la historia propia del riesgo.
+con esto se pretende dar las pautas para el desarrollo de una matriz RAM
+la idea es que me ayudes:
+1. A revisar el codigo actual y hacer ajustes
+2. 
+hacer un documento en latex, que explique la metodología que se está plasmando en el codigo, pero la esencia conceptual, es decir el codigo o el uso de R en la metodología no es crucial, en este documento se debe explicar como determinar el impacto, frecuencia o probabilidad.
+Este documento debe ser una guía de desarrollo genérico para la determinacion de una matriz RAM, es decir que cualquiera que lea este documento pueda obtener las pautas necesarias para determinar la matriz y valorar su riesgo.
+debe tener los sustentos técnicos, matemáticos o estadisticos necesarios
+debe ser entendible por cualquier publico, por lo que el detelle y generalidad son necesarios
+la matriz ram esta definida con estas caracterisiticas
+    probabilidades = ['raro', 'improbable', 'posible', 'probable', 'con certeza']
+    impactos = ['insignificante', 'menor', 'moderado', 'mayor', 'catastrófico']
+aqui lo importante es lograr definir cuando se cumple cada categoría, la razón de su valor, pero para esto es importante explicar como se deberia definir los impactos y probabilidades, de tal manera que sea coherente con el riesgo tratado, basate en el codigo para entender e interpretar lo que digo
+
+Lo anterior y el codigo actual funciona para riesgo de tipo cuantitativos, pero no para los cualitativos tales como: reputacional, afectacion a personas o afectación ambiental, diseña una metodología apropiada desde la perspectiva actuarial y del como debería ser valoradas
+
+HAz un documento muy detallado que incluya las buenas practicas asociadas para determinación de una matriz de riesgos
+
+# Cargar librerías necesarias
+library(ggplot2)
+library(dplyr)
+# Datos de impacto y frecuencias por rangos
+# Estos deberian ser los datos historicos del riesgo a definir umbrales
+# los umbrales estan definidos para el producto impacto*probabilidad
+# Explicar porque el umbral se define para el producto impacto*probabilidad y no para el impacto
+rango_impacto <- list(
+  c(0, 10),
+  c(10, 15),
+  c(20, 60),
+  c(60, 100),
+  c(100, 150),
+  c(150, 300)
+)
+# las frecuencias son las veces en las que los riesgos en cada intervalo han ocurrido
+frecuencias <- c(30, 20, 10, 5, 5,2)
+# Crear un dataframe con los datos de impacto y frecuencias
+datos <- data.frame(Rango_Impacto = I(rango_impacto), Frecuencia = frecuencias)
+
+# Función para generar valores de impacto dentro de los rangos
+generate_impacts <- function(datos, num_simulations) {
+  impacts <- c()
+  for (i in 1:nrow(datos)) {
+    rango <- datos$Rango_Impacto[[i]]
+    freq <- datos$Frecuencia[i]
+    # Generar valores uniformes dentro del rango, ponderados por la frecuencia
+    impacts <- c(impacts, runif(freq * num_simulations / sum(frecuencias), min = rango[1], max = rango[2]))
+  }
+  return(impacts)
+}
+# Función para simular datos basados en frecuencias por rangos
+simulate_sensitivity <- function(datos, num_simulations = 1000) {
+  Impacto <- generate_impacts(datos, num_simulations)
+  Probabilidad <- runif(length(Impacto), 0, 1)
+  results <- data.frame(Probabilidad, Impacto)
+  results$Riesgo <- results$Probabilidad * results$Impacto
+  results <- results %>% mutate(Nivel_Riesgo = case_when(
+    Riesgo < 5 ~ "Muy Bajo",
+    Riesgo < 45 ~ "Bajo",
+    Riesgo < 130 ~ "Medio",
+    Riesgo < 205 ~ "Alto",
+    TRUE ~ "Muy Alto"
+  ))
+  return(results)
+}
+
+# Función para encontrar los umbrales adecuados para todos los niveles de riesgo
+# Aquí toca definir la razón del porque los valores dados en los target_probs, cuales son los usualmente usados y porque se definen estos
+find_thresholds <- function(datos, target_probs = c("Muy Bajo" = 0.8, "Bajo" = 0.6, "Medio" = 0.2, "Alto" = 0.05, "Muy Alto" = 0.01), num_simulations = 10000) {
+  thresholds <- c()
+  
+  for (nivel in names(target_probs)) {
+    threshold <- 10  # Umbral inicial bajo
+    prob_materialized <- 1
+    step_size <- 5  # Tamaño del paso para ajustar
+    
+    # Ajustar el umbral hasta alcanzar la probabilidad objetivo para cada nivel
+    while (prob_materialized > target_probs[nivel]) {
+      sensitivity_results <- simulate_sensitivity(datos, num_simulations)
+      materialized_risk_count <- sum(sensitivity_results$Riesgo >= threshold)
+      prob_materialized <- materialized_risk_count / num_simulations
+      if (prob_materialized > target_probs[nivel]) {
+        threshold <- threshold + step_size
+      } else {
+        threshold <- threshold - step_size
+        step_size <- step_size / 2  # Ajuste fino del paso
+      }
+    }
+    thresholds[nivel] <- threshold
+  }
+  
+  return(thresholds)
+}
+
+# Ejecutar para encontrar los umbrales de todos los niveles
+umbrales_riesgo <- find_thresholds(datos)
+print(umbrales_riesgo)
+
+# Esta gráfica muestra el comportamiento de los umbrales
+# Ejecutar simulación
+num_simulations <- 10000
+sensitivity_results <- simulate_sensitivity(datos, num_simulations)
+# Calcular la probabilidad actual de los niveles de riesgo
+prob_riesgos <- sensitivity_results %>%
+  group_by(Nivel_Riesgo) %>%
+  summarise(Count = n()) %>%
+  mutate(Probability = Count / num_simulations)
+# Mostrar las probabilidades de cada nivel de riesgo
+print(prob_riesgos)
+# Crear gráfico de resultados de sensibilidad
+risk_colors <- c("Muy Bajo" = "#006600","Bajo" = "#FFFF99", "Medio" = "#FFFF00", "Alto" = "#FF9900", "Muy Alto" = "#FF0000")
+ggplot(sensitivity_results, aes(x = Probabilidad, y = Impacto, color = Nivel_Riesgo)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = risk_colors) +
+  labs(
+    title = "Análisis de Sensibilidad de Niveles de Riesgo",
+    x = "Probabilidad",
+    y = "Impacto (millones de dólares)",
+    color = "Nivel de Riesgo"
+  ) +
+  theme_minimal()
+
+
+####################
+# Despúes de establecer umbrales, se debería crear la matriz RAM o de Isocuantas que muestre la ubicación de los puntos reales en la matriz RAM o de Isocuantas
+## Este es un ejemplo de 20 puntos aleatorios de probabilidad y riesgo, estos se grafican en la matriz diseñada
+# Cargar el paquete necesario
+library(ggplot2)
+library(plotly)
+# Crear un data frame con diferentes niveles de riesgo
+data <- expand.grid(
+  Probabilidad = seq(0, 1, length.out = 100),
+  Impacto = seq(0, 400, length.out = 100)  # Impacto en millones de dólares
+)
+# Definir una función para calcular el nivel de riesgo basado en el producto de probabilidad e impacto
+# nota: Porfa revisa si los codigos aqui puestos umbrales_riesgo[[i]] son los que deben ser para cada umbral específico
+risk_level <- function(probabilidad, impacto) {
+  riesgo <- probabilidad * impacto
+  if (riesgo < umbrales_riesgo[[1]]) {
+    return("Muy Bajo")
+  } else if (riesgo < umbrales_riesgo[[2]]) {
+    return("Bajo")
+  } else if (riesgo < umbrales_riesgo[[3]]) {
+    return("Medio")
+  } else if (riesgo < umbrales_riesgo[[4]]) {
+    return("Alto")
+  } else {
+    return("Muy Alto")
+  }
+}
+# Calcular el nivel de riesgo para cada combinación de probabilidad e impacto
+data$Riesgo <- mapply(risk_level, data$Probabilidad, data$Impacto)
+# Crear un conjunto de datos de ejemplo para los puntos de riesgo
+set.seed(123)  # Para reproducibilidad
+num_points <- 20
+risk_points <- data.frame(
+  Probabilidad = runif(num_points, 0, 1),
+  Impacto = runif(num_points, 0, 400)  # Impacto en millones de dólares
+)
+risk_points$Nivel_Riesgo <- mapply(risk_level, risk_points$Probabilidad, risk_points$Impacto)
+risk_points$Producto <- risk_points$Probabilidad * risk_points$Impacto
+#
+risk_points2<-data.frame(
+  Probabilidad = c(0.2,0.4,0.9,0.01,0.05),
+  Impacto = c(300,200,200,80,300)
+)
+risk_points2$Nivel_Riesgo <- mapply(risk_level, risk_points2$Probabilidad, risk_points2$Impacto)
+risk_points2$Producto <- risk_points2$Probabilidad * risk_points2$Impacto
+
+# Definir colores para cada nivel de riesgo
+risk_colors <- c("Muy Bajo" = "#006600","Bajo" = "#FFFF99", "Medio" = "#FFFF00", "Alto" = "#FF9900", "Muy Alto" = "#FF0000")
+# Crear el gráfico
+p<-ggplot() +
+  geom_tile(data = data, aes(x = Probabilidad, y = Impacto, fill = Riesgo), alpha = 0.2) +
+  stat_contour(data = data, aes(x = Probabilidad, y = Impacto, z = Probabilidad * Impacto), breaks = c(umbrales_riesgo[[1]],umbrales_riesgo[[2]], umbrales_riesgo[[3]], umbrales_riesgo[[4]]), color = "black", size = 0.5) +
+  geom_point(data = risk_points, aes(x = Probabilidad, y = Impacto, color = Nivel_Riesgo, size = Producto), alpha = 0.7) +
+  scale_fill_manual(values = risk_colors) +
+  scale_color_manual(values = risk_colors) +
+  scale_size_continuous(range = c(3, 6)) +
+  labs(
+    title = "Gráfico de Isocuantas para Niveles de Riesgo",
+    x = "Probabilidad",
+    y = "Impacto (millones de dólares)",
+    fill = "Nivel de Riesgo",
+    color = "Nivel de Riesgo",
+    size = "Producto P*I"
+  ) +
+  theme_minimal()
+p
+pp<-ggplot() +
+  #geom_tile(data = data, aes(x = Probabilidad, y = Impacto, fill = Riesgo), alpha = 0.2) +
+  stat_contour(data = data, aes(x = Probabilidad, y = Impacto, z = Probabilidad * Impacto), breaks = c(10,50, 200, 300), color = "black", size = 0.5) +
+  geom_point(data = risk_points, aes(x = Probabilidad, y = Impacto, color = Nivel_Riesgo, size = Producto), alpha = 0.7) +
+  scale_fill_manual(values = risk_colors) +
+  scale_color_manual(values = risk_colors) +
+  scale_size_continuous(range = c(3, 6)) +
+  labs(
+    title = "Gráfico de Isocuantas para Niveles de Riesgo",
+    x = "Probabilidad",
+    y = "Impacto (millones de dólares)",
+    fill = "Nivel de Riesgo",
+    color = "Nivel de Riesgo",
+    size = "Producto P*I"
+  ) +
+  theme_minimal()
+ggplotly(pp)
