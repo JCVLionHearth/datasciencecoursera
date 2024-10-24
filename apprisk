@@ -1,52 +1,328 @@
-Para lograr lo que necesitas, podrías seguir estos pasos para contar las causas únicas asociadas a un riesgo y almacenarlas en un resumen de la base de datos de riesgos:
+del archivo models.py tengo esto
 
-	1.	Estructura de las bases de datos:
-	•	Riesgos: contiene la información principal de cada riesgo, incluyendo el campo causas_resumidas que actualizarás.
-	•	Controles: incluye un campo causas (lista de causas) y un campo id_riesgo que asocia el control a un riesgo.
-	•	Acciones: también contiene un campo causas y un campo id_riesgo para asociar la acción a un riesgo.
-	2.	Algoritmo para contar las causas únicas:
-	•	Primero, deberás consultar todos los controles y acciones asociadas a un riesgo particular, y extraer las causas de cada uno.
-	•	Luego, unificar las listas de causas provenientes de controles y acciones, eliminando duplicados.
-	•	Contar cuántas causas únicas quedan después de eliminar duplicados y almacenar ese valor en el campo causas_resumidas del riesgo correspondiente.
-	3.	Código:
-Suponiendo que usas SQLAlchemy para manejar las bases de datos, podrías implementar algo así:
+from . import db
 
-from sqlalchemy import func
-from models import Riesgo, Control, Accion  # Modelos de tus bases de datos
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_personas=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_ambiente=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_recursos_economicos=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_reputacional=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_clientes=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
+    
 
-# Función para actualizar el campo de causas resumidas en la base de datos de riesgos
-def actualizar_causas_resumidas(riesgo_id, session):
-    # Obtener causas desde controles y acciones
-    causas_controles = session.query(Control.causas).filter_by(id_riesgo=riesgo_id).all()
-    causas_acciones = session.query(Accion.causas).filter_by(id_riesgo=riesgo_id).all()
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    nombre_control=db.Column(db.String(50), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # preventivo, detectivo, correctivo
+    clase = db.Column(db.Integer, nullable=False)  # manual=5, manual TI=10, automatico=15
+    efectividad = db.Column(db.Integer, nullable=False)  # 0 = inefectivo, 70 = efectivo
+    cubrimiento_causa = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    cubrimiento_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
 
-    # Combinar todas las causas en una sola lista
-    todas_causas = [causa for sublist in causas_controles for causa in sublist[0]] + \
-                   [causa for sublist in causas_acciones for causa in sublist[0]]
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    at = db.Column(db.String(100), nullable=False)
+    categoria = db.Column(db.Integer, nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
 
-    # Eliminar duplicados
-    causas_unicas = set(todas_causas)
 
-    # Contar el número de causas únicas
-    num_causas = len(causas_unicas)
+del archivo utils.py esto:
 
-    # Actualizar el campo en la tabla de riesgos
-    riesgo = session.query(Riesgo).filter_by(id=riesgo_id).first()
-    riesgo.causas_resumidas = num_causas
-    session.commit()
+import pandas as pd
 
-# Ejemplo de uso
-# session es la conexión a la base de datos
-actualizar_causas_resumidas(riesgo_id=1, session=session)
+import os
 
-	4.	Explicación:
-	•	Se extraen todas las causas de los controles y acciones asociados a un riesgo específico.
-	•	Se combinan en una sola lista y se eliminan los duplicados utilizando set().
-	•	Finalmente, se actualiza el campo causas_resumidas en la tabla de riesgos con el conteo de causas únicas.
-	5.	Actualización del resumen:
-Este mismo enfoque puede ser utilizado para generar un resumen de riesgos en tu aplicación o interfaz, mostrando el número de controles, acciones y causas únicas para cada riesgo.
+def archivos_cargados():
+    archivos = ['uploads/Controles.xlsx', 'uploads/Acciones.xlsx','uploads/Causas.xlsx']
+    for archivo in archivos:
+        if not os.path.exists(archivo):
+            return False
+        df = pd.read_excel(archivo)
+        if df.empty:
+            return False
+    return True
 
-Este flujo te permitirá consolidar las causas, evitando duplicados y reflejando la cantidad total de causas en tu resumen de riesgos.
+def cargar_controles():
+    df = pd.read_excel('uploads/Controles.xlsx')
+    return df['Nombre_control'].tolist()
+
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    return [(row['Puntaje_AT'], row['AT']) for index, row in df.iterrows()]
+
+def cargar_causas():
+    df = pd.read_excel('uploads/Causas.xlsx')
+    return df['Nombre_Causa'].tolist()
+
+
+de forms.py esto:
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired
+from app.utils import cargar_controles, cargar_acciones, cargar_causas, archivos_cargados
+
+class ControlForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    nombre_control = SelectField('Nombre del Control', choices=[])
+    tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+    clase = SelectField('Clase de Control', choices=[(5, 'Manual'), (10, 'Manual TI'), (15, 'Automático')])
+    efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+    cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+    def __init__(self, *args, **kwargs):
+        super(ControlForm, self).__init__(*args, **kwargs)
+        self.nombre_control.choices = [(control, control) for control in cargar_controles()]
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
+
+class AccionTratamientoForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+    def __init__(self, *args, **kwargs):
+        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
+        self.categoria.choices = cargar_acciones()
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
+
+de routes.py esto:
+
+from flask import render_template, redirect, url_for, flash, request
+from flask import Blueprint
+from app import db
+from app.models import Risk
+from app.forms import RiskForm
+from app.forms import ControlForm, AccionTratamientoForm
+from app.models import Control, AccionTratamiento
+from werkzeug.utils import secure_filename
+import json
+from flask import jsonify
+from app.utils import calcular_puntaje_inherente, calcular_riesgo_residual,calcular_reduccion_por_controles,calcular_reduccion_por_acciones,obtener_nivel_riesgo,cargar_controles, cargar_acciones,archivos_cargados
+from app.matriz_riesgo import generar_matriz_riesgo
+import random
+import colorsys
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+import os
+
+@main.route('/parametros', methods=['GET', 'POST'])
+def parametros():
+    if request.method == 'POST':
+        archivo_controles = request.files['archivo_controles']
+        archivo_acciones = request.files['archivo_acciones']
+        archivo_causas = request.files['archivo_causas']
+        
+        if archivo_controles and archivo_acciones and archivo_causas:
+            # Crear el directorio 'uploads' si no existe
+            if not os.path.exists('uploads'):
+                os.makedirs('uploads')
+            
+            filename_controles = secure_filename(archivo_controles.filename)
+            filename_acciones = secure_filename(archivo_acciones.filename)
+            filename_causas = secure_filename(archivo_causas.filename)
+            
+            archivo_controles.save(os.path.join('uploads', filename_controles))
+            archivo_acciones.save(os.path.join('uploads', filename_acciones))
+            archivo_causas.save(os.path.join('uploads', filename_causas))
+            
+            flash('Archivos cargados y parámetros definidos con éxito', 'success')
+            return redirect(url_for('main.index'))
+    
+    return render_template('parametros.html')
+
+# Ruta para agregar un control a un riesgo
+@main.route('/riesgo/<int:id>/agregar_control', methods=['GET', 'POST'])
+def agregar_control(id):
+    if not archivos_cargados():
+        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
+        return redirect(url_for('main.parametros'))
+    riesgo = Risk.query.get_or_404(id)
+    form = ControlForm()
+
+    if form.validate_on_submit():
+        nuevo_control = Control(
+            nombre_causa=form.nombre_causa.data,
+            nombre_control=form.nombre_control.data,
+            tipo=form.tipo.data,
+            clase=form.clase.data,
+            efectividad=form.efectividad.data,
+            cubrimiento_causa=form.cubrimiento_causa.data,
+            cubrimiento_consecuencia=form.cubrimiento_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nuevo_control)
+        db.session.commit()
+        flash('Control añadido con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_control.html', form=form, riesgo=riesgo)
+
+# Ruta para agregar una acción de tratamiento a un riesgo
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    if not archivos_cargados():
+        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
+        return redirect(url_for('main.parametros'))
+    riesgo = Risk.query.get_or_404(id)
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        at=dict(form.categoria.choices).get(form.categoria.data)
+        nueva_accion = AccionTratamiento(
+            nombre_causa=form.nombre_causa.data,
+            at=at,
+            categoria=form.categoria.data,
+            puntos_causa=form.puntos_causa.data,
+            puntos_consecuencia=form.puntos_consecuencia.data,
+            riesgo_id=id
+        )
+        db.session.add(nueva_accion)
+        db.session.commit()
+        flash('Acción de tratamiento añadida con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+
+
+@main.route('/dashboard')
+def dashboard():
+    riesgos = Risk.query.all()
+    riesgos_data = []
+    colores_unicos = generar_paleta_unica(len(riesgos))
+
+    for i, riesgo in enumerate(riesgos):
+        color_riesgo = colores_unicos[i]
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+
+        if controles and acciones:
+            reduccion_controles = calcular_reduccion_por_controles(controles)
+            reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+            puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones)
+        else:
+            puntaje_residual_causa = 0
+            puntaje_residual_consecuencia = 0
+
+        probabilidad_inherente = riesgo.probabilidad_inherente
+        consecuencia_inherente = riesgo.impacto_inherente
+        puntaje_final_causa = probabilidad_inherente - puntaje_residual_causa
+        puntaje_final_consecuencia = consecuencia_inherente - puntaje_residual_consecuencia
+
+        riesgos_data.append({
+            'id': riesgo.id,
+            'nombre': riesgo.codigo,
+            'descripcion': riesgo.nombre,
+            'escenario': riesgo.escenario,
+            'probabilidad_inherente': probabilidad_inherente,
+            'consecuencia_inherente': consecuencia_inherente,
+            'reduccion_residual_causa': puntaje_residual_causa,
+            'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+            'puntaje_final_causa': puntaje_final_causa,
+            'puntaje_final_consecuencia': puntaje_final_consecuencia,
+            'color': color_riesgo,
+            'num_controles': len(controles),
+            'num_acciones': len(acciones)
+        })
+
+	
+	    return render_template('dashboard.html', riesgos_data=riesgos_data)
+
+
+y en dashboard.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        #grafico {
+            width: 100%;
+            height: 500px; /* Ajusta la altura según sea necesario */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Dashboard de Riesgos</h1>
+        <div id="grafico" class="well"></div>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Código Riesgo</th>
+                    <th>Nombre del Riesgo</th>
+                    <th>Escenario Riesgo</th>
+                    <th>Probabilidad Inherente</th>
+                    <th>Impacto Inherente</th>
+                    <th>Probabilidad Residual</th>
+                    <th>Impacto Residual</th>
+                    <th>Número de Controles</th>
+                    <th>Número de Acciones</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for riesgo in riesgos_data %}
+                <tr>
+                    <td>{{ riesgo.nombre }}</td>
+                    <td>{{ riesgo.descripcion }}</td>
+                    <td>{{ riesgo.escenario }}</td>
+                    <td>{{ riesgo.probabilidad_inherente }}</td>
+                    <td>{{ riesgo.consecuencia_inherente }}</td>
+                    <td>{{ riesgo.puntaje_final_causa }}</td>
+                    <td>{{ riesgo.puntaje_final_consecuencia }}</td>
+                    <td>{{ riesgo.num_controles }}</td>
+                    <td>{{ riesgo.num_acciones }}</td>
+                    <td>
+                        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-primary btn-xs">Editar</a>
+                        <a href="{{ url_for('main.eliminar_riesgo', id=riesgo.id) }}" class="btn btn-danger btn-xs" 
+                        onclick="return confirm('Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?');">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ url_for('main.index') }}" class="btn btn-default">Regresar</a>
+    </div>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+
+es aquí donde quiero que se muestre un campo llamado "Causas Valoradas" y que se que el que se cuente por Riesgo el número de causas únicas
 
 #parte 2
 
