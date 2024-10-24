@@ -1,3 +1,70 @@
+Para guardar la fecha de creación tanto de los riesgos, controles como de las acciones en tu base de datos, puedes agregar un campo de tipo DateTime en tus modelos y establecer un valor por defecto utilizando datetime.now() en el momento en que se crea un nuevo registro.
+
+Paso 1: Modificar los modelos
+
+Asegúrate de que tus modelos tengan un campo para la fecha de creación. Puedes agregarlo de la siguiente manera:
+
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class Risk(db.Model):
+    __tablename__ = 'riesgos'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(50))
+    nombre = db.Column(db.String(100))
+    escenario = db.Column(db.String(100))
+    # Otros campos del modelo...
+
+    # Nuevo campo para la fecha de creación
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now)
+
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa = db.Column(db.String(100))
+    nombre_control = db.Column(db.String(100))
+    tipo = db.Column(db.String(50))
+    clase = db.Column(db.String(50))
+    # Otros campos del modelo...
+
+    # Nuevo campo para la fecha de creación
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now)
+
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa = db.Column(db.String(100))
+    at = db.Column(db.String(100))  # Acción de tratamiento
+    categoria = db.Column(db.String(50))
+    # Otros campos del modelo...
+
+    # Nuevo campo para la fecha de creación
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now)
+
+Paso 2: Crear o migrar la base de datos
+
+Después de modificar los modelos, debes asegurarte de que la base de datos refleje estos cambios. Si estás usando Flask-Migrate, puedes crear una nueva migración y actualizar la base de datos.
+
+flask db migrate -m "Agregar campo fecha_creacion a los modelos"
+flask db upgrade
+
+Paso 3: Guardar las fechas de creación al crear registros
+
+Como ya has definido default=datetime.now, cuando crees un nuevo registro en cualquiera de estos modelos, la fecha y hora de creación se guardará automáticamente. No necesitas hacer nada adicional en tu código de inserción.
+
+Por ejemplo, cuando crees un nuevo riesgo, control, o acción, la fecha de creación se guardará automáticamente.
+
+Ejemplo de crear un nuevo riesgo:
+
+nuevo_riesgo = Risk(codigo='R-001', nombre='Riesgo Financiero', escenario='Escenario A')
+db.session.add(nuevo_riesgo)
+db.session.commit()
+# Aquí, el campo fecha_creacion se guardará automáticamente con la fecha y hora actuales.
+
+Lo mismo aplic
+
 Para agregar el campo “número de causas” al DataFrame de riesgos que se descarga en Excel, primero necesitas calcular el número de causas asociadas a cada riesgo. Esto lo puedes hacer iterando sobre las relaciones entre las tablas de Riesgos, Controles, y Acciones, ya que tanto los controles como las acciones tienen un campo nombre_causa.
 
 Paso 1: Obtener el número de causas
