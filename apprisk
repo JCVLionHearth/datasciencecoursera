@@ -1,3 +1,93 @@
+Para aplicar filtros en tu ruta y mostrar solo los datos filtrados en el Dashboard, puedes agregar filtros en el mismo controlador que crea el DataFrame o en una función separada que procese los parámetros que recibes del usuario. Aquí tienes dos partes que necesitarías:
+
+1. Agregar filtros a la consulta en routes.py:
+
+Puedes modificar la ruta de download_excel para aplicar filtros basados en los parámetros que envíe el usuario (por ejemplo, por tipo de control, categoría de acción, etc.).
+
+@main.route('/download_excel')
+def download_excel():
+    # Obtener filtros desde los parámetros de la URL
+    tipo_control = request.args.get('tipo_control')
+    categoria_accion = request.args.get('categoria_accion')
+    
+    # Aplicar los filtros a las consultas
+    query_riesgos = Risk.query
+    query_controles = Control.query
+    query_acciones = AccionTratamiento.query
+
+    if tipo_control:
+        query_controles = query_controles.filter(Control.tipo == tipo_control)
+    
+    if categoria_accion:
+        query_acciones = query_acciones.filter(AccionTratamiento.categoria == categoria_accion)
+    
+    # Ejecutar las consultas filtradas
+    riesgos = query_riesgos.all()
+    controles = query_controles.all()
+    acciones = query_acciones.all()
+
+    # Crear DataFrames (como en el código anterior)
+    df_riesgos = pd.DataFrame([...])
+    df_controles = pd.DataFrame([...])
+    df_acciones = pd.DataFrame([...])
+
+    # Crear un archivo Excel con múltiples hojas
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_riesgos.to_excel(writer, sheet_name='Riesgos', index=False)
+        df_controles.to_excel(writer, sheet_name='Controles', index=False)
+        df_acciones.to_excel(writer, sheet_name='Acciones', index=False)
+
+    output.seek(0)
+    return send_file(output, download_name='riesgos.xlsx', as_attachment=True)
+
+2. Modificación del Dashboard:
+
+En tu vista del Dashboard, puedes permitir que los usuarios seleccionen los filtros antes de que se genere la tabla. Los filtros pueden ser seleccionados mediante formularios en la interfaz, y luego enviarse como parámetros a la ruta.
+
+Por ejemplo, un formulario en HTML podría verse así:
+
+<form method="GET" action="{{ url_for('download_excel') }}">
+    <label for="tipo_control">Tipo de Control:</label>
+    <input type="text" id="tipo_control" name="tipo_control">
+
+    <label for="categoria_accion">Categoría de Acción:</label>
+    <input type="text" id="categoria_accion" name="categoria_accion">
+
+    <button type="submit">Filtrar y Descargar Excel</button>
+</form>
+
+Este formulario enviará los filtros tipo_control y categoria_accion como parámetros GET a tu ruta, permitiéndote generar la tabla y el archivo Excel solo con los datos filtrados.
+
+3. Mostrar la tabla filtrada en el Dashboard:
+
+Si quieres que la tabla en el Dashboard refleje estos filtros también, puedes hacer algo similar en la vista del Dashboard para obtener los datos filtrados y mostrarlos directamente en lugar de descargarlos:
+
+@main.route('/dashboard')
+def dashboard():
+    tipo_control = request.args.get('tipo_control')
+    categoria_accion = request.args.get('categoria_accion')
+    
+    # Aplicar los mismos filtros
+    query_riesgos = Risk.query
+    query_controles = Control.query
+    query_acciones = AccionTratamiento.query
+
+    if tipo_control:
+        query_controles = query_controles.filter(Control.tipo == tipo_control)
+    
+    if categoria_accion:
+        query_acciones = query_acciones.filter(AccionTratamiento.categoria == categoria_accion)
+    
+    riesgos = query_riesgos.all()
+    controles = query_controles.all()
+    acciones = query_acciones.all()
+
+    # Renderizar la tabla filtrada en la vista
+    return render_template('dashboard.html', riesgos=riesgos, controles=controles, acciones=acciones)
+
+Esto permitirá que el Dashboard se actualice automáticamente según los filtros seleccionados por el usuario.
+
 from openpyxl.utils import get_column_letter
 
 # Después de escribir los DataFrames en Excel:
