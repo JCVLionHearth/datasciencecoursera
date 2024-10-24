@@ -1,3 +1,62 @@
+Actualmente tengo este codigo para descargar un excel en routes.py
+
+@main.route('/download_excel')
+def download_excel():
+    # Obtener datos de la base de datos
+    riesgos = Risk.query.all()
+    controles = Control.query.all()
+    acciones = AccionTratamiento.query.all()
+
+    # Crear DataFrames
+    df_riesgos = pd.DataFrame([{
+        'ID': riesgo.id,
+        'Código': riesgo.codigo,
+        'Nombre': riesgo.nombre,
+        'Escenario': riesgo.escenario,
+        'Probabilidad Inherente': riesgo.probabilidad_inherente,
+        'Impacto Personas': riesgo.impacto_personas,
+        'Impacto Ambiente': riesgo.impacto_ambiente,
+        'Impacto Recursos Económicos': riesgo.impacto_recursos_economicos,
+        'Impacto Reputacional': riesgo.impacto_reputacional,
+        'Impacto Clientes': riesgo.impacto_clientes,
+        'Impacto Inherente': riesgo.impacto_inherente
+    } for riesgo in riesgos])
+
+    df_controles = pd.DataFrame([{
+        'ID': control.id,
+        'Nombre Causa': control.nombre_causa,
+        'Nombre Control': control.nombre_control,
+        'Tipo': control.tipo,
+        'Clase': control.clase,
+        'Efectividad': control.efectividad,
+        'Cubrimiento Causa': control.cubrimiento_causa,
+        'Cubrimiento Consecuencia': control.cubrimiento_consecuencia,
+        'Riesgo ID': control.riesgo_id
+    } for control in controles])
+
+    df_acciones = pd.DataFrame([{
+        'ID': accion.id,
+        'Nombre Causa': accion.nombre_causa,
+        'Acción de Tratamiento': accion.at,
+        'Categoría': accion.categoria,
+        'Puntos Causa': accion.puntos_causa,
+        'Puntos Consecuencia': accion.puntos_consecuencia,
+        'Riesgo ID': accion.riesgo_id
+    } for accion in acciones])
+
+    # Crear un archivo Excel con múltiples hojas
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_riesgos.to_excel(writer, sheet_name='Riesgos', index=False)
+        df_controles.to_excel(writer, sheet_name='Controles', index=False)
+        df_acciones.to_excel(writer, sheet_name='Acciones', index=False)
+
+    output.seek(0)
+
+    return send_file(output, download_name='riesgos.xlsx', as_attachment=True)
+
+#############
+
 Para incluir un campo en el dashboard llamado “Causas Valoradas” que muestre el número de causas únicas relacionadas con cada riesgo, puedes seguir estos pasos:
 
 Modificación en el modelo Risk
