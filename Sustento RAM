@@ -1,3 +1,21 @@
+Actualmente tengo un código en R que permite a partir de datos históricos de impacto y frecuencias o probabilidades determinar los umbrales que definirian ciertos niveles de riesgo.
+con este código se pretende valorar los riesgos en escala de impacto y de probabilidad, pero a partir de la historia propia del riesgo.
+con esto se pretende dar las pautas para el desarrollo de una matriz RAM
+la idea es que me ayudes:
+hacer un documento en código latex que reuna en detalle toda la información que aqui agrego, que explique la metodología que se está plasmando en el codigo, pero la esencia conceptual, es decir el codigo o el uso de R en la metodología no es crucial, en este documento se debe explicar como determinar el impacto, frecuencia o probabilidad.
+Este documento debe ser una guía de desarrollo genérico para la determinacion de una matriz RAM, es decir que cualquiera que lea este documento pueda obtener las pautas necesarias para determinar la matriz y valorar su riesgo.
+debe tener los sustentos técnicos, matemáticos o estadisticos necesarios
+debe ser entendible por cualquier publico, por lo que el detalle y generalidad son necesarios
+la matriz ram esta definida con estas caracterisiticas
+    probabilidades = ['raro', 'improbable', 'posible', 'probable', 'con certeza']
+    impactos = ['insignificante', 'menor', 'moderado', 'mayor', 'catastrófico']
+aqui lo importante es lograr definir cuando se cumple cada categoría, la razón de su valor, pero para esto es importante explicar como se deberia definir los impactos y probabilidades, de tal manera que sea coherente con el riesgo tratado, basate en el codigo para entender e interpretar lo que digo
+
+Lo anterior y el codigo actual funciona para riesgo de tipo cuantitativos, pero no para los cualitativos tales como: reputacional, afectacion a personas o afectación ambiental, diseña una metodología apropiada desde la perspectiva actuarial y del como debería ser valoradas
+
+HAz un documento muy detallado que incluya las buenas practicas asociadas para determinación de una matriz de riesgos
+
+
 # Metodología para la Determinación de Matrices de Riesgo (RAM)
 
 ## Índice
@@ -279,24 +297,7 @@ La creación de una matriz RAM bien estructurada es clave para la gestión efect
 
 \end{document}
 
-Actualmente tengo el siguiente código en R que permite a partir de datos históricos de impacto y frecuencias o probabilidades determinar los umbrales que definirian ciertos niveles de riesgo.
-con este código se pretende valorar los riesgos en escala de impacto y de probabilidad, pero a partir de la historia propia del riesgo.
-con esto se pretende dar las pautas para el desarrollo de una matriz RAM
-la idea es que me ayudes:
-1. A revisar el codigo actual y hacer ajustes
-2. 
-hacer un documento en latex, que explique la metodología que se está plasmando en el codigo, pero la esencia conceptual, es decir el codigo o el uso de R en la metodología no es crucial, en este documento se debe explicar como determinar el impacto, frecuencia o probabilidad.
-Este documento debe ser una guía de desarrollo genérico para la determinacion de una matriz RAM, es decir que cualquiera que lea este documento pueda obtener las pautas necesarias para determinar la matriz y valorar su riesgo.
-debe tener los sustentos técnicos, matemáticos o estadisticos necesarios
-debe ser entendible por cualquier publico, por lo que el detelle y generalidad son necesarios
-la matriz ram esta definida con estas caracterisiticas
-    probabilidades = ['raro', 'improbable', 'posible', 'probable', 'con certeza']
-    impactos = ['insignificante', 'menor', 'moderado', 'mayor', 'catastrófico']
-aqui lo importante es lograr definir cuando se cumple cada categoría, la razón de su valor, pero para esto es importante explicar como se deberia definir los impactos y probabilidades, de tal manera que sea coherente con el riesgo tratado, basate en el codigo para entender e interpretar lo que digo
-
-Lo anterior y el codigo actual funciona para riesgo de tipo cuantitativos, pero no para los cualitativos tales como: reputacional, afectacion a personas o afectación ambiental, diseña una metodología apropiada desde la perspectiva actuarial y del como debería ser valoradas
-
-HAz un documento muy detallado que incluya las buenas practicas asociadas para determinación de una matriz de riesgos
+### Código R
 
 # Cargar librerías necesarias
 library(ggplot2)
