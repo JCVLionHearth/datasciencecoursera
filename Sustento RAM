@@ -1,15 +1,18 @@
-Objetivo: Crear un documento en LaTeX que explique cómo desarrollar una matriz RAM (Riesgo, Análisis y Mitigación) basada en datos históricos de impacto y probabilidad, utilizando un código en R como referencia.
+Crea un documento en LaTeX que explique cómo desarrollar una matriz RAM (Riesgo, Análisis y Mitigación) basada en datos históricos de impacto y probabilidad, utilizando un código en R como referencia y los dos bosquejos que ya he escrito
+Debe cumplir con los siguientes requisitos:
 
 Contenido del Documento:
 
 Introducción y propósito.
 Metodología para determinar impacto y probabilidad.
 Definición de categorías de impacto y probabilidad.
+Definición de umbrales para riesgos cuantitativos o económicos.
 Pasos para construir la matriz RAM.
 Evaluación de riesgos cuantitativos y cualitativos.
 Buenas prácticas para la implementación.
+Métodos y sustentos estadísticos y matemáticos
 
-Requisitos:
+Requisitos adicionales:
 Entendible para cualquier público.
 Incluir fundamentos técnicos, matemáticos y estadísticos necesarios.
 No es crucial incluir el código en R, pero sí la esencia conceptual.
