@@ -1,3 +1,53 @@
+Para lograr lo que necesitas, podrías seguir estos pasos para contar las causas únicas asociadas a un riesgo y almacenarlas en un resumen de la base de datos de riesgos:
+
+	1.	Estructura de las bases de datos:
+	•	Riesgos: contiene la información principal de cada riesgo, incluyendo el campo causas_resumidas que actualizarás.
+	•	Controles: incluye un campo causas (lista de causas) y un campo id_riesgo que asocia el control a un riesgo.
+	•	Acciones: también contiene un campo causas y un campo id_riesgo para asociar la acción a un riesgo.
+	2.	Algoritmo para contar las causas únicas:
+	•	Primero, deberás consultar todos los controles y acciones asociadas a un riesgo particular, y extraer las causas de cada uno.
+	•	Luego, unificar las listas de causas provenientes de controles y acciones, eliminando duplicados.
+	•	Contar cuántas causas únicas quedan después de eliminar duplicados y almacenar ese valor en el campo causas_resumidas del riesgo correspondiente.
+	3.	Código:
+Suponiendo que usas SQLAlchemy para manejar las bases de datos, podrías implementar algo así:
+
+from sqlalchemy import func
+from models import Riesgo, Control, Accion  # Modelos de tus bases de datos
+
+# Función para actualizar el campo de causas resumidas en la base de datos de riesgos
+def actualizar_causas_resumidas(riesgo_id, session):
+    # Obtener causas desde controles y acciones
+    causas_controles = session.query(Control.causas).filter_by(id_riesgo=riesgo_id).all()
+    causas_acciones = session.query(Accion.causas).filter_by(id_riesgo=riesgo_id).all()
+
+    # Combinar todas las causas en una sola lista
+    todas_causas = [causa for sublist in causas_controles for causa in sublist[0]] + \
+                   [causa for sublist in causas_acciones for causa in sublist[0]]
+
+    # Eliminar duplicados
+    causas_unicas = set(todas_causas)
+
+    # Contar el número de causas únicas
+    num_causas = len(causas_unicas)
+
+    # Actualizar el campo en la tabla de riesgos
+    riesgo = session.query(Riesgo).filter_by(id=riesgo_id).first()
+    riesgo.causas_resumidas = num_causas
+    session.commit()
+
+# Ejemplo de uso
+# session es la conexión a la base de datos
+actualizar_causas_resumidas(riesgo_id=1, session=session)
+
+	4.	Explicación:
+	•	Se extraen todas las causas de los controles y acciones asociados a un riesgo específico.
+	•	Se combinan en una sola lista y se eliminan los duplicados utilizando set().
+	•	Finalmente, se actualiza el campo causas_resumidas en la tabla de riesgos con el conteo de causas únicas.
+	5.	Actualización del resumen:
+Este mismo enfoque puede ser utilizado para generar un resumen de riesgos en tu aplicación o interfaz, mostrando el número de controles, acciones y causas únicas para cada riesgo.
+
+Este flujo te permitirá consolidar las causas, evitando duplicados y reflejando la cantidad total de causas en tu resumen de riesgos.
+
 #parte 2
 
 Modificaciones en utils.py
