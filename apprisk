@@ -1,3 +1,177 @@
+Para incluir un campo en el dashboard llamado “Causas Valoradas” que muestre el número de causas únicas relacionadas con cada riesgo, puedes seguir estos pasos:
+
+Modificación en el modelo Risk
+
+No es necesario modificar el modelo Risk, ya que los datos sobre las causas ya están almacenados en los modelos Control y AccionTratamiento con el campo nombre_causa.
+
+Modificación en la ruta del dashboard en routes.py
+
+En la función dashboard, debes agregar un cálculo para contar las causas únicas relacionadas con cada riesgo. Esto implica obtener las causas de las acciones y los controles relacionados y luego eliminar duplicados.
+
+Agrega el siguiente fragmento dentro del bucle for que recorre los riesgos:
+
+causas_controles = {control.nombre_causa for control in controles}  # Usamos un set para eliminar duplicados
+causas_acciones = {accion.nombre_causa for accion in acciones}
+causas_unicas = causas_controles.union(causas_acciones)  # Unimos los dos sets
+num_causas_valoradas = len(causas_unicas)  # Contamos las causas únicas
+
+Luego, dentro de riesgos_data.append, agrega el campo num_causas_valoradas:
+
+riesgos_data.append({
+    'id': riesgo.id,
+    'nombre': riesgo.codigo,
+    'descripcion': riesgo.nombre,
+    'escenario': riesgo.escenario,
+    'probabilidad_inherente': probabilidad_inherente,
+    'consecuencia_inherente': consecuencia_inherente,
+    'reduccion_residual_causa': puntaje_residual_causa,
+    'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+    'puntaje_final_causa': puntaje_final_causa,
+    'puntaje_final_consecuencia': puntaje_final_consecuencia,
+    'color': color_riesgo,
+    'num_controles': len(controles),
+    'num_acciones': len(acciones),
+    'num_causas_valoradas': num_causas_valoradas  # Nuevo campo
+})
+
+Modificación en la plantilla dashboard.html
+
+En el archivo dashboard.html, agrega una columna nueva en la tabla para mostrar el número de causas valoradas. Añade esta columna en el encabezado de la tabla:
+
+<th>Causas Valoradas</th>
+
+Y luego, dentro del cuerpo de la tabla, añade la fila correspondiente:
+
+<td>{{ riesgo.num_causas_valoradas }}</td>
+
+Código completo de routes.py modificado:
+
+@main.route('/dashboard')
+def dashboard():
+    riesgos = Risk.query.all()
+    riesgos_data = []
+    colores_unicos = generar_paleta_unica(len(riesgos))
+
+    for i, riesgo in enumerate(riesgos):
+        color_riesgo = colores_unicos[i]
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+
+        if controles and acciones:
+            reduccion_controles = calcular_reduccion_por_controles(controles)
+            reduccion_acciones = calcular_reduccion_por_acciones(acciones)
+            puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones)
+        else:
+            puntaje_residual_causa = 0
+            puntaje_residual_consecuencia = 0
+
+        probabilidad_inherente = riesgo.probabilidad_inherente
+        consecuencia_inherente = riesgo.impacto_inherente
+        puntaje_final_causa = probabilidad_inherente - puntaje_residual_causa
+        puntaje_final_consecuencia = consecuencia_inherente - puntaje_residual_consecuencia
+
+        # Contar causas únicas
+        causas_controles = {control.nombre_causa for control in controles}
+        causas_acciones = {accion.nombre_causa for accion in acciones}
+        causas_unicas = causas_controles.union(causas_acciones)
+        num_causas_valoradas = len(causas_unicas)
+
+        riesgos_data.append({
+            'id': riesgo.id,
+            'nombre': riesgo.codigo,
+            'descripcion': riesgo.nombre,
+            'escenario': riesgo.escenario,
+            'probabilidad_inherente': probabilidad_inherente,
+            'consecuencia_inherente': consecuencia_inherente,
+            'reduccion_residual_causa': puntaje_residual_causa,
+            'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+            'puntaje_final_causa': puntaje_final_causa,
+            'puntaje_final_consecuencia': puntaje_final_consecuencia,
+            'color': color_riesgo,
+            'num_controles': len(controles),
+            'num_acciones': len(acciones),
+            'num_causas_valoradas': num_causas_valoradas  # Nuevo campo
+        })
+
+    return render_template('dashboard.html', riesgos_data=riesgos_data)
+
+Código completo de dashboard.html modificado:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Riesgos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        #grafico {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Dashboard de Riesgos</h1>
+        <div id="grafico" class="well"></div>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Código Riesgo</th>
+                    <th>Nombre del Riesgo</th>
+                    <th>Escenario Riesgo</th>
+                    <th>Probabilidad Inherente</th>
+                    <th>Impacto Inherente</th>
+                    <th>Probabilidad Residual</th>
+                    <th>Impacto Residual</th>
+                    <th>Número de Controles</th>
+                    <th>Número de Acciones</th>
+                    <th>Causas Valoradas</th>  <!-- Nueva columna -->
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for riesgo in riesgos_data %}
+                <tr>
+                    <td>{{ riesgo.nombre }}</td>
+                    <td>{{ riesgo.descripcion }}</td>
+                    <td>{{ riesgo.escenario }}</td>
+                    <td>{{ riesgo.probabilidad_inherente }}</td>
+                    <td>{{ riesgo.consecuencia_inherente }}</td>
+                    <td>{{ riesgo.puntaje_final_causa }}</td>
+                    <td>{{ riesgo.puntaje_final_consecuencia }}</td>
+                    <td>{{ riesgo.num_controles }}</td>
+                    <td>{{ riesgo.num_acciones }}</td>
+                    <td>{{ riesgo.num_causas_valoradas }}</td> <!-- Mostrar causas valoradas -->
+                    <td>
+                        <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-primary btn-xs">Editar</a>
+                        <a href="{{ url_for('main.eliminar_riesgo', id=riesgo.id) }}" class="btn btn-danger btn-xs" 
+                        onclick="return confirm('Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?');">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ url_for('main.index') }}" class="btn btn-default">Regresar</a>
+    </div>
+
+    <script>
+        var graph_data = {{ graph_json | safe }};
+        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
+    </script>
+</body>
+</html>
+
+Resultado
+
+Esto te mostrará una nueva columna en el dashboard que indica el número de causas únicas valoradas por cada riesgo, combinando tanto las causas de los controles como de las acciones de tratamiento.
+
 del archivo models.py tengo esto
 
 from . import db
