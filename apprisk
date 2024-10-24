@@ -1,3 +1,93 @@
+Para agregar el campo “número de causas” al DataFrame de riesgos que se descarga en Excel, primero necesitas calcular el número de causas asociadas a cada riesgo. Esto lo puedes hacer iterando sobre las relaciones entre las tablas de Riesgos, Controles, y Acciones, ya que tanto los controles como las acciones tienen un campo nombre_causa.
+
+Paso 1: Obtener el número de causas
+
+Necesitas contar las causas únicas asociadas a cada riesgo. Puedes usar la relación entre Riesgo, Control, y AccionTratamiento para sumar el número de causas.
+
+Paso 2: Modificar la consulta de riesgos
+
+Una vez que tengas los riesgos, puedes calcular el número de causas relacionadas a cada uno y luego agregar esa información a tu DataFrame.
+
+Aquí te muestro cómo podrías modificar la función para incluir el número de causas en el DataFrame de df_riesgos:
+
+@main.route('/download_excel')
+def download_excel():
+    # Obtener filtros desde los parámetros de la URL (si los tienes)
+    tipo_control = request.args.get('tipo_control')
+    categoria_accion = request.args.get('categoria_accion')
+    
+    # Aplicar los filtros a las consultas
+    query_riesgos = Risk.query
+    query_controles = Control.query
+    query_acciones = AccionTratamiento.query
+
+    if tipo_control:
+        query_controles = query_controles.filter(Control.tipo == tipo_control)
+    
+    if categoria_accion:
+        query_acciones = query_acciones.filter(AccionTratamiento.categoria == categoria_accion)
+    
+    # Ejecutar las consultas filtradas
+    riesgos = query_riesgos.all()
+    controles = query_controles.all()
+    acciones = query_acciones.all()
+
+    # Crear un diccionario para contar las causas únicas por riesgo
+    causas_por_riesgo = {}
+
+    # Contar causas en controles
+    for control in controles:
+        if control.riesgo_id not in causas_por_riesgo:
+            causas_por_riesgo[control.riesgo_id] = set()
+        causas_por_riesgo[control.riesgo_id].add(control.nombre_causa)
+    
+    # Contar causas en acciones de tratamiento
+    for accion in acciones:
+        if accion.riesgo_id not in causas_por_riesgo:
+            causas_por_riesgo[accion.riesgo_id] = set()
+        causas_por_riesgo[accion.riesgo_id].add(accion.nombre_causa)
+    
+    # Crear DataFrame para riesgos, incluyendo el número de causas
+    df_riesgos = pd.DataFrame([{
+        'ID': riesgo.id,
+        'Código': riesgo.codigo,
+        'Nombre': riesgo.nombre,
+        'Escenario': riesgo.escenario,
+        'Probabilidad Inherente': riesgo.probabilidad_inherente,
+        'Impacto Personas': riesgo.impacto_personas,
+        'Impacto Ambiente': riesgo.impacto_ambiente,
+        'Impacto Recursos Económicos': riesgo.impacto_recursos_economicos,
+        'Impacto Reputacional': riesgo.impacto_reputacional,
+        'Impacto Clientes': riesgo.impacto_clientes,
+        'Impacto Inherente': riesgo.impacto_inherente,
+        'Número de Causas': len(causas_por_riesgo.get(riesgo.id, set()))  # Número de causas asociadas
+    } for riesgo in riesgos])
+
+    # Crear DataFrame para controles
+    df_controles = pd.DataFrame([...])
+
+    # Crear DataFrame para acciones
+    df_acciones = pd.DataFrame([...])
+
+    # Crear un archivo Excel con múltiples hojas
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_riesgos.to_excel(writer, sheet_name='Riesgos', index=False)
+        df_controles.to_excel(writer, sheet_name='Controles', index=False)
+        df_acciones.to_excel(writer, sheet_name='Acciones', index=False)
+
+    output.seek(0)
+    return send_file(output, download_name='riesgos.xlsx', as_attachment=True)
+
+Explicación:
+
+	1.	Cálculo de las causas: Se crea un diccionario causas_por_riesgo, donde la clave es el riesgo_id y el valor es un conjunto (set) que guarda los nombres únicos de las causas relacionadas con ese riesgo.
+	•	Para los controles, se agregan las causas a este conjunto por cada riesgo.
+	•	Para las acciones, se hace lo mismo.
+	2.	Añadir número de causas: En el DataFrame de riesgos, se añade una nueva columna 'Número de Causas' que calcula la longitud del conjunto de causas para cada riesgo (el número de causas únicas).
+
+Con este cambio, al descargar el Excel, la columna “Número de Causas” se incluirá para cada riesgo, mostrando cuántas causas están asociadas con él.
+
 Para aplicar filtros en tu ruta y mostrar solo los datos filtrados en el Dashboard, puedes agregar filtros en el mismo controlador que crea el DataFrame o en una función separada que procese los parámetros que recibes del usuario. Aquí tienes dos partes que necesitarías:
 
 1. Agregar filtros a la consulta en routes.py:
