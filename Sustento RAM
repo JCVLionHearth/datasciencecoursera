@@ -1,3 +1,173 @@
+# Metodología para la Determinación de Matrices de Riesgo (RAM)
+
+## Índice
+1. Introducción
+2. Fundamentos Teóricos
+3. Metodología para Riesgos Cuantitativos
+4. Metodología para Riesgos Cualitativos
+5. Construcción de la Matriz RAM
+6. Buenas Prácticas
+7. Conclusiones
+
+## 1. Introducción
+
+La gestión efectiva de riesgos requiere una metodología sistemática para evaluar y clasificar los diferentes tipos de riesgos que enfrenta una organización. La Matriz de Evaluación de Riesgos (RAM, por sus siglas en inglés) es una herramienta fundamental que permite visualizar y categorizar los riesgos según su probabilidad de ocurrencia e impacto.
+
+## 2. Fundamentos Teóricos
+
+### 2.1 Definición del Riesgo
+
+El riesgo se define matemáticamente como:
+
+```
+R = P × I
+```
+
+Donde:
+- R: Nivel de riesgo
+- P: Probabilidad de ocurrencia (0 ≤ P ≤ 1)
+- I: Impacto o severidad del evento
+
+### 2.2 Categorización del Riesgo
+
+La matriz RAM utiliza típicamente cinco niveles tanto para probabilidad como para impacto:
+
+Probabilidades:
+- Raro (1)
+- Improbable (2)
+- Posible (3)
+- Probable (4)
+- Con certeza (5)
+
+Impactos:
+- Insignificante (1)
+- Menor (2)
+- Moderado (3)
+- Mayor (4)
+- Catastrófico (5)
+
+## 3. Metodología para Riesgos Cuantitativos
+
+### 3.1 Determinación de Umbrales
+
+Los umbrales para riesgos cuantitativos se determinan mediante un proceso estadístico que considera:
+
+1. **Análisis Histórico de Datos**
+   - Recopilación de eventos pasados
+   - Clasificación por rangos de impacto
+   - Frecuencias observadas
+
+2. **Simulación Monte Carlo**
+   - Generación de escenarios
+   - Calibración de umbrales usando probabilidades objetivo
+   - Validación de resultados
+
+3. **Definición de Umbrales**
+   - Muy Bajo: P(R ≥ umbral) = 0.80
+   - Bajo: P(R ≥ umbral) = 0.60
+   - Medio: P(R ≥ umbral) = 0.20
+   - Alto: P(R ≥ umbral) = 0.05
+   - Muy Alto: P(R ≥ umbral) = 0.01
+
+### 3.2 Proceso de Calibración
+
+1. Inicialización de umbrales
+2. Simulación de escenarios
+3. Ajuste iterativo
+4. Convergencia a probabilidades objetivo
+
+## 4. Metodología para Riesgos Cualitativos
+
+### 4.1 Riesgo Reputacional
+
+**Escala de Impacto:**
+1. Insignificante: Mención negativa en redes sociales locales
+2. Menor: Cobertura negativa en medios locales
+3. Moderado: Cobertura negativa en medios nacionales
+4. Mayor: Crisis reputacional nacional
+5. Catastrófico: Crisis reputacional internacional
+
+**Determinación de Probabilidad:**
+- Análisis de menciones en medios
+- Histórico de eventos similares
+- Evaluación de stakeholders
+
+### 4.2 Riesgo a Personas
+
+**Escala de Impacto:**
+1. Insignificante: Lesiones menores sin tiempo perdido
+2. Menor: Lesiones con tiempo perdido < 1 día
+3. Moderado: Lesiones con tiempo perdido > 1 día
+4. Mayor: Incapacidad permanente
+5. Catastrófico: Fatalidad
+
+**Determinación de Probabilidad:**
+- Estadísticas de accidentalidad
+- Análisis de casi-accidentes
+- Evaluación de controles existentes
+
+### 4.3 Riesgo Ambiental
+
+**Escala de Impacto:**
+1. Insignificante: Impacto local mínimo, reversible en < 1 mes
+2. Menor: Impacto local moderado, reversible en < 6 meses
+3. Moderado: Impacto regional, reversible en < 1 año
+4. Mayor: Impacto regional significativo, reversible en > 1 año
+5. Catastrófico: Impacto irreversible o daño permanente
+
+## 5. Construcción de la Matriz RAM
+
+### 5.1 Definición de Zonas de Riesgo
+
+La matriz se divide en zonas utilizando curvas de iso-riesgo:
+```
+Zona = f(P × I)
+```
+
+Donde los umbrales se determinan según:
+- Riesgo Muy Alto: P × I ≥ umbral₄
+- Riesgo Alto: umbral₃ ≤ P × I < umbral₄
+- Riesgo Medio: umbral₂ ≤ P × I < umbral₃
+- Riesgo Bajo: umbral₁ ≤ P × I < umbral₂
+- Riesgo Muy Bajo: P × I < umbral₁
+
+## 6. Buenas Prácticas
+
+### 6.1 Recopilación de Datos
+- Mantener registros detallados de eventos
+- Documentar tanto eventos materializados como casi-eventos
+- Establecer criterios claros de clasificación
+- Realizar revisiones periódicas de datos
+
+### 6.2 Calibración de Escalas
+- Validar umbrales con expertos del dominio
+- Realizar análisis de sensibilidad
+- Documentar criterios de decisión
+- Actualizar periódicamente según nueva información
+
+### 6.3 Gestión del Proceso
+- Establecer roles y responsabilidades claros
+- Documentar metodología y criterios
+- Realizar revisiones periódicas
+- Mantener trazabilidad de cambios
+
+### 6.4 Comunicación
+- Asegurar entendimiento común de escalas
+- Capacitar a evaluadores
+- Documentar criterios de decisión
+- Mantener consistencia en evaluaciones
+
+## 7. Conclusiones
+
+La determinación efectiva de una matriz RAM requiere:
+1. Metodología rigurosa y documentada
+2. Combinación de análisis cuantitativo y cualitativo
+3. Proceso de calibración continuo
+4. Participación de expertos del dominio
+5. Documentación y trazabilidad
+
+La matriz RAM debe ser una herramienta dinámica que evoluciona con la organización y su entorno, manteniendo siempre el balance entre precisión técnica y aplicabilidad práctica.
+
 Aquí te presento una versión más extensa y metódica del documento en LaTeX, incorporando los puntos clave que mencionaste. Este documento está diseñado para ser una guía completa, explicando detalladamente la metodología detrás de la determinación de umbrales en la matriz RAM y las razones detrás de las elecciones técnicas, matemáticas y estadísticas en el análisis de riesgos.
 
 \documentclass[12pt,a4paper]{article}
