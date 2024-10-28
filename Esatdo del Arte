@@ -31,7 +31,9 @@ Problema de investigación (incluye la pregunta, si la hay)
 Tipo de investigación o enfoque metodológico y/o propuesta de intervención (si la hay)	
 Conclusiones principales
 
-esta es la bibliografia: 
+esta es la bibliografia te la envío en dos partes:
+
+parte 1:
 @article{caicedo-consuegra_algoritmos_nodate,
 	title = {Algoritmos de inteligencia artificial basada en perfiles socio conductuales para la segmentación inteligente de clientes: estudio de caso.},
 	volume = {25},
@@ -49,25 +51,6 @@ esta es la bibliografia:
 	file = {Snapshot:C\:\\Users\\57314\\Zotero\\storage\\7XAEWLZ7\\xbntmhp52v.html:text/html;Texto completo:C\:\\Users\\57314\\Zotero\\storage\\K2U86KP7\\Caicedo-Consuegra et al. - Algoritmos de inteligencia artificial basada en perfiles socio conductuales para la segmentación int.pdf:application/pdf},
 }
 
-@article{montes_sistema_2016,
-	title = {Sistema de detección de emociones para la recomendación de recursos educativos},
-	volume = {8},
-	rights = {Derechos de autor 2016 Programación Matemática y Software},
-	issn = {2007-3283},
-	url = {https://progmat.uaem.mx/progmat/index.php/progmat/article/view/2016-8-1-08},
-	doi = {10.30973/progmat/2016.8.1/8},
-	abstract = {In the actuality exist different repositories of educational resources and these provide sup- port to the students in the teaching-learning process. However one of the problems that students have is when they need to do a specific search in differents repositories the prob- lem is student have a much number of results and sometimes they lose much time for select a resource or maybe they dont find what they need.In this proyect we present {EmEdRe} a recomendation system of educationals resources based in tecnics of affective computing that permite to the student find educationals resources based in analysis of student senti- ments making the recommendations more customizable to the student needs.},
-	pages = {58--66},
-	number = {1},
-	journaltitle = {Programación matemática y software},
-	author = {Montes, Agustín Job Hernández and Ramirez, Raquel Vasquez and Hernández, Giner Alor and Zepahua, Beatriz Alejandra Olivares and Robles, Guillermo Cortés and Martínez, Ignacio López},
-	urldate = {2024-08-24},
-	date = {2016-02-29},
-	langid = {spanish},
-	note = {Number: 1},
-	keywords = {sistemas de recomendación},
-	file = {Full Text PDF:C\:\\Users\\57314\\Zotero\\storage\\RBN89NF7\\Montes et al. - 2016 - Sistema de detección de emociones para la recomendación de recursos educativos.pdf:application/pdf},
-}
 
 @article{noauthor_impacto_2023,
 	title = {Impacto de la inteligencia artificial en los métodos de evaluación en la educación primaria y secundaria: revisión sistemática de la literatura},
@@ -236,22 +219,6 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	keywords = {Artificial intelligence, Ethics, Data privacy, Design thinking, Systematic review},
 }
 
-@article{kong_developing_2024,
-	title = {Developing an artificial intelligence literacy framework: Evaluation of a literacy course for senior secondary students using a project-based learning approach},
-	volume = {6},
-	issn = {2666-920X},
-	url = {https://www.sciencedirect.com/science/article/pii/S2666920X24000158},
-	doi = {10.1016/j.caeai.2024.100214},
-	shorttitle = {Developing an artificial intelligence literacy framework},
-	abstract = {The advent of artificial intelligence ({AI}) in the workplace is pressuring employees to learn how to harness this technology. The goal of promoting {AI} literacy is to equip educated citizens with the readiness to apply {AI}. The aim of this study is to provide evidence to guide the development of an {AI} Literacy Framework to prepare educated citizens to participate in future society. We report on a 14-h {AI} literacy course for senior secondary students, emphasising problem-solving competence development and adopting the project-based learning approach. One hundred and twenty-eight students completed the course, and a mixed-methods analysis was conducted to evaluate the results. A post-course test showed that the course had improved the students’ ability to use {AI} concepts in solving real-life problems. Self-surveys indicated that the students showed a significant improvement in their metacognitive strategies in problem-solving, and had a better understanding of the ethical boundaries and principles that govern the use of {AI} for problem-solving. A thematic analysis of data drawn from focus group interviews with the students and their self-reflective writings indicated that {PBL} supported them in reflecting critically on the ethical use of {AI} and developing their problem-solving competence. Future studies should consider validating the course evaluation instruments among a more extensive and diverse population.},
-	pages = {100214},
-	journaltitle = {Computers and Education: Artificial Intelligence},
-	shortjournal = {Computers and Education: Artificial Intelligence},
-	author = {Kong, Siu-Cheung and Cheung, Man-Yin William and Tsang, Olson},
-	urldate = {2024-10-15},
-	date = {2024-06-01},
-	keywords = {Ethics, Artificial intelligence literacy, Framework, Problem-solving, Project-based learning},
-}
 
 @article{das_informatics_2023,
 	title = {Informatics on a social view and need of ethical interventions for wellbeing via interference of artificial intelligence},
@@ -305,26 +272,6 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	file = {Snapshot:C\:\\Users\\57314\\Zotero\\storage\\5VEPGT29\\S2405896322016251.html:text/html},
 }
 
-@article{buchholz_development_2022,
-	title = {The development process of Responsible {AI}: The case of {ASSISTANT}*},
-	volume = {55},
-	issn = {2405-8963},
-	url = {https://www.sciencedirect.com/science/article/pii/S2405896322016251},
-	doi = {10.1016/j.ifacol.2022.09.360},
-	series = {10th {IFAC} Conference on Manufacturing Modelling, Management and Control {MIM} 2022},
-	shorttitle = {The development process of Responsible {AI}},
-	abstract = {The development of artificial intelligence ({AI}) for manufacturing comes with the question of why and how to make sure that the resulting system acts responsibly. In this paper, we discuss why responsibility matters in the context of {AI} in manufacturing and introduce an approach to put these considerations into practice of an {AI} development project. We will start with the observation that many abstract guidelines and approaches exist to address responsibility issues in {AI} contexts, but the question remains of how these guidelines can be translated into practice in a development project. Therefore we will review different approaches towards issues of responsibility, including ’ethics by design’, responsible research and innovation, as well as methodological approaches such as design for values and human-centric design. These approaches informed the theoretical framework we created and adapted within the {AI} development project {ASSISTANT}. Our contribution encompasses an ex-ante and an ex-post approach. The ex-ante approach aims at making sure that issues of responsibility can be formulated and discussed in all phases of the development process and therefore draws on a design for values methodology. We aim at making sure that questions of responsibility are considered in the course of the development process.},
-	pages = {7--12},
-	number = {10},
-	journaltitle = {{IFAC}-{PapersOnLine}},
-	shortjournal = {{IFAC}-{PapersOnLine}},
-	author = {Buchholz, Johan and Lang, Benedict and Vyhmeister, Eduardo},
-	urldate = {2024-10-15},
-	date = {2022-01-01},
-	keywords = {Human-Centric Design, Innovation, Process interventions, Responsible Development of {AI}, Responsible Research, Science, Software Architecture, Technology Studies},
-	file = {ScienceDirect Snapshot:C\:\\Users\\57314\\Zotero\\storage\\472Q9TUS\\S2405896322016251.html:text/html},
-}
-
 @article{fu_navigating_2024,
 	title = {Navigating the ethical terrain of {AI} in education: A systematic review on framing responsible human-centered {AI} practices},
 	volume = {7},
@@ -342,6 +289,9 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	keywords = {Educational contexts, Responsible human-centered artificial intelligence, Systematic mixed studies review},
 	file = {ScienceDirect Snapshot:C\:\\Users\\57314\\Zotero\\storage\\S25I4J9G\\S2666920X24001097.html:text/html},
 }
+
+#####
+PARTE 2
 
 @article{shukla_ai_2024,
 	title = {{AI} as a user of {AI}: Towards responsible autonomy},
@@ -428,13 +378,6 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	date = {2024-12-01},
 	langid = {american},
 	note = {Publisher: Pergamon},
-}
-
-@online{noauthor_explainable_nodate,
-	title = {Explainable {AI} for all - A roadmap for inclusive {XAI} for people with cognitive disabilities - {ScienceDirect}},
-	url = {https://www-sciencedirect-com.hemeroteca.lasalle.edu.co/science/article/pii/S0160791X24002331},
-	urldate = {2024-10-15},
-	file = {Explainable AI for all - A roadmap for inclusive XAI for people with cognitive disabilities - ScienceDirect:C\:\\Users\\57314\\Zotero\\storage\\ADS8FQ7M\\S0160791X24002331.html:text/html},
 }
 
 @article{hendawy_starting_2024,
@@ -591,29 +534,6 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	keywords = {Agents, Artificial intelligence, Control, Cyber-physical production system, Ethics, Trust},
 	file = {ScienceDirect Snapshot:C\:\\Users\\57314\\Zotero\\storage\\8W6VVIRR\\S1367578822000177.html:text/html;Versión aceptada:C\:\\Users\\57314\\Zotero\\storage\\LRPT9JIX\\Mezgár y Váncza - 2022 - From ethics to standards – A path via responsible AI to cyber-physical production systems.pdf:application/pdf},
 }
-
-@article{yang_survey_2024,
-	title = {A survey of recent methods for addressing {AI} fairness and bias in biomedicine},
-	volume = {154},
-	issn = {1532-0464},
-	url = {https://www.sciencedirect.com/science/article/pii/S1532046424000649},
-	doi = {10.1016/j.jbi.2024.104646},
-	abstract = {Objectives
-Artificial intelligence ({AI}) systems have the potential to revolutionize clinical practices, including improving diagnostic accuracy and surgical decision-making, while also reducing costs and manpower. However, it is important to recognize that these systems may perpetuate social inequities or demonstrate biases, such as those based on race or gender. Such biases can occur before, during, or after the development of {AI} models, making it critical to understand and address potential biases to enable the accurate and reliable application of {AI} models in clinical settings. To mitigate bias concerns during model development, we surveyed recent publications on different debiasing methods in the fields of biomedical natural language processing ({NLP}) or computer vision ({CV}). Then we discussed the methods, such as data perturbation and adversarial learning, that have been applied in the biomedical domain to address bias.
-Methods
-We performed our literature search on {PubMed}, {ACM} digital library, and {IEEE} Xplore of relevant articles published between January 2018 and December 2023 using multiple combinations of keywords. We then filtered the result of 10,041 articles automatically with loose constraints, and manually inspected the abstracts of the remaining 890 articles to identify the 55 articles included in this review. Additional articles in the references are also included in this review. We discuss each method and compare its strengths and weaknesses. Finally, we review other potential methods from the general domain that could be applied to biomedicine to address bias and improve fairness.
-Results
-The bias of {AIs} in biomedicine can originate from multiple sources such as insufficient data, sampling bias and the use of health-irrelevant features or race-adjusted algorithms. Existing debiasing methods that focus on algorithms can be categorized into distributional or algorithmic. Distributional methods include data augmentation, data perturbation, data reweighting methods, and federated learning. Algorithmic approaches include unsupervised representation learning, adversarial learning, disentangled representation learning, loss-based methods and causality-based methods.},
-	pages = {104646},
-	journaltitle = {Journal of Biomedical Informatics},
-	shortjournal = {Journal of Biomedical Informatics},
-	author = {Yang, Yifan and Lin, Mingquan and Zhao, Han and Peng, Yifan and Huang, Furong and Lu, Zhiyong},
-	urldate = {2024-10-16},
-	date = {2024-06-01},
-	keywords = {{AI}, Bias, Biomedicine, Fairness},
-	file = {ScienceDirect Snapshot:C\:\\Users\\57314\\Zotero\\storage\\UUWPQYCF\\S1532046424000649.html:text/html;Versión enviada:C\:\\Users\\57314\\Zotero\\storage\\DF2GIKAN\\Yang et al. - 2024 - A survey of recent methods for addressing AI fairness and bias in biomedicine.pdf:application/pdf},
-}
-
 @article{noauthor_ai_2024,
 	title = {{AI} Fairness–From Machine Learning to Federated Learning},
 	volume = {139},
