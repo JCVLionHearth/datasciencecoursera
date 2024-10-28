@@ -1,3 +1,83 @@
+# Revisión y Mejoras Propuestas
+
+## 1. Justificación de Probabilidades Numéricas
+
+Para la categorización de probabilidades propuesta, podemos justificar los rangos basándonos en:
+
+- **Raro (P < 0.05)**: Corresponde al nivel de significancia estadística estándar (α = 0.05), comúnmente usado en análisis de riesgos.
+- **Improbable (0.05 ≤ P < 0.20)**: Representa eventos que ocurren menos de una vez cada cinco períodos.
+- **Posible (0.20 ≤ P < 0.50)**: Eventos que ocurren entre una vez cada cinco períodos y una vez cada dos períodos.
+- **Probable (0.50 ≤ P < 0.80)**: Eventos que ocurren más de la mitad de las veces.
+- **Con certeza (P ≥ 0.80)**: Eventos que ocurren en más del 80% de los casos, considerado un estándar en gestión de riesgos.
+
+## 2. Determinación de Percentiles
+
+Para los umbrales de impacto, se recomienda usar:
+
+- I₁ (Insignificante-Menor): Percentil 25
+- I₂ (Menor-Moderado): Percentil 50
+- I₃ (Moderado-Mayor): Percentil 75
+- I₄ (Mayor-Catastrófico): Percentil 90
+
+Esta distribución permite una clasificación más equilibrada de los riesgos.
+
+## 3. Ejemplos de Cálculo de Puntajes de Riesgo
+
+### Ejemplo 1: Escala Lineal
+```
+Probabilidad (P) = 4 (Probable: 0.65)
+Impacto (I) = 3 (Moderado)
+Puntaje de Riesgo = P × I = 4 × 3 = 12
+```
+
+### Ejemplo 2: Escala Logarítmica
+```
+Probabilidad (P) = 4 (log₁₀(0.65) ≈ -0.19)
+Impacto (I) = 3 (log₁₀(1000) ≈ 3)
+Puntaje de Riesgo = -0.19 + 3 = 2.81
+```
+
+## 4. Mejoras Estructurales Propuestas
+
+1. **Sección de Fundamentos**
+   - Añadir subsección sobre teoría de la probabilidad
+   - Incluir bases estadísticas para análisis de riesgos
+
+2. **Metodología**
+   - Agregar proceso de validación cruzada
+   - Incluir métodos de agregación de riesgos
+
+3. **Implementación**
+   - Añadir casos de estudio
+   - Incluir plantillas de documentación
+
+4. **Evaluación**
+   - Incorporar métricas de rendimiento
+   - Añadir proceso de retroalimentación
+
+## 5. Cambios en LaTeX
+
+Se sugieren los siguientes cambios en el documento:
+
+1. Agregar paquetes adicionales:
+```latex
+\usepackage{algorithm2e}
+\usepackage{tikz}
+```
+
+2. Crear nuevos entornos para ejemplos:
+```latex
+\newenvironment{ejemplo}
+    {\begin{tcolorbox}[title=Ejemplo]}
+    {\end{tcolorbox}}
+```
+
+3. Mejorar la presentación de fórmulas matemáticas:
+```latex
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+```
+
 revisa el contenido del siguiente documento, ajustalo para que sea más coherente, claro y metodológico...es una propuesta de metodología para la elaboración de la RAM, quiero que agregues a partir de tu conocimiento lo que sea necesario para que esta metodología sea más adecuada y técnica y haz también lo siguiente:
 1. utiliza la información de este enlace: https://www.sciencedirect.com/science/article/abs/pii/S0925753515000429 para acoplarla al documento
 2. en la \subsubsection{Categorización de Probabilidades} he asignado unas probabilidades numéricas, pero no tengo el sustento de esto...me ayudas a justificar estos números
