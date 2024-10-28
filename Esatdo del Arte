@@ -31,8 +31,8 @@ Problema de investigación (incluye la pregunta, si la hay)
 Tipo de investigación o enfoque metodológico y/o propuesta de intervención (si la hay)	
 Conclusiones principales
 
-esta es la bibliografia te la envío en dos partes:
-
+esta es la bibliografia te la envío en cinco partes:
+#######
 parte 1:
 @article{caicedo-consuegra_algoritmos_nodate,
 	title = {Algoritmos de inteligencia artificial basada en perfiles socio conductuales para la segmentación inteligente de clientes: estudio de caso.},
@@ -130,6 +130,8 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 	file = {ScienceDirect Snapshot:C\:\\Users\\57314\\Zotero\\storage\\QBIGR3CN\\S1546084323000603.html:text/html},
 }
 
+####
+Parte 2
 @article{stahl_exploring_2023,
 	title = {Exploring ethics and human rights in artificial intelligence – A Delphi study},
 	volume = {191},
@@ -291,7 +293,7 @@ La relación entre ética e inteligencia artificial en medicina es un tema cruci
 }
 
 #####
-PARTE 2
+PARTE 3
 
 @article{shukla_ai_2024,
 	title = {{AI} as a user of {AI}: Towards responsible autonomy},
@@ -394,6 +396,9 @@ PARTE 2
 	date = {2024-08-25},
 	keywords = {Artificial intelligence, {AI} ethics, Smart cities, Urban {AI}},
 }
+
+####
+PARTE 4
 
 @article{tsao_beyond_2024,
 	title = {Beyond the author: Artificial intelligence, creative writing and intellectual emancipation},
@@ -549,6 +554,9 @@ PARTE 2
 	langid = {american},
 	file = {Snapshot:C\:\\Users\\57314\\Zotero\\storage\\3ISZ5MCX\\S1526149224002108.html:text/html;Texto completo:C\:\\Users\\57314\\Zotero\\storage\\67U89JR9\\2024 - AI Fairness–From Machine Learning to Federated Learning.pdf:application/pdf},
 }
+
+####
+PARTE 5
 
 @article{heyder_ethical_2023,
 	title = {Ethical management of human-{AI} interaction: Theory development review},
