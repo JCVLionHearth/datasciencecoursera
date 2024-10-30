@@ -1,4 +1,125 @@
+Aquí tienes el código completo en Python usando Dash para crear el dashboard con las visualizaciones especificadas. Asegúrate de tener los módulos dash, dash_core_components, dash_html_components, plotly.express y pandas instalados en tu entorno. Puedes instalarlos con pip install dash pandas plotly.
 
+# Importar las librerías necesarias
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import pandas as pd
+import plotly.express as px
+
+# Leer el archivo de datos
+data_path = 'datos/Anexo4.Covid-19_CE_15-03-23.xlsx'
+df = pd.read_excel(data_path, sheet_name='COVID-19')
+
+# Filtrar los datos para el análisis de 2020 y 2021
+df['FECHA DEFUNCIÓN'] = pd.to_datetime(df['FECHA DEFUNCIÓN'], errors='coerce')
+df_2021 = df[(df['FECHA DEFUNCIÓN'].dt.year == 2021) & (df['COVID-19'] == 'CONFIRMADO')]
+df_2020_2021 = df[(df['FECHA DEFUNCIÓN'].dt.year.isin([2020, 2021])) & (df['COVID-19'] == 'CONFIRMADO')]
+
+# Inicializar la aplicación Dash
+app = dash.Dash(__name__)
+
+# Layout de la aplicación
+app.layout = html.Div([
+    html.H1("Dashboard COVID-19 - Análisis de Defunciones", style={'text-align': 'center'}),
+
+    # Mapa de defunciones por departamento
+    html.H2("Mapa de Muertes por COVID-19 Confirmadas por Departamento (2021)"),
+    dcc.Graph(id="mapa_muertes_departamento"),
+
+    # Gráfico de barras horizontal para las 5 ciudades con mayor índice de muertes
+    html.H2("Top 5 Ciudades con Mayor Índice de Muertes Confirmadas (2021)"),
+    dcc.Graph(id="grafico_barras"),
+
+    # Gráfico circular de casos confirmados, sospechosos y descartados
+    html.H2("Distribución de Casos de COVID-19 por Tipo (2021)"),
+    dcc.Graph(id="grafico_circular"),
+
+    # Gráfico de línea de muertes por mes (2020 y 2021)
+    html.H2("Muertes Confirmadas por COVID-19 por Mes (2020 - 2021)"),
+    dcc.Graph(id="grafico_linea"),
+
+    # Gráfico de histograma de edades quinquenales (2020)
+    html.H2("Distribución de Muertes Confirmadas por COVID-19 por Edad (2020)"),
+    dcc.Graph(id="grafico_histograma")
+])
+
+# Función para actualizar el mapa
+@app.callback(
+    Output("mapa_muertes_departamento", "figure"),
+    Input("mapa_muertes_departamento", "id")
+)
+def actualizar_mapa(id):
+    df_map = df_2021.groupby("DEPARTAMENTO").size().reset_index(name='muertes')
+    fig = px.choropleth(df_map, locations="DEPARTAMENTO", locationmode="country names",
+                        color="muertes", hover_name="DEPARTAMENTO",
+                        color_continuous_scale="Viridis", title="Total de Muertes Confirmadas por Departamento")
+    fig.update_geos(scope="south america")
+    return fig
+
+# Función para actualizar el gráfico de barras
+@app.callback(
+    Output("grafico_barras", "figure"),
+    Input("grafico_barras", "id")
+)
+def actualizar_grafico_barras(id):
+    df_top5 = df_2021.groupby("MUNICIPIO").size().nlargest(5).reset_index(name='muertes')
+    fig = px.bar(df_top5, x='muertes', y='MUNICIPIO', orientation='h', title="Top 5 Ciudades con Mayor Índice de Muertes")
+    return fig
+
+# Función para actualizar el gráfico circular
+@app.callback(
+    Output("grafico_circular", "figure"),
+    Input("grafico_circular", "id")
+)
+def actualizar_grafico_circular(id):
+    df_tipo = df_2021['COVID-19'].value_counts().reset_index()
+    df_tipo.columns = ['Tipo', 'Casos']
+    fig = px.pie(df_tipo, names='Tipo', values='Casos', title="Distribución de Casos de COVID-19 por Tipo")
+    return fig
+
+# Función para actualizar el gráfico de línea
+@app.callback(
+    Output("grafico_linea", "figure"),
+    Input("grafico_linea", "id")
+)
+def actualizar_grafico_linea(id):
+    df_linea = df_2020_2021.groupby(df_2020_2021['FECHA DEFUNCIÓN'].dt.to_period("M")).size().reset_index(name='muertes')
+    df_linea['FECHA DEFUNCIÓN'] = df_linea['FECHA DEFUNCIÓN'].dt.to_timestamp()
+    fig = px.line(df_linea, x='FECHA DEFUNCIÓN', y='muertes', title="Muertes Confirmadas por Mes")
+    return fig
+
+# Función para actualizar el histograma de edades
+@app.callback(
+    Output("grafico_histograma", "figure"),
+    Input("grafico_histograma", "id")
+)
+def actualizar_grafico_histograma(id):
+    df_2020 = df[(df['FECHA DEFUNCIÓN'].dt.year == 2020) & (df['COVID-19'] == 'CONFIRMADO')]
+    df_2020['Edad Rango'] = pd.cut(pd.to_numeric(df_2020['EDAD FALLECIDO'].str.extract(r'(\d+)', expand=False), errors='coerce'),
+                                   bins=[0, 4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 54, 59, 64, 69, 74, 79, 84, 89, 100],
+                                   labels=["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", 
+                                           "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", 
+                                           "75-79", "80-84", "85-89", "90+"])
+    fig = px.histogram(df_2020, x='Edad Rango', title="Distribución de Muertes Confirmadas por Edad")
+    fig.update_xaxes(categoryorder='array', categoryarray=["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", 
+                                                           "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", 
+                                                           "60-64", "65-69", "70-74", "75-79", "80-84", "85-89", "90+"])
+    return fig
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    app.run_server(debug=True)
+
+# Elaborado por: Juan Vega, Maestría IA
+
+Explicación del código
+
+	•	Lectura de datos: Se lee el archivo Excel, y se convierte la columna de fechas para filtrar los datos por años y confirmar casos.
+	•	Componentes del Dashboard: Cada gráfico representa una de las visualizaciones requeridas. Se utilizan px.choropleth para el mapa, px.bar para el gráfico de barras, px.pie para el gráfico circular, px.line para el gráfico de línea y px.histogram para el histograma de edades.
+	•	Callbacks: Cada gráfica se actualiza mediante una función callback que toma el identificador de la gráfica como entrada y devuelve la figura actualizada.
+
+Este código configurará el dashboard para visualizar la información de manera interactiva y adaptable a los datos que especifiques.
 
 Necesito realizar un dashboard utilizando dash en python, para esto estoy usando Visual Studio Code y tengo una carpeta en mi entorno del proyecto llamada "datos" en donde tengo el archivo: Anexo4.Covid-19_CE_15-03-23.xlsx en la hoja COVID-19 en donde se encuentran los datos a analizar. 
 
