@@ -1,3 +1,23 @@
+# Función para actualizar el mapa de defunciones por departamento
+@app.callback(
+    Output("mapa_muertes_departamento", "figure"),
+    Input("mapa_muertes_departamento", "id")
+)
+def actualizar_mapa(id):
+    df_map = df_2021.groupby("DEPARTAMENTO").size().reset_index(name='muertes')
+    fig = px.choropleth(
+        df_map,
+        geojson="https://raw.githubusercontent.com/plotly/datasets/master/geojson-colombia.json",  # GeoJSON para departamentos de Colombia
+        locations="DEPARTAMENTO",
+        featureidkey="properties.NOMBRE_DPT",
+        color="muertes",
+        hover_name="DEPARTAMENTO",
+        color_continuous_scale="Viridis",
+        title="Total de Muertes Confirmadas por Departamento en Colombia (2021)"
+    )
+    fig.update_geos(fitbounds="locations", visible=False)
+    return fig
+
 Aquí tienes el código completo en Python usando Dash para crear el dashboard con las visualizaciones especificadas. Asegúrate de tener los módulos dash, dash_core_components, dash_html_components, plotly.express y pandas instalados en tu entorno. Puedes instalarlos con pip install dash pandas plotly.
 
 # Importar las librerías necesarias
