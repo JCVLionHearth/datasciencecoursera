@@ -1,0 +1,31 @@
+
+
+Necesito realizar un dashboard utilizando dash en python, para esto estoy usando Visual Studio Code y tengo una carpeta en mi entorno del proyecto llamada "datos" en donde tengo el archivo: Anexo4.Covid-19_CE_15-03-23.xlsx en la hoja COVID-19 en donde se encuentran los datos a analizar. 
+
+Los datos y un ejemplo del valor del campo son los siguientes:
+
+COVID-19:	CONFIRMADO
+DEPARTAMENTO:	NORTE DE SANTANDER
+MUNICIPIO:	CÚCUTA
+AREA DEFUNCIÓN:	CABECERA MUNICIPAL
+TIPO DEFUNCIÓN:	NO FETAL
+FECHA DEFUNCIÓN:	'01/01/2020
+SEXO FALLECIDO:	FEMENINO
+ESTADO CONYUGAL: FALLECIDO	NO ESTABA CASADO(A) Y LLEVABA DOS AÑOS O MÁS VIVIENDO CON SU PAREJA
+EDAD FALLECIDO:	76(4)
+NIVEL EDUCATIVO FALLECIDO:	BÁSICA PRIMARIA
+RÉGIMEN SEGURIDAD:	SUBSIDIADO
+PROBABLE MANERA MUERTE:	NATURAL
+EXPEDIDO POR:	MÉDICO NO TRATANTE
+RECIBIÓ ASISTENCIA MEDICA:	SI
+FECHA REGISTRO:	'01/01/2020
+
+Necesito realizar con los datos anteriores y un dashboard que contenga lo siguiente (usando plotly):
+
+a) Mapa: número total de muertes por covid-19 confirmadas por departamento para el año 2021.
+b) Gráfico de barras horizontal: las 5 ciudades con el mayor índice de muertes por casos de covid-19 confirmados para el año 2021.
+c) Gráfico circular: total de los casos de covid-19 reportados como confirmados, sospechosos y descartados para el año 2021.
+d) Gráfico de línea: total de muertes covid-19 confirmados por mes para el año 2020 y 2021.
+e) Gráfico de histograma de frecuencias de muertes covid-19 confirmados por edades quinquenales (ejemplo: 0-4, 5-9,.....,85-89, 90 o más) para el año 2020. 
+
+Ayudame realizando todo el codigo, con comentarios y agrega una referencial al final como: elaborado por: Juan Vega, Maestria IA
