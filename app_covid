@@ -1,3 +1,76 @@
+# Importar las librerías necesarias
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import pandas as pd
+import plotly.express as px
+
+# Leer el archivo de datos
+data_path = 'datos/Anexo4.Covid-19_CE_15-03-23.xlsx'
+df = pd.read_excel(data_path, sheet_name='COVID-19')
+
+# Filtrar los datos para el análisis de 2020 y 2021
+df['FECHA DEFUNCIÓN'] = pd.to_datetime(df['FECHA DEFUNCIÓN'], errors='coerce')
+df_2021 = df[(df['FECHA DEFUNCIÓN'].dt.year == 2021) & (df['COVID-19'] == 'CONFIRMADO')]
+df_2020_2021 = df[(df['FECHA DEFUNCIÓN'].dt.year.isin([2020, 2021])) & (df['COVID-19'] == 'CONFIRMADO')]
+
+# Inicializar la aplicación Dash
+app = dash.Dash(__name__)
+
+# Layout de la aplicación en cuadrícula
+app.layout = html.Div([
+    html.H1("Dashboard COVID-19 - Análisis de Defunciones", style={'text-align': 'center'}),
+
+    # Contenedor en cuadrícula
+    html.Div([
+        # Mapa de defunciones por departamento
+        html.Div([
+            html.H3("Mapa de Muertes por COVID-19 Confirmadas por Departamento (2021)"),
+            dcc.Graph(id="mapa_muertes_departamento", style={'height': '400px'}),
+        ], style={'grid-area': 'mapa', 'padding': '10px', 'border': '1px solid #ccc'}),
+
+        # Gráfico de barras horizontal para las 5 ciudades con mayor índice de muertes
+        html.Div([
+            html.H3("Top 5 Ciudades con Mayor Índice de Muertes Confirmadas (2021)"),
+            dcc.Graph(id="grafico_barras", style={'height': '400px'}),
+        ], style={'grid-area': 'barras', 'padding': '10px', 'border': '1px solid #ccc'}),
+
+        # Gráfico circular de casos confirmados, sospechosos y descartados
+        html.Div([
+            html.H3("Distribución de Casos de COVID-19 por Tipo (2021)"),
+            dcc.Graph(id="grafico_circular", style={'height': '400px'}),
+        ], style={'grid-area': 'circular', 'padding': '10px', 'border': '1px solid #ccc'}),
+
+        # Gráfico de línea de muertes por mes (2020 y 2021)
+        html.Div([
+            html.H3("Muertes Confirmadas por COVID-19 por Mes (2020 - 2021)"),
+            dcc.Graph(id="grafico_linea", style={'height': '400px'}),
+        ], style={'grid-area': 'linea', 'padding': '10px', 'border': '1px solid #ccc'}),
+
+        # Gráfico de histograma de edades quinquenales (2020)
+        html.Div([
+            html.H3("Distribución de Muertes Confirmadas por Edad (2020)"),
+            dcc.Graph(id="grafico_histograma", style={'height': '400px'}),
+        ], style={'grid-area': 'histograma', 'padding': '10px', 'border': '1px solid #ccc'}),
+    ], style={
+        'display': 'grid',
+        'grid-template-areas': """
+            'mapa barras circular'
+            'linea linea histograma'
+        """,
+        'grid-gap': '10px',
+        'padding': '20px',
+        'grid-template-columns': '1fr 1fr 1fr'
+    })
+])
+
+# Funciones callback (idénticas a las proporcionadas en el código anterior)
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    app.run_server(debug=True)
+
+# Elaborado por: Juan Vega, Maestría IA
+
 # Función para actualizar el mapa de defunciones por departamento
 @app.callback(
     Output("mapa_muertes_departamento", "figure"),
