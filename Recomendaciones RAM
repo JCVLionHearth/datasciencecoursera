@@ -72,66 +72,18 @@ Keywords: Risk matrix; Risk analysis; Risk assessment; Risk management
 
 3. y con esto he desarrollado el siguiente documento:
 
-\documentclass[a4paper,12pt]{report}
-\usepackage[top=1in, bottom=1in, left=0.8in, right=0.8in]{geometry}
-\usepackage{fancyhdr} % Para encabezados y pies de página personalizados
-\usepackage{graphicx} % Required for inserting images
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{hyperref}
-\usepackage{verbatim}
-\usepackage{float} % Para controlar la posición de tablas y figuras
-\usepackage{xcolor}
-\usepackage{tabularx} % Para usar el entorno tabularx
-\usepackage{array} % Para usar p{} en tabularx
-\usepackage{listings}
-\usepackage{pmboxdraw} %Sirve para que los simbolos unicode se visualicen usando 
-\usepackage{cite} % Opcional, para mejorar la apariencia de las citas
-\usepackage{natbib} % Para manejar citas
-\usepackage{booktabs} % Para manejo de tablas
 
-% Definir comando para extraer el título de la referencia
-\newcommand{\bibtitle}[1]{\emph{\citealp{#1}}}
-% Cambiar el título de la bibliografía
-\renewcommand{\bibname}{Referencias} % Para clases tipo libro o reporte
-\renewcommand{\contentsname}{Índice} % Cambiar el título de la tabla de contenido
-\renewcommand{\abstractname}{Resumen} % Cambiar el título del resumen
-\setcounter{tocdepth}{1} % Solo incluir secciones en la tabla de contenido
-\renewcommand\thesection{} % Eliminar números de sección
-\renewcommand\thesubsection{} % Eliminar números de subsección
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    urlcolor=blue,
-    citecolor=blue,
-    pdfborder={0 0 0}
-}
+Metodología para el Desarrollo y Aplicación de\\Matrices de Riesgo, Análisis y Mitigación (RAM)
+Manual Técnico y Guía de Implementación
 
-\title{Metodología para el Desarrollo y Aplicación de\\Matrices de Riesgo, Análisis y Mitigación (RAM)}
-\author{Manual Técnico y Guía de Implementación}
-\date{\today}
+abstract:
 
-\begin{document}
-
-\maketitle
-
-\begin{abstract}
 Este documento presenta una metodología integral para el desarrollo, aplicación y creación de Matrices de Riesgo, Análisis y Mitigación (RAM), fundamentada en principios estadísticos y matemáticos. La metodología abarca la categorización de riesgos cuantitativos y cualitativos, la determinación de umbrales de probabilidad e impacto basados en datos históricos y percentiles, y los métodos de calibración y validación. Además, incorpora técnicas de simulación Monte Carlo y análisis estadístico para establecer umbrales objetivos, proporcionando un marco robusto para la toma de decisiones en gestión de riesgos en un contexto organizacional.
 
-\end{abstract}
+**Introducción**
 
-\tableofcontents
-
-
-\newpage
-
-\section{Introducción}
-
-\subsection{Propósito y Alcance}
+**Propósito y Alcance:**
 La gestión efectiva de riesgos requiere una metodología sistemática y objetiva para evaluar tanto la probabilidad de ocurrencia como el impacto potencial de eventos adversos. La Matriz de Riesgo RAM  (Risk Assessment Matrix) es una herramienta esencial en la gestión de riesgos, proporcionando un marco estructurado para esta evaluación y permitiendo la priorización y gestión eficiente de riesgos organizacionales. Este documento describe una metodología robusta para desarrollar y aplicar la RAM, adecuada para entornos organizacionales donde se requiere una evaluación objetiva y cuantitativa de riesgos. La metodología incorpora análisis estadístico y técnicas de simulación para lograr una gestión de riesgos sistemática y eficaz, permitiendo identificar, evaluar y priorizar riesgos, así como desarrollar estrategias para mitigarlos.
 \subsection{Fundamentos de la evaluación de riesgos}
 
@@ -142,11 +94,10 @@ La gestión efectiva de riesgos requiere una metodología sistemática y objetiv
 \end{itemize}
 
 El riesgo se define matemáticamente como el producto de la probabilidad de ocurrencia ($P$) y el impacto potencial ($I$):
-
 \[ R = P \times I \]
 
-\section{Pasos para el Desarrollo de la Matriz RAM}
-\subsection{Identificación de Riesgos}
+**Pasos para el Desarrollo de la Matriz RAM**
+**Identificación de Riesgos**
 
 \begin{itemize}
     \item Reuniones de Brainstorming: Involucrar a todos los miembros del equipo para identificar posibles riesgos.
@@ -154,9 +105,9 @@ El riesgo se define matemáticamente como el producto de la probabilidad de ocur
     \item Entrevistas y Encuestas: Consultar a expertos y partes interesadas para identificar riesgos adicionales.
 \end{itemize}
 
-\subsection{Metodología para Determinar Impacto y Probabilidad}
+**Metodología para Determinar Impacto y Probabilidad**
 
-\subsubsection{Análisis de Datos Históricos}
+**Análisis de Datos Históricos**
 La determinación de probabilidades se basa en el análisis de frecuencias históricas. Para un evento $E$, la probabilidad empírica se calcula como:
 
 \[ P(E) = \frac{n_E}{N} \]
@@ -167,7 +118,7 @@ donde:
     \item $N$: Número total de períodos observados
 \end{itemize}
 
-\subsubsection{Categorización de Probabilidades}
+**Categorización de Probabilidades**
 Las probabilidades se categorizan en cinco niveles:
 
 \begin{table}[H]
@@ -185,8 +136,7 @@ Con certeza & $P \geq 0.80$ & Prácticamente seguro: Eventos que ocurren en más
 \end{tabular}
 \end{table}
 
-
-\subsubsection{Categorización de Impactos}
+**Categorización de Impactos**
 Los impactos se clasifican según la siguiente escala:
 
 \begin{table}[H]
@@ -215,9 +165,9 @@ Para los umbrales de impacto, se recomienda usar:
     \item $I_4$ (Mayor-Catastrófico): Percentil 90
 \end{itemize}
 
-\subsection{Definición de Umbrales}
+**Definición de Umbrales*
 
-\subsubsection{Método de Determinación de Umbrales}
+**Método de Determinación de Umbrales**
 Los umbrales se establecen utilizando el método de percentiles sobre datos históricos:
 
 \[ U_k = F^{-1}(p_k) \]
@@ -229,7 +179,7 @@ donde:
     \item $p_k$: Percentil objetivo para el nivel $k$
 \end{itemize}
 
-\subsubsection{Calibración mediante Simulación Monte Carlo}
+**Calibración mediante Simulación Monte Carlo**
 La calibración de umbrales utiliza simulación Monte Carlo para generar escenarios y validar la clasificación:
 
 \begin{enumerate}
@@ -239,7 +189,7 @@ La calibración de umbrales utiliza simulación Monte Carlo para generar escenar
     \item Ajuste iterativo hasta alcanzar las probabilidades objetivo
 \end{enumerate}
 
-\subsection{Definición de Escalas}
+**Definición de Escalas**
 
 \begin{itemize}
     \item Escalas Lineales: Adecuadas para contextos donde las categorías de probabilidad o consecuencia se distribuyen de manera uniforme, facilitando una lectura intuitiva y una correlación directa con valores ordinales. Este enfoque es útil en evaluaciones de proyectos donde la probabilidad es medida en porcentaje.
@@ -247,14 +197,14 @@ La calibración de umbrales utiliza simulación Monte Carlo para generar escenar
 
 \end{itemize}
 
-\subsection{Asignación de Valores}
+**Asignación de Valores**
 
 \begin{itemize}
     \item Probabilidad: Se selecciona una escala lineal si los valores de probabilidad son cercanos y se busca simplicidad en la lectura. Si las probabilidades varían en varios órdenes de magnitud, se opta por una escala logarítmica.
     \item Impacto: La escala lineal es útil para impactos cuantificables con una relación uniforme entre categorías. La escala logarítmica es recomendable en casos de consecuencias de distinta naturaleza (p. ej., desde lesiones leves hasta muertes), donde cada incremento representa un aumento significativo de gravedad.
 \end{itemize}
 
-\subsection{Consistencia y Coloración de la Matriz}
+**Consistencia y Coloración de la Matriz**
 
 Para asegurar la coherencia entre la matriz de riesgo y la medida cuantitativa subyacente:
 
@@ -264,9 +214,9 @@ Para asegurar la coherencia entre la matriz de riesgo y la medida cuantitativa s
     \item Coloración Consistente: Las celdas con niveles de riesgo aproximadamente equivalentes deben mantener el mismo color, lo que facilita la comprensión visual del nivel de riesgo.
 \end{enumerate}
 
-\subsection{Evaluación de Riesgos}
+**Evaluación de Riesgos**
 
-\subsubsection{Riesgos Cuantitativos}
+**Riesgos Cuantitativos**
 Para riesgos cuantitativos, el nivel de riesgo se determina mediante:
 
 \[ NR = \begin{cases} 
@@ -277,7 +227,7 @@ Para riesgos cuantitativos, el nivel de riesgo se determina mediante:
 5 & \text{si } R \geq U_4
 \end{cases} \]
 
-\subsubsection{Riesgos Cualitativos}
+**Riesgos Cualitativos**
 Para riesgos cualitativos, se utiliza una matriz de conversión:
 
 \begin{table}[H]
@@ -295,9 +245,9 @@ Muy Alto & 5 & $NR_5$ \\
 \end{tabular}
 \end{table}
 
-\subsection{Construcción de la Matriz RAM}
+**Construcción de la Matriz RAM**
 
-\subsubsection{Estructura Básica}
+**Estructura Básica**
 La matriz RAM se construye como una tabla de doble entrada:
 
 \begin{table}[H]
@@ -319,7 +269,7 @@ Insignificante  & & & & & \\
 
 Cada celda de la matriz representa una combinación de probabilidad e impacto, reflejando un nivel de riesgo específico. Este esquema facilita la priorización de los riesgos en función de sus valores en la RAM.
 
-\subsubsection{Definición de Zonas de Riesgo}
+**Definición de Zonas de Riesgo**
 Las zonas de riesgo se definen mediante curvas de iso-riesgo:
 
 \[ Z(P,I) = \begin{cases} 
@@ -330,7 +280,7 @@ Las zonas de riesgo se definen mediante curvas de iso-riesgo:
 \text{Muy Bajo} & \text{si } P \times I < U_1
 \end{cases} \]
 
-\subsection{Cálculo de Puntajes de Riesgo}
+**Cálculo de Puntajes de Riesgo**
 
 La metodología emplea puntajes numéricos para representar el riesgo en cada celda de la matriz, considerando la escala de las categorías:
 
@@ -339,28 +289,28 @@ La metodología emplea puntajes numéricos para representar el riesgo en cada ce
     \item Escala Logarítmica (Aditiva): Para escalas logarítmicas, se emplea la adición de los valores ordinales de probabilidad y consecuencia. Este método proporciona una matriz donde el riesgo es uniforme a lo largo de las diagonales y permite representar isoriesgos en bandas diagonales.
 \end{enumerate}
 
-\subsection{Evaluación de Riesgos con la Matriz}
+**Evaluación de Riesgos con la Matriz**
 
 \begin{enumerate}
     \item Asignación de Colores y Decisiones de Control: Los colores en la matriz representan niveles de riesgo asociados a categorías de riesgo específicas. La matriz se diseñará para que el color refleje un riesgo percibido por las partes interesadas, sin intentar igualarlo a una medida cuantitativa externa.
     \item Validación de Coherencia: Antes de la implementación de la matriz, se valida que el riesgo sea una función monótona creciente en relación a la probabilidad y la consecuencia. Esto significa que al incrementar cualquier categoría, el riesgo también debe aumentar.
 \end{enumerate}
 
-\subsection{Consideraciones Adicionales}
+**Consideraciones Adicionales**
 
 \begin{itemize}
     \item Representación de Dimensiones Adicionales: Para riesgos complejos que no pueden capturarse en una matriz bidimensional, se pueden incluir métricas adicionales, como manejabilidad o criticidad, mediante gráficos o reportes suplementarios.
     \item Revisión Periódica: La matriz debe revisarse regularmente para garantizar que sigue alineada con la percepción de riesgo de las partes interesadas y que se adapta a cambios en el contexto organizacional o sectorial.
 \end{itemize}
 
-\subsubsection{Evaluación de Riesgos Cualitativos}
+**Evaluación de Riesgos Cualitativos**
 Para los riesgos cualitativos, como el riesgo reputacional o ambiental, se propone una metodología basada en la percepción de expertos. Se emplearán encuestas y herramientas de juicio experto para evaluar estos riesgos, con el fin de asignarlos adecuadamente en la RAM.
 
 La puntuación cualitativa se basa en la asignación de valores ordinales en una escala de Muy Bajo a Muy Alto, permitiendo su integración en la matriz en las categorías predefinidas.
 
-\section{Mitigación de Riesgos y Estrategias de Control}
+**Mitigación de Riesgos y Estrategias de Control**
 
-\subsection{Estrategias de Mitigación}
+**Estrategias de Mitigación**
 La mitigación de riesgos debe enfocarse en reducir la probabilidad o el impacto de los riesgos identificados. A continuación, se detallan estrategias comunes de mitigación:
 
 \begin{itemize}
@@ -370,7 +320,7 @@ La mitigación de riesgos debe enfocarse en reducir la probabilidad o el impacto
     \item \textbf{Aceptación:} Asumir el riesgo cuando se considera que el costo de mitigación supera el beneficio.
 \end{itemize}
 
-\subsection{Evaluación de Efectividad de Controles}
+**Evaluación de Efectividad de Controles**
 
 Es esencial evaluar la efectividad de los controles implementados para cada riesgo. Esto se realiza mediante una revisión continua que identifique:
 
@@ -381,9 +331,9 @@ Es esencial evaluar la efectividad de los controles implementados para cada ries
 \end{enumerate}
 
 
-\section{Implementación y Buenas Prácticas}
+**Implementación y Buenas Prácticas**
 
-\subsection{Proceso de Implementación}
+**Proceso de Implementación**
 \begin{enumerate}
     \item Recopilación y validación de datos históricos
     \item Determinación de umbrales iniciales
@@ -392,7 +342,7 @@ Es esencial evaluar la efectividad de los controles implementados para cada ries
     \item Documentación y capacitación
 \end{enumerate}
 
-\subsection{Mantenimiento y Actualización}
+**Mantenimiento y Actualización**
 \begin{itemize}
     \item Revisión periódica de umbrales
     \item Actualización con nuevos datos
@@ -400,16 +350,15 @@ Es esencial evaluar la efectividad de los controles implementados para cada ries
     \item Documentación de modificaciones
 \end{itemize}
 
-\section{Conclusiones}
+**Conclusiones**
 La implementación efectiva de una matriz RAM requiere un balance entre rigor matemático y aplicabilidad práctica. Esta metodología proporciona un marco robusto para la evaluación y gestión de riesgos, adaptable a diferentes contextos organizacionales.
-
-
-\end{document}
 
 Esto es lo que quiero:
 
 a. Acoplar la información del punto 1 en el documento indicado en el punto 3, y poner las citas correctamente
 b. Considero que mi documento le hace falta mas cuerpo y explicacion, ayudame con esto y que el sentido logico de la metodología no es el adecuado, ayudame por fa con esto.
 c. necesito que la metodología sea facil de entender pero tambien incluya las buenas practicas para riesgos cualitativos
+d. necesito aclarar que los umbrales y demás son para riesgos cuantitativos ya que se puede usar modelos matemáticos
+e. me gustaría agregar la necesidad de crear matrices tipo isoriesgos.
 
 Haz el mejor documento que puedas
