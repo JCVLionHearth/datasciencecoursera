@@ -1,3 +1,116 @@
+1. He leído el siguiente documento:
+
+Ben Ale, Pete Burnap, David Slater,
+On the origin of PCDS – (Probability consequence diagrams),
+Safety Science,
+Volume 72,
+2015,
+Pages 229-239,
+ISSN 0925-7535,
+https://doi.org/10.1016/j.ssci.2014.09.003.
+(https://www.sciencedirect.com/science/article/pii/S0925753514002136)
+Abstract: The development of parallel ISO “risk” standards series – ISO 31,000 and 27,000 and now Security Risk (28,001) versions, underlines the divergences in requirements from the different currently practising risk management communities. This is highlighted in the content of the series of ongoing web based discussions (Linked in) (Institute of Risk management, 2011). The contributions have been thoughtful, authoritative and illuminating and it is reassuring that even after (or perhaps because of) recent events and crises, (Fukushima, Lehman Bros, Eurozone, etc.) and new emerging threats (CYBER), responsible management seems still determined to understand and manage its risk exposures. However it is clear that there are practical difficulties in justifying the use of some of the more common management tools (such as Probability consequence diagrams – PCD’s), that could inhibit the wider utilisation of predictive analysis to help steer corporate decision making. This contribution to the debate is aimed at trying to re-establish the basis of these techniques and to help justify their continued usage in a more rigorous and universally accepted and acceptable (useful) format.
+Keywords: Risk presentation; FN-curve; Probability consequence diagram
+
+y obtenido esta información relevante:
+
+El riesgo es, por tanto, una combinación de consecuencias y probabilidades. En opinión de Arnaud, la verdadera medida del riesgo es la multiplicación de la probabilidad y la consecuencia.
+El riesgo es, por tanto, la probabilidad multiplicada por el efecto. Esto, en términos matemáticos, suele designarse como la expectativa de las consecuencias.
+
+Un acontecimiento puede ser un suceso o acontecimiento que resulta de una decisión.
+Consecuencia ( c ) sea el resultado de un evento.
+Probabilidad ( p ) sea la posibilidad de que ocurra el evento. (La probabilidad es un número entre 0 y 1).
+La frecuencia es la tasa media por unidad de tiempo (normalmente un año) a la que sucederá un acontecimiento. A menudo se expresa como probabilidad por año. Esta última es matemáticamente imprecisa y conduce a mucha confusión. Tomemos como ejemplo los accidentes de tráfico. Hay unos cientos de ellos cada año. Por tanto, la probabilidad de que se produzca un accidente de tráfico es 1. (Al menos ya ha ocurrido 1, por lo que la probabilidad no puede ser menor). Para el futuro se podría pensar que a partir de mañana existe la posibilidad de que no se produzcan más accidentes. En ese caso, la probabilidad de que se produzcan accidentes de tráfico es menor que 1. Sin embargo, estas probabilidades son muy poco informativas. Es mucho más práctico trabajar con el número (esperado) de accidentes al año.
+El punto de riesgo ( p , c ) es la combinación de la probabilidad/frecuencia y la consecuencia de un evento ( p , c ).
+Riskset { p i , c i } es el conjunto de puntos de riesgo de todos los eventos posibles de una decisión.
+El riesgo ( R ) es la magnitud del conjunto de riesgos.
+R se puede evaluar de varias maneras.
+En muchos casos la discusión sobre riesgos implica un argumento de incertidumbre, pero ahora basta con asumir que se pueden establecer o estimar consecuencias y probabilidades.
+En su forma más simple, la magnitud del riesgo es el valor total de los resultados esperados o el valor esperado. Esto también se conoce como riesgo multiplicado por la probabilidad o consecuencia.
+Si hay una variedad de consecuencias y las probabilidades de los diferentes resultados son diferentes, entonces el riesgo en general es
+Esta definición de riesgo se utiliza en el ámbito financiero y de los seguros. Es un número único, por lo que los riesgos medidos de esta manera se pueden comparar fácilmente.
+
+
+Por lo tanto, no hay razón para dejar de emplear PCDS siempre que se documenten y comprendan las limitaciones y los supuestos necesarios. (Nótese que la norma ISO 3701 no comenta si las frecuencias graficadas son acumulativas o no: fN o FN). Pero ¿podemos obtener más? ¿Podemos establecer algunas reglas simples para aclarar y aumentar la confianza en su uso y ampliar la utilidad de sus resultados y mensajes? (¡Aunque todavía es una cuestión de basura que entra y basura que sale!).
+Creemos que la respuesta es establecer las reglas de su utilización, explícitamente en las normas.
+•
+Reconocer que hay dos categorías distintas.
+•
+El PCD “Post it” o “mapa de calor”.
+•
+El PCD “Inteligente” o “Groningen”.
+•
+Si deseamos clasificar los riesgos individuales en un diagrama de presentación que nos permita apreciar las implicaciones de una discusión grupal sobre su importancia (relativa) y gravedad, entonces un Post it PCD es útil.
+•
+Sin embargo, cualquier discusión sobre su aceptabilidad individual debe realizarse riesgo por riesgo y las generalizaciones son difíciles (no están permitidas) a menos que se emplee alguna cuantificación y estandarización adicional.
+•
+La cuantificación no es difícil, pero debemos seguir las reglas. Actualmente, la mayoría de los puntos de referencia o guías sobre la escala de consecuencias y probabilidad se dan como escalas logarítmicas implícitas. Algunas incluso citan rangos de frecuencia. Ayuda a la presentación asegurar que la escala subyacente sea realmente logarítmica.
+•
+Para comparaciones simples y clasificación de mapas de calor, los gráficos fN son adecuados. Los máximos en las consecuencias permitidas ( Nmax ) siempre son una buena idea. La aversión al riesgo incluso se puede incorporar multiplicando la escala de consecuencias por, digamos, 1,2 , 1,5 o 2
+•
+Para resultados más ambiciosos, como criterios y niveles de riesgo, se necesita el gráfico FN acumulativo (inteligente).
+•
+En el gráfico FN, el grupo puede observar una definición y asignación de frecuencias y consecuencias más rigurosas, pero la aversión al riesgo, el riesgo máximo permitido y los criterios de aceptabilidad son ahora resultados reales y realmente útiles ( Fig. 01 ).
+•
+El área bajo la curva FN es entonces el NIVEL DE RIESGO o EXPECTATIVA. Esto no puede deducirse legítimamente de las versiones cualitativas.
+
+La inferencia de la sección anterior es que podemos usar estos gráficos y derivar significativamente más información, siempre que seamos muy cuidadosos. Las hojas de cálculo pueden hacer que la transmutación matemática requerida de las sesiones de “post-it” sin procesar sea relativamente sencilla y, siempre que se comprenda la base y se consulte regularmente, podríamos producir resultados útiles. [Por ejemplo, un “Nivel” de Riesgo se puede derivar como el área bajo la curva CCDF, es decir, el Nivel de Riesgo es aproximadamente  =  ½( N max  − N 1 ) × ( F 1 − F max )].
+
+2. Estoy desarrollando una metodología más clara para el desarrollo de matrices de riesgo en nuestra compañia, y para esto estoy leyendo documentación para hacerlo entre la cual esta:
+
+Nijs Jan Duijm,
+Recommendations on the use and design of risk matrices,
+Safety Science,
+Volume 76,
+2015,
+Pages 21-31,
+ISSN 0925-7535,
+https://doi.org/10.1016/j.ssci.2015.02.014.
+(https://www.sciencedirect.com/science/article/pii/S0925753515000429)
+Abstract: Risk matrices are widely used in risk management. They are a regular feature in various risk management standards and guidelines and are also used as formal corporate risk acceptance criteria. It is only recently, however, that scientific publications have appeared that discuss the weaknesses of the risk matrix. The objective of this paper is to explore these weaknesses, and provide recommendations for the use and design of risk matrices. The paper reviews the few relevant publications and adds some observations of its own in order to emphasize existing recommendations and add some suggestions. The recommendations cover a range of issues, among them: the relation between coloring the risk matrix and the definition of risk and major hazard aversion; the qualitative, subjective assessment of likelihood and consequence; the scaling of the discrete likelihood and consequence categories; and the use of corporate risk matrix standards. Finally, it proposes a probability consequence diagram with continuous scales; providing, in some instances, an alternative to the risk matrix.
+Keywords: Risk matrix; Risk analysis; Risk assessment; Risk management
+
+3. y con esto he desarrollado el siguiente documento:
+
+\documentclass[a4paper,12pt]{report}
+\usepackage[top=1in, bottom=1in, left=0.8in, right=0.8in]{geometry}
+\usepackage{fancyhdr} % Para encabezados y pies de página personalizados
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{verbatim}
+\usepackage{float} % Para controlar la posición de tablas y figuras
+\usepackage{xcolor}
+\usepackage{tabularx} % Para usar el entorno tabularx
+\usepackage{array} % Para usar p{} en tabularx
+\usepackage{listings}
+\usepackage{pmboxdraw} %Sirve para que los simbolos unicode se visualicen usando 
+\usepackage{cite} % Opcional, para mejorar la apariencia de las citas
+\usepackage{natbib} % Para manejar citas
+\usepackage{booktabs} % Para manejo de tablas
+
+% Definir comando para extraer el título de la referencia
+\newcommand{\bibtitle}[1]{\emph{\citealp{#1}}}
+% Cambiar el título de la bibliografía
+\renewcommand{\bibname}{Referencias} % Para clases tipo libro o reporte
+\renewcommand{\contentsname}{Índice} % Cambiar el título de la tabla de contenido
+\renewcommand{\abstractname}{Resumen} % Cambiar el título del resumen
+\setcounter{tocdepth}{1} % Solo incluir secciones en la tabla de contenido
+\renewcommand\thesection{} % Eliminar números de sección
+\renewcommand\thesubsection{} % Eliminar números de subsección
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=blue,
+    pdfborder={0 0 0}
+}
+
 \title{Metodología para el Desarrollo y Aplicación de\\Matrices de Riesgo, Análisis y Mitigación (RAM)}
 \author{Manual Técnico y Guía de Implementación}
 \date{\today}
@@ -7,31 +120,43 @@
 \maketitle
 
 \begin{abstract}
-Este documento presenta una metodología integral para el desarrollo y aplicación de Matrices de Riesgo, Análisis y Mitigación (RAM), fundamentada en principios estadísticos y matemáticos. Se detalla el proceso de determinación de umbrales basados en datos históricos, la clasificación de riesgos cuantitativos y cualitativos, y los métodos de calibración y validación. La metodología incorpora técnicas de simulación Monte Carlo y análisis estadístico para establecer umbrales objetivos, proporcionando un marco robusto para la toma de decisiones en gestión de riesgos.
+Este documento presenta una metodología integral para el desarrollo, aplicación y creación de Matrices de Riesgo, Análisis y Mitigación (RAM), fundamentada en principios estadísticos y matemáticos. La metodología abarca la categorización de riesgos cuantitativos y cualitativos, la determinación de umbrales de probabilidad e impacto basados en datos históricos y percentiles, y los métodos de calibración y validación. Además, incorpora técnicas de simulación Monte Carlo y análisis estadístico para establecer umbrales objetivos, proporcionando un marco robusto para la toma de decisiones en gestión de riesgos en un contexto organizacional.
+
 \end{abstract}
 
 \tableofcontents
 
+
+\newpage
+
 \section{Introducción}
 
 \subsection{Propósito y Alcance}
-La gestión efectiva de riesgos requiere una metodología sistemática y objetiva para evaluar tanto la probabilidad de ocurrencia como el impacto potencial de eventos adversos. La Matriz RAM (Risk Assessment Matrix) proporciona un marco estructurado para esta evaluación, permitiendo la priorización y gestión eficiente de riesgos organizacionales.
-
+La gestión efectiva de riesgos requiere una metodología sistemática y objetiva para evaluar tanto la probabilidad de ocurrencia como el impacto potencial de eventos adversos. La Matriz de Riesgo RAM  (Risk Assessment Matrix) es una herramienta esencial en la gestión de riesgos, proporcionando un marco estructurado para esta evaluación y permitiendo la priorización y gestión eficiente de riesgos organizacionales. Este documento describe una metodología robusta para desarrollar y aplicar la RAM, adecuada para entornos organizacionales donde se requiere una evaluación objetiva y cuantitativa de riesgos. La metodología incorpora análisis estadístico y técnicas de simulación para lograr una gestión de riesgos sistemática y eficaz, permitiendo identificar, evaluar y priorizar riesgos, así como desarrollar estrategias para mitigarlos.
 \subsection{Fundamentos de la evaluación de riesgos}
+
+\begin{itemize}
+    \item Riesgo $(R)$: La posibilidad de que ocurra un evento que afecte negativamente los objetivos de la compañía ($0 \leq P \leq 1$).
+    \item Probabilidad $(P)$: La posibilidad de que ocurra un evento.
+    \item Impacto $(I)$: La severidad de las consecuencias si el evento ocurre.
+\end{itemize}
+
 El riesgo se define matemáticamente como el producto de la probabilidad de ocurrencia ($P$) y el impacto potencial ($I$):
 
 \[ R = P \times I \]
 
-donde:
+\section{Pasos para el Desarrollo de la Matriz RAM}
+\subsection{Identificación de Riesgos}
+
 \begin{itemize}
-    \item $R$: Nivel de riesgo
-    \item $P$: Probabilidad de ocurrencia ($0 \leq P \leq 1$)
-    \item $I$: Impacto o severidad del evento
+    \item Reuniones de Brainstorming: Involucrar a todos los miembros del equipo para identificar posibles riesgos.
+    \item Análisis de Documentación: Revisar documentos históricos y lecciones aprendidas de proyectos anteriores.
+    \item Entrevistas y Encuestas: Consultar a expertos y partes interesadas para identificar riesgos adicionales.
 \end{itemize}
 
-\section{Metodología para Determinar Impacto y Probabilidad}
+\subsection{Metodología para Determinar Impacto y Probabilidad}
 
-\subsection{Análisis de Datos Históricos}
+\subsubsection{Análisis de Datos Históricos}
 La determinación de probabilidades se basa en el análisis de frecuencias históricas. Para un evento $E$, la probabilidad empírica se calcula como:
 
 \[ P(E) = \frac{n_E}{N} \]
@@ -42,47 +167,57 @@ donde:
     \item $N$: Número total de períodos observados
 \end{itemize}
 
-\subsection{Categorización de Probabilidades}
+\subsubsection{Categorización de Probabilidades}
 Las probabilidades se categorizan en cinco niveles:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}llp{8cm}@{}}
 \toprule
 Categoría & Rango de Probabilidad & Descripción \\
 \midrule
-Raro & $P < 0.05$ & Evento excepcional \\
-Improbable & $0.05 \leq P < 0.20$ & Poco frecuente \\
-Posible & $0.20 \leq P < 0.50$ & Ocurrencia moderada \\
-Probable & $0.50 \leq P < 0.80$ & Alta frecuencia \\
-Con certeza & $P \geq 0.80$ & Prácticamente seguro \\
+Raro & $P < 0.05$ & Evento excepcional: Representa eventos altamente improbables, estándar de significancia estadística ($\alpha = 0.05$). \\
+Improbable & $0.05 \leq P < 0.20$ & Poco frecuente: Representa eventos que ocurren menos de una vez cada cinco períodos.\\
+Posible & $0.20 \leq P < 0.50$ & Ocurrencia moderada: Eventos que ocurren entre una vez cada cinco períodos y una vez cada dos períodos.\\
+Probable & $0.50 \leq P < 0.80$ & Alta frecuencia: Eventos que ocurren más de la mitad de las veces.\\
+Con certeza & $P \geq 0.80$ & Prácticamente seguro: Eventos que ocurren en más del 80\% de los casos, considerado un estándar en gestión de riesgos. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Categorización de Impactos}
+
+\subsubsection{Categorización de Impactos}
 Los impactos se clasifican según la siguiente escala:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{@{}ll@{}}
+\begin{tabular}{@{}lp{8cm}l@{}}
 \toprule
-Categoría & Criterio Cuantitativo \\
+Categoría & Descripción & Criterio Cuantitativo \\
 \midrule
-Insignificante & $I < I_1$ \\
-Menor & $I_1 \leq I < I_2$ \\
-Moderado & $I_2 \leq I < I_3$ \\
-Mayor & $I_3 \leq I < I_4$ \\
-Catastrófico & $I \geq I_4$ \\
+Insignificante &  El impacto no representa un problema para la organización. & $I < I_1$ \\
+Menor & El impacto que causa la materialización del riesgo en los objetivos de la empresa es mínimo. & $I_1 \leq I < I_2$ \\
+Moderado & La materialización del riesgo puede causar una pérdida momentánea. & $I_2 \leq I < I_3$ \\
+Mayor & Genera retrasos importantes que afectan el cumplimiento de los objetivos. & $I_3 \leq I < I_4$ \\
+Catastrófico & Puede detener la operación de la empresa, incluso, tener consecuencias como el cierre definitivo. & $I \geq I_4$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 donde $I_1, I_2, I_3, I_4$ son umbrales determinados mediante análisis estadístico de datos históricos.
 
-\section{Definición de Umbrales}
+Para los umbrales de impacto, se recomienda usar:
 
-\subsection{Método de Determinación de Umbrales}
+\begin{itemize}
+    \item $I_1$ (Insignificante-Menor): Percentil 25
+    \item $I_2$ (Menor-Moderado): Percentil 50
+    \item $I_3$ (Moderado-Mayor): Percentil 75
+    \item $I_4$ (Mayor-Catastrófico): Percentil 90
+\end{itemize}
+
+\subsection{Definición de Umbrales}
+
+\subsubsection{Método de Determinación de Umbrales}
 Los umbrales se establecen utilizando el método de percentiles sobre datos históricos:
 
 \[ U_k = F^{-1}(p_k) \]
@@ -94,7 +229,7 @@ donde:
     \item $p_k$: Percentil objetivo para el nivel $k$
 \end{itemize}
 
-\subsection{Calibración mediante Simulación Monte Carlo}
+\subsubsection{Calibración mediante Simulación Monte Carlo}
 La calibración de umbrales utiliza simulación Monte Carlo para generar escenarios y validar la clasificación:
 
 \begin{enumerate}
@@ -104,9 +239,34 @@ La calibración de umbrales utiliza simulación Monte Carlo para generar escenar
     \item Ajuste iterativo hasta alcanzar las probabilidades objetivo
 \end{enumerate}
 
-\section{Evaluación de Riesgos}
+\subsection{Definición de Escalas}
 
-\subsection{Riesgos Cuantitativos}
+\begin{itemize}
+    \item Escalas Lineales: Adecuadas para contextos donde las categorías de probabilidad o consecuencia se distribuyen de manera uniforme, facilitando una lectura intuitiva y una correlación directa con valores ordinales. Este enfoque es útil en evaluaciones de proyectos donde la probabilidad es medida en porcentaje.
+    \item Escalas Logarítmicas: Utilizadas en escenarios de alta variabilidad, como la seguridad y la prevención de desastres, donde la probabilidad o consecuencia puede abarcar varios órdenes de magnitud. La escala logarítmica es particularmente útil en situaciones en las que la probabilidad se expresa como frecuencia esperada (eventos por unidad de tiempo) o la consecuencia en términos de gravedad incremental.
+
+\end{itemize}
+
+\subsection{Asignación de Valores}
+
+\begin{itemize}
+    \item Probabilidad: Se selecciona una escala lineal si los valores de probabilidad son cercanos y se busca simplicidad en la lectura. Si las probabilidades varían en varios órdenes de magnitud, se opta por una escala logarítmica.
+    \item Impacto: La escala lineal es útil para impactos cuantificables con una relación uniforme entre categorías. La escala logarítmica es recomendable en casos de consecuencias de distinta naturaleza (p. ej., desde lesiones leves hasta muertes), donde cada incremento representa un aumento significativo de gravedad.
+\end{itemize}
+
+\subsection{Consistencia y Coloración de la Matriz}
+
+Para asegurar la coherencia entre la matriz de riesgo y la medida cuantitativa subyacente:
+
+\begin{enumerate}
+    \item Consistencia Débil: Se garantiza que los riesgos en celdas de categoría roja sean siempre mayores que aquellos en celdas verdes.
+    \item Intermediación: El trayecto entre cualquier celda verde y roja debe atravesar celdas amarillas, asegurando una transición de riesgo coherente.
+    \item Coloración Consistente: Las celdas con niveles de riesgo aproximadamente equivalentes deben mantener el mismo color, lo que facilita la comprensión visual del nivel de riesgo.
+\end{enumerate}
+
+\subsection{Evaluación de Riesgos}
+
+\subsubsection{Riesgos Cuantitativos}
 Para riesgos cuantitativos, el nivel de riesgo se determina mediante:
 
 \[ NR = \begin{cases} 
@@ -117,7 +277,7 @@ Para riesgos cuantitativos, el nivel de riesgo se determina mediante:
 5 & \text{si } R \geq U_4
 \end{cases} \]
 
-\subsection{Riesgos Cualitativos}
+\subsubsection{Riesgos Cualitativos}
 Para riesgos cualitativos, se utiliza una matriz de conversión:
 
 \begin{table}[H]
@@ -135,29 +295,31 @@ Muy Alto & 5 & $NR_5$ \\
 \end{tabular}
 \end{table}
 
-\section{Construcción de la Matriz RAM}
+\subsection{Construcción de la Matriz RAM}
 
-\subsection{Estructura Básica}
+\subsubsection{Estructura Básica}
 La matriz RAM se construye como una tabla de doble entrada:
 
 \begin{table}[H]
 \centering
 \begin{tabular}{@{}lccccc@{}}
 \toprule
-Probabilidad & \multicolumn{5}{c}{Impacto} \\
+Impacto & \multicolumn{5}{c}{Probabilidad} \\
 \cmidrule(l){2-6}
- & Insignificante & Menor & Moderado & Mayor & Catastrófico \\
+ & Raro & Improbable & Posible & Probable & Con certeza \\
 \midrule
-Con certeza & & & & & \\
-Probable & & & & & \\
-Posible & & & & & \\
-Improbable & & & & & \\
-Raro & & & & & \\
+Catastrófico & & & & & \\
+Mayor & & & & & \\
+Moderado & & & & & \\
+Menor & & & & & \\
+Insignificante  & & & & & \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Definición de Zonas de Riesgo}
+Cada celda de la matriz representa una combinación de probabilidad e impacto, reflejando un nivel de riesgo específico. Este esquema facilita la priorización de los riesgos en función de sus valores en la RAM.
+
+\subsubsection{Definición de Zonas de Riesgo}
 Las zonas de riesgo se definen mediante curvas de iso-riesgo:
 
 \[ Z(P,I) = \begin{cases} 
@@ -167,6 +329,57 @@ Las zonas de riesgo se definen mediante curvas de iso-riesgo:
 \text{Bajo} & \text{si } U_1 \leq P \times I < U_2 \\
 \text{Muy Bajo} & \text{si } P \times I < U_1
 \end{cases} \]
+
+\subsection{Cálculo de Puntajes de Riesgo}
+
+La metodología emplea puntajes numéricos para representar el riesgo en cada celda de la matriz, considerando la escala de las categorías:
+
+\begin{enumerate}
+    \item Escala Lineal (Multiplicativa): Si las categorías están en una escala lineal, el puntaje de riesgo se calcula multiplicando los valores ordinales de probabilidad e impacto. Esto genera una matriz donde el riesgo es proporcional a la pérdida esperada en una escala lineal.
+    \item Escala Logarítmica (Aditiva): Para escalas logarítmicas, se emplea la adición de los valores ordinales de probabilidad y consecuencia. Este método proporciona una matriz donde el riesgo es uniforme a lo largo de las diagonales y permite representar isoriesgos en bandas diagonales.
+\end{enumerate}
+
+\subsection{Evaluación de Riesgos con la Matriz}
+
+\begin{enumerate}
+    \item Asignación de Colores y Decisiones de Control: Los colores en la matriz representan niveles de riesgo asociados a categorías de riesgo específicas. La matriz se diseñará para que el color refleje un riesgo percibido por las partes interesadas, sin intentar igualarlo a una medida cuantitativa externa.
+    \item Validación de Coherencia: Antes de la implementación de la matriz, se valida que el riesgo sea una función monótona creciente en relación a la probabilidad y la consecuencia. Esto significa que al incrementar cualquier categoría, el riesgo también debe aumentar.
+\end{enumerate}
+
+\subsection{Consideraciones Adicionales}
+
+\begin{itemize}
+    \item Representación de Dimensiones Adicionales: Para riesgos complejos que no pueden capturarse en una matriz bidimensional, se pueden incluir métricas adicionales, como manejabilidad o criticidad, mediante gráficos o reportes suplementarios.
+    \item Revisión Periódica: La matriz debe revisarse regularmente para garantizar que sigue alineada con la percepción de riesgo de las partes interesadas y que se adapta a cambios en el contexto organizacional o sectorial.
+\end{itemize}
+
+\subsubsection{Evaluación de Riesgos Cualitativos}
+Para los riesgos cualitativos, como el riesgo reputacional o ambiental, se propone una metodología basada en la percepción de expertos. Se emplearán encuestas y herramientas de juicio experto para evaluar estos riesgos, con el fin de asignarlos adecuadamente en la RAM.
+
+La puntuación cualitativa se basa en la asignación de valores ordinales en una escala de Muy Bajo a Muy Alto, permitiendo su integración en la matriz en las categorías predefinidas.
+
+\section{Mitigación de Riesgos y Estrategias de Control}
+
+\subsection{Estrategias de Mitigación}
+La mitigación de riesgos debe enfocarse en reducir la probabilidad o el impacto de los riesgos identificados. A continuación, se detallan estrategias comunes de mitigación:
+
+\begin{itemize}
+    \item \textbf{Evitación:} Modificar procesos o actividades para eliminar el riesgo.
+    \item \textbf{Reducción:} Implementar controles para reducir la probabilidad o impacto.
+    \item \textbf{Transferencia:} Compartir o transferir el riesgo a un tercero, como mediante seguros.
+    \item \textbf{Aceptación:} Asumir el riesgo cuando se considera que el costo de mitigación supera el beneficio.
+\end{itemize}
+
+\subsection{Evaluación de Efectividad de Controles}
+
+Es esencial evaluar la efectividad de los controles implementados para cada riesgo. Esto se realiza mediante una revisión continua que identifique:
+
+\begin{enumerate}
+    \item Si los controles están funcionando como se esperaba.
+    \item La reducción de la probabilidad e impacto lograda mediante los controles.
+    \item Necesidades de ajuste o mejora de los controles en respuesta a cambios en el entorno de riesgo.
+\end{enumerate}
+
 
 \section{Implementación y Buenas Prácticas}
 
@@ -190,267 +403,13 @@ Las zonas de riesgo se definen mediante curvas de iso-riesgo:
 \section{Conclusiones}
 La implementación efectiva de una matriz RAM requiere un balance entre rigor matemático y aplicabilidad práctica. Esta metodología proporciona un marco robusto para la evaluación y gestión de riesgos, adaptable a diferentes contextos organizacionales.
 
-2. Definición de la matriz de riesgos
-Las matrices de riesgo han sido descritas en muchas ocasiones, por lo que esta sección se limita a una descripción breve y formal para apoyar el análisis posterior.
-El riesgo se expresa a menudo en términos de una combinación de las consecuencias de un evento junto con la probabilidad asociada de su ocurrencia (Nota 4 a la definición de riesgo en ISO (2009) ). Las declaraciones sobre el riesgo son declaraciones sobre posibles situaciones futuras, y estas declaraciones son, por su naturaleza, inherentemente inciertas. Para gestionar esta incertidumbre de una manera intuitiva, muchos gerentes de riesgos prefieren no asignar valores numéricos a la probabilidad y la consecuencia, sino asignar categorías discretas de consecuencia y probabilidad al evento. Como se analiza más adelante en este documento (Sección 6 ), esta no es necesariamente la forma correcta de tratar la incertidumbre. La matriz de riesgo facilita la asignación de una categoría de riesgo discreta a cada combinación de consecuencia y probabilidad, es decir, proporciona una correlación de la consecuencia y la probabilidad con el riesgo. Esta correlación puede ser subjetiva y no está sujeta a restricciones formales, aunque es natural asegurar que la función de correlación aumente monótonamente: un aumento en la consecuencia (donde la probabilidad permanece igual) o un aumento en la probabilidad (donde la consecuencia permanece igual) puede no conducir a una disminución del riesgo asignado. El mapeo puede tener en cuenta aspectos subjetivos o sociales de la percepción del riesgo, como la aversión a los peligros mayores (a los eventos con baja probabilidad pero grandes consecuencias se les asigna un riesgo mayor que a los eventos con pequeñas consecuencias y alta probabilidad, incluso si la pérdida esperada (definiéndose la pérdida esperada como consecuencia  ×  probabilidad) es la misma).
-A cada par de categorías de consecuencia y de probabilidad se le puede asignar un atributo de riesgo diferente; si hay 'N' categorías de consecuencia y 'M' categorías de probabilidad, se pueden discriminar N  ×  M categorías de riesgo diferentes y discretas (véase la figura 1) . Sin embargo, es normal dividir la cuadrícula de la matriz de riesgo en áreas con menos categorías, a menudo utilizando colores, como verde, amarillo y rojo, para representar riesgo bajo, medio y alto, o derivando una puntuación de riesgo, a menudo un valor ordinal, a través de la combinación de consecuencia y probabilidad. Esto significa que a diferentes combinaciones de consecuencia y probabilidad se les asigna un riesgo idéntico: tienen el mismo color o la misma puntuación de riesgo. En el resto del documento, "colorear", en el sentido de asignar un color a una celda de la matriz, y la puntuación de riesgo, en el sentido de asignar una puntuación de riesgo a una celda, se considerarán, en la mayoría de los casos, como sinónimos.
 
-Las matrices de riesgo se pueden utilizar en dos etapas: en la primera, el evento potencial (o peligro) se representa gráficamente en la cuadrícula bidimensional de la matriz de riesgo según la consecuencia y probabilidad asignadas. En este proceso, incluso cuando la cuadrícula se divide en un número limitado de colores, no se pierde información: el observador todavía puede ver cómo la posición del peligro se origina a partir de sus atributos de consecuencia y probabilidad, véase la Figura 2. Sin embargo, en la segunda etapa, el riesgo (color o puntuación) del evento o peligro se representa como una sola dimensión, y es aquí donde el mapeo del riesgo realmente se vuelve efectivo y es más significativo para influir en la toma de decisiones con respecto a la tolerabilidad o el establecimiento de prioridades.
+\end{document}
 
-2.1 . Definición del riesgo en el marco de la matriz de riesgos
-En el caso anterior, el riesgo se define como la correlación de los dos atributos de un evento adverso (consecuencia, probabilidad) con un valor de riesgo determinado. En el contexto de la matriz de riesgo, el valor del riesgo es un valor discreto, correspondiente a las categorías de consecuencia y probabilidad: “SI la frecuencia es la categoría “f” Y la gravedad de las consecuencias es la categoría “c”, ENTONCES el riesgo es la categoría “r”” ( Markowski y Mannan, 2008 ).
-Cabe señalar que en publicaciones anteriores, en particular Cox (2008) y Levine (2012) , el riesgo se define por separado como Riesgo  =  probabilidad  ×  consecuencia o una función similar. La esencia del análisis de Cox es que la matriz de riesgo debe mostrar "compatibilidad lógica con los riesgos cuantitativos". Desde este enfoque, la función multiplicativa anterior es el principio rector subyacente, y la presentación en la matriz de riesgo debe replicar esa definición de riesgo, y las puntuaciones de riesgo iguales en la matriz deben corresponder a valores iguales del producto de las ordenadas de la celda. Es obvio que cualquier mapeo de riesgo subjetivo que se desvíe de dicha función multiplicativa viola esta compatibilidad.
-Sostenemos que el mapeo de riesgos que aparece a través de la puntuación o coloración de la matriz de riesgos es una definición de riesgo en sí misma, ya que puede expresar percepciones subjetivas de riesgo, es decir, aversión a los peligros mayores, que se consideran importantes para las decisiones de riesgo. Sin embargo, se utilizará el concepto de pérdida esperada ( probabilidad o frecuencia  ×  consecuencia ) para demostrar que las elecciones realizadas en el diseño de la matriz de riesgos pueden tener una influencia imprevista en, por ejemplo, el nivel de aversión a los peligros mayores expresado por la matriz de riesgos.
-3 . Escalas de categorías en la matriz de riesgo
-Las categorías discretas de consecuencia y probabilidad pueden identificarse respectivamente mediante descripciones nominales y textuales, como "insignificante", "grave", "catastrófico" y "casi imposible", "probable", "a menudo", como en la figura 2. Es lógico que las categorías se coloquen en orden a lo largo de los lados (ordenadas) de la matriz de riesgo, es decir, las categorías de consecuencia se deben clasificar de menos a más severa, y las categorías de probabilidad se deben clasificar de menor a mayor. Tal clasificación es necesaria si el carácter monótono del mapeo de riesgos (el riesgo aumenta si la consecuencia y/o la probabilidad aumentan) debe ser intuitivamente visible desde la matriz.
-De ahí surge un criterio para la elección de categorías, a saber, que éstas puedan efectivamente ser jerarquizadas. Esto tiene dos implicaciones:
-(a)
-El significado y el orden de las categorías nominales deben resultar claros al instante para el observador. No se trata de una cuestión trivial (véase también ( Hubbard y Evans, 2010 )). Consideremos, por ejemplo, la clasificación de los descriptores que pueden sugerirse como sinónimos en los diccionarios, pero que a menudo se utilizan en las matrices de riesgo para delimitar diferentes categorías:
-•
-a menudo, frecuente, probable;
-•
-improbable, raramente;
-•
-desastroso, catastrófico.
-(b)
-En relación con las consecuencias, esto significa que los diferentes tipos de impacto que no se pueden comparar directamente, como el impacto sobre el medio ambiente, la vida humana o la economía, no se pueden utilizar juntos como categorías separadas dentro de una única matriz de riesgo. O bien cada tipo de impacto requiere su propia matriz de riesgo separada, o bien se define un conjunto de categorías a un nivel superior que abarque los diferentes impactos. El último método implica una comparación explícita de la gravedad de los diferentes impactos en la misma escala de alto nivel (por ejemplo, “una sola lesión” y “la destrucción de una hectárea de naturaleza preservada” se encuentran ambos en la categoría de alto nivel “muy grave”). Esta cuestión es explorada por Flage y Røed (2012) bajo el tema de la agregación del riesgo de varias dimensiones de consecuencia. Por lo tanto, sugieren utilizar matrices de riesgo separadas en su lugar. Sin embargo, cuando se utilizan matrices de riesgo separadas, la gravedad todavía se compara, aunque de manera implícita, entre los tipos de impacto a través del mapeo de riesgo elegido para cada matriz.
-Debido a la dificultad descrita en el apartado (a) anterior, es aconsejable que las categorías nominales puedan vincularse a alguna referencia cuantificable (más o menos objetiva). Un ejemplo de dicha referencia puede ser vincular la probabilidad con las percepciones de las partes interesadas, como por ejemplo (véase Ruge, 2004 ):
-•
-“ha sucedido dentro de la propia unidad organizativa”,
-•
-“ha sucedido en esta rama de la industria”,
-•
-“ha sucedido en el mundo”.
-En lugar de utilizar categorías nominales, o como complemento de ellas, se pueden utilizar rangos numéricos para aclarar las categorías, por ejemplo, intervalos de costos, tiempos de demora o número de lesiones para las categorías de consecuencia, y probabilidad o frecuencia esperada para las categorías de probabilidad. La ISO (2010) recomienda agregar esta información si está disponible.
-3.1 . Escalas lineales o logarítmicas
-Al revisar la literatura sobre matrices de riesgo, así como los ejemplos de matrices de riesgo que se encuentran en la práctica, pronto se hace evidente que existen diferentes enfoques hacia la escala cuantitativa (aproximada) de las categorías. Los ejemplos analizados por Cox (2008) muestran categorías donde los límites entre todas las categorías, tanto para probabilidad como para consecuencia, son equidistantes (0-0,2; 0,2-0,4; etc.). Muy cerca de esto están las definiciones de categoría "en forma de campana" u otras definiciones arbitrarias, que ofrecen una resolución más alta para probabilidades cercanas a 0 y cercanas a 1 (por ejemplo, 0,00-0,10; 0,10-0,40; 0,40-0,60; 0,60-0,90; 0,90-1,00, ( Ni et al., 2010 )), pero donde todos los anchos de las categorías están dentro de un orden de magnitud. Estas escalas son las más populares para evaluaciones de riesgo de proyectos y ejercicios similares, donde la probabilidad se puede medir en porcentaje. Llamaremos a este escalamiento o espaciamiento “básicamente lineal” para enfatizar que el escalamiento no es necesariamente estrictamente lineal, debido a la variación en los límites cuantitativos de las clases de categorías o a la imprecisión introducida por las categorías nominales.
-Sin embargo, las matrices de riesgo pueden utilizar categorías en las que cada categoría difiere en un orden de magnitud de la anterior, es decir, la relación entre los límites (o los equivalentes cuantitativos de estos) de las categorías posteriores es constante. Este enfoque es el preferido por los estudios relacionados con la seguridad, en los que la probabilidad se expresa como frecuencia esperada (número de ocurrencias esperadas por unidad de tiempo), y estas frecuencias pueden variar en muchos órdenes de magnitud. Por lo tanto, la probabilidad se representa en una escala logarítmica.
-Las categorías de consecuencias también se pueden expresar en escalas de naturaleza logarítmica, aunque esto puede no ser evidente cuando se utilizan descripciones verbales. En muchas matrices de riesgo relacionadas con la seguridad se utilizan diferentes "métricas" en categorías posteriores de tal manera que oscurecen la naturaleza de la escala, por ejemplo: lesiones leves, lesiones con pérdida de tiempo, lesiones graves y muertes. Comparar la gravedad de dichas métricas (por ejemplo, lesiones leves con lesiones graves) es principalmente subjetivo. Sin embargo, hay algunos indicios de que pasar de lesiones leves a lesiones graves y a muertes puede considerarse un aumento logarítmico de la gravedad. La Agencia Ferroviaria Europea ha introducido el concepto de "muertes y lesiones graves ponderadas (FWSI)", "por el cual 1 lesión grave se considera estadísticamente equivalente a 0,1 muertes" ( Agencia Ferroviaria Europea, 2008 ). Además, dichas relaciones logarítmicas pueden inferirse de las frecuencias observadas empíricamente de ocurrencia de diferentes consecuencias: según Prem et al. (2010), la frecuencia observada de ocurrencia de: lesiones leves; lesión grave; muerte; 10 muertes; 100 muertes, varía aproximadamente en un factor de 10 de una categoría a la siguiente. Por lo tanto, dicha escala se denominará "básicamente logarítmica".
-La elección de escalas (básicamente) lineales o logarítmicas tiene implicaciones sobre la forma en que la coloración de la matriz se relaciona con las expresiones cuantitativas del riesgo, especialmente la pérdida esperada. Esto se analizará más a fondo en las Secciones 4.3 y 5.2 .
-4. Revisión de comentarios anteriores sobre matrices de riesgo
-Una revisión de los debates anteriores sobre las matrices de riesgo pone de relieve la preocupación por los siguientes temas:
-•
-Consistencia entre la matriz de riesgo y las medidas cuantitativas y, como consecuencia, la idoneidad de las decisiones basadas en matrices de riesgo ( Cox, 2008 , Levine, 2012 , Flage y Røed, 2012 ).
-•
-La clasificación subjetiva de consecuencia y probabilidad ( Cox, 2008 , Smith et al., 2009 , ISO, 2010 , Hubbard y Evans, 2010 ).
-•
-La definición de los puntajes de riesgo y su relación con el escalamiento de las categorías (lineal o logarítmico) ( Levine, 2012 , Ni et al., 2010 , Ruge, 2004 , Franks, sin fecha , Franks y Maddison, 2006 , Hubbard y Evans, 2010 ).
-•
-La resolución limitada de las matrices de riesgo, que da lugar a “vínculos de riesgo” ( Cox, 2008 , Ni et al., 2010 ).
-•
-La agregación de escenarios, consecuencias y riesgos en matrices de riesgo ( Flage y Røed, 2012 , Franks, sin fecha , Franks y Maddison, 2006 , PPRT, 2005 , ISO, 2010 ).
-•
-Problemas relacionados con el uso de matrices de riesgos universales o corporativas ( Flage y Røed, 2012 , ISO, 2010 ).
-4.1 . Coherencia entre las matrices de riesgo y las medidas cuantitativas de riesgo
-Una de las primeras evaluaciones críticas de las matrices de riesgo fue publicada por Cox (2008) , quien afirma que una matriz de riesgo bien definida (incluida su coloración) debe cumplir tres axiomas: consistencia débil , intermediación y coloración consistente . Estos axiomas se pueden describir de la siguiente manera; véase también ( Levine, 2012 , Flage y Røed, 2012 ):
-•
-Consistencia débil significa que cada peligro en la categoría roja, por inferencia, representa un riesgo mayor que aquellos en la categoría verde.
-•
-La intermediación significa que cada segmento de línea con pendiente positiva que comienza en la categoría verde y termina en una categoría roja debe pasar por una categoría de riesgo amarilla.
-•
-Coloración consistente significa que los peligros con un riesgo (aproximadamente) igual tendrán el mismo color.
-Como se indicó anteriormente, Cox exige que haya compatibilidad entre la matriz de riesgo (y su coloración) y una definición separada o independiente de una medida cuantitativa de riesgo. En este sentido, el “color” tiene que coincidir con esta medida cuantitativa de riesgo. Para las definiciones cuantitativas de riesgo como funciones continuas de frecuencia y consecuencia, claramente no es una cuestión trivial crear matrices de riesgo consistentes con tales funciones. Las curvas de isoriesgo cuantitativas pasarán por cualquier celda, dividiendo las celdas en áreas con riesgos “menores” y “mayores”, y estas curvas de isoriesgo no seguirán los límites de las celdas cuadradas. Obsérvese que Cox permite que el riesgo varíe dentro de una celda, en lugar de considerar el riesgo dentro de una sola celda como un valor único y discreto.
-Cuando, como se propone en este artículo, no se hace referencia a una definición de riesgo externo, sino que la coloración de la matriz en sí es la única definición de riesgo relevante, entonces los axiomas de consistencia débil y coloración consistente son triviales. En cambio, se debe asegurar que el riesgo sea una función monótonamente creciente tanto de la consecuencia como de la probabilidad, que puede definirse de la siguiente manera:
-Si la categoría de consecuencia A es más grave que la categoría de consecuencia B, y la categoría de probabilidad M representa una probabilidad mayor que la categoría de probabilidad N, entonces el riesgo de (B, N) será menor o igual al riesgo de (A, M) para todas las combinaciones posibles de A, B, M y N.
-De hecho, si se utiliza una definición cuantitativa continua del riesgo junto con una matriz de riesgo discreta, se puede esperar que se llegue a decisiones diferentes al utilizar la matriz de riesgo que al utilizar la definición cuantitativa continua. Cuando todas las partes interesadas en un caso están de acuerdo con la definición cuantitativa continua del riesgo, entonces es preferible utilizar esa definición cuantitativa del riesgo: no hay ningún beneficio en transferir una función continua adecuada a una función discreta con baja resolución, incluso si hay incertidumbre en la evaluación de las consecuencias y la probabilidad (véase la Sección 6 a continuación).
-Teniendo en cuenta los conflictos entre la representación en una matriz de riesgo y una definición de riesgo separada e independiente, entonces, si se utiliza una matriz de riesgo, el “riesgo” debe definirse inequívocamente por el color de la matriz, y no debe hacerse ningún intento de hacer coincidir ese color con otra medida de riesgo. Es responsabilidad del diseñador de la matriz de riesgo asegurarse de que la matriz represente la percepción del riesgo de las partes interesadas. El diseñador debe ser consciente de cómo la matriz de riesgo se relaciona con principios de riesgo como la pérdida esperada y la aversión a los grandes peligros.
+Esto es lo que quiero:
 
-4.3 . Puntuaciones de riesgo y escalamiento
-Los niveles de riesgo se pueden asignar a las celdas de la matriz de riesgo de dos maneras: coloreándolas con argumentos subjetivos o mediante puntuaciones numéricas de riesgo basadas en algoritmos que utilizan números ordinales asignados a cada consecuencia y categoría de probabilidad. En ocasiones, se encontrarán matrices de riesgo que utilizan ambos métodos (es decir, puntuaciones numéricas de riesgo y colores). Esto puede ser problemático si existe inconsistencia entre los colores y las puntuaciones numéricas de riesgo. Si se considera que las puntuaciones numéricas representan una medida cuantitativa del riesgo, se aplicarán los axiomas de consistencia formulados por Cox (2008) .
-Existen diferentes formas de utilizar operaciones matemáticas elementales para derivar una puntuación numérica de riesgo a partir de los números de categorías ordinales ( Ni et al., 2010 ). La suma y la multiplicación obedecen al requisito formulado anteriormente de aumento monótono; las otras operaciones (resta y división) no lo hacen y no se analizarán aquí.
-Cuando se espera que la matriz de riesgo presente el riesgo de una manera similar a la pérdida esperada, y las categorías están espaciadas básicamente de forma lineal, entonces la multiplicación de los números ordinales de las categorías (de menor a mayor) es una forma adecuada de definir una puntuación de riesgo, véase la Figura 3. Sin embargo, cuando las categorías están espaciadas básicamente de forma logarítmica, la adición de los números ordinales es la opción más deseable, véase la Figura 4. El vínculo entre la escala y la puntuación ha sido señalado por Flage y Røed (2012).
+a. Acoplar la información del punto 1 en el documento indicado en el punto 3, y poner las citas correctamente
+b. Considero que mi documento le hace falta mas cuerpo y explicacion, ayudame con esto y que el sentido logico de la metodología no es el adecuado, ayudame por fa con esto.
+c. necesito que la metodología sea facil de entender pero tambien incluya las buenas practicas para riesgos cualitativos
 
-Levine (2012) observa que, cuando se utilizan escalas (básicamente) logarítmicas , la compatibilidad con una definición de riesgo cuantitativa (como la pérdida esperada) es mejor en términos de consistencia débil y coloración consistente que cuando se utilizan escalas (básicamente) lineales. De hecho, la coloración observada a menudo a lo largo de las bandas diagonales, como se demuestra en la Fig. 3 , Fig. 4 , concuerda mejor con las puntuaciones aditivas que con las multiplicativas: las puntuaciones aditivas presentan el mismo riesgo a lo largo de las diagonales desde las celdas superior izquierda a las inferior derecha de la matriz (véase la Fig. 4 ). Levine (2012) utiliza esto como argumento para defender la escala logarítmica.
-Cabe mencionar que el concepto de riesgo puede incluir otros aspectos además de la probabilidad y la consecuencia. Flage y Røed (2012) mencionan la manejabilidad, la incertidumbre y la criticidad como otros aspectos del riesgo que, debido a la naturaleza bidimensional de la matriz de riesgo, no pueden expresarse mediante colores o puntuaciones de riesgo calculadas matemáticamente. Flage y Røed proponen otros medios para representar estas dimensiones.
-
-4.4 . Resolución
-Como las matrices de riesgo utilizan categorías discretas de consecuencia y probabilidad, la resolución está limitada por el número de categorías. Cox (2008) considera la resolución limitada como una desventaja inherente de las matrices de riesgo. De hecho, la compatibilidad con la pérdida esperada y el requisito de coloración consistente son problemáticos ya que el escalamiento lineal conduce a una gran variación del riesgo (cuantitativo) dentro de una sola celda, especialmente cerca de las esquinas superior izquierda e inferior derecha (cuando las categorías están alineadas como en la Figura 2 , Figura 3 , Figura 4 ).
-Además de los problemas de resolución relacionados con la necesidad de compatibilidad con la pérdida esperada, una resolución limitada puede dar lugar a muchas combinaciones de consecuencia y probabilidad que den lugar al mismo color o puntuación de riesgo. Esto es abordado por Ni et al. (2010) y comúnmente conocido como vínculos de riesgo: si la matriz de riesgo se utiliza para priorizar los riesgos y las acciones de mitigación de riesgos, los vínculos de riesgo impiden que los riesgos se clasifiquen de forma inequívoca. Ni et al. proponen el uso de una metodología basada en el recuento de Borda, utilizando los rangos de probabilidad y consecuencia como puntuaciones independientes, para proporcionar una ordenación adicional. No obstante, varias combinaciones pueden dar lugar a recuentos de Borda iguales. Obsérvese que esta metodología de Borda, cuando se utiliza como una clasificación de prioridad de riesgo, implícitamente otorga el mismo peso a la consecuencia y la probabilidad.
-En muchos casos, no es necesario obtener una clasificación única de riesgos. A menudo es suficiente simplemente identificar los riesgos inaceptables (“rojo”), los riesgos ampliamente aceptables (“verde”) y los riesgos intermedios (“amarillo”), que normalmente se reducen al nivel más bajo razonablemente factible (ALARP). Si la resolución de las categorías de probabilidad y consecuencia se considera suficiente y factible (los usuarios pueden seleccionar las categorías correctas para los eventos sin mayor ambigüedad), no hay más inconvenientes de resolución limitada en los resultados (las celdas de riesgo). Esto no quiere decir que los resultados de la matriz de riesgos sean independientes de las resoluciones de escala elegidas ( Hubbard y Evans, 2010 ).
-Sin embargo, el diseñador de la matriz de riesgos debe ser consciente de las consecuencias de la resolución y el escalamiento de las categorías. La ISO (2010) observa, con respecto a la resolución:
-•
-“La escala (o escalas) de consecuencias debe cubrir el rango de diferentes tipos de consecuencias que deben considerarse (…) y debe extenderse desde la consecuencia máxima creíble hasta la consecuencia más baja que sea motivo de preocupación”.
-•
-“La escala de probabilidad debe abarcar todo el rango relevante para el estudio en cuestión, recordando que la probabilidad más baja debe ser aceptable para la consecuencia más alta definida; de lo contrario, todas las actividades con la consecuencia más alta se definen como intolerables”.
-Además, el diseñador debe prestar atención a las implicaciones de utilizar diferentes resoluciones para probabilidad y consecuencia (por ejemplo, utilizando factores de 10 para categorías de probabilidad subsiguientes (espaciadas logarítmicamente) y factores de 3 para consecuencia) o incluso de combinar espaciado lineal y logarítmico (por ejemplo, espaciado logarítmico para probabilidad y espaciado lineal para consecuencia). Estas implicaciones se analizarán con mayor detalle en la sección sobre aversión a los peligros mayores, 5.2 .
-4.5 . Agregación y detalle
-La agregación abarca dos cuestiones ligeramente diferentes. En primer lugar, la agregación apunta a la cuestión de cómo combinar el impacto de un único evento en diferentes áreas de interés (por ejemplo, financieras, ambientales, de reputación, de seguridad). Esta cuestión es abordada por Flage y Røed (2012) así como por ISO (2010) : “ Es difícil combinar o comparar el nivel de riesgo para diferentes categorías de consecuencias ”. Esta cuestión ya se ha explorado en la Sección 3 .
-En segundo lugar, la agregación se ocupa de cómo combinar el riesgo de múltiples peligros que se originan a partir de una única actividad. Este tipo de agregación se considera más problemático que el problema descrito en el párrafo anterior, ya que puede significar que, al final, la decisión basada en la matriz de riesgo depende del nivel de detalle del estudio, es decir, del número de eventos de accidentes individuales que se evalúan. Consideremos, por ejemplo, el caso de una evaluación de riesgos de un oleoducto. Se puede identificar un único evento de una rotura “genérica” de un oleoducto en algún lugar a lo largo de toda su longitud, o se pueden identificar varias roturas en distintas secciones a lo largo del oleoducto. El impacto de cualquier rotura de este tipo puede ser bastante similar en todos los lugares, pero la probabilidad de que ocurra en algún lugar a lo largo del oleoducto es mayor que la probabilidad de que ocurra una rotura en una sección específica. Por lo tanto, se asignará a la rotura “genérica” un riesgo mayor que al riesgo que ocurra en una sección específica. ¿Cómo se puede comparar entonces el primer enfoque con el riesgo total del conjunto de roturas del segundo enfoque?
-La ISO ( ISO, 2010 ) establece respecto a la matriz de riesgos:
-1.
-“Los riesgos no pueden agregarse (es decir, no se puede definir que un número particular de riesgos bajos o un riesgo bajo identificado un número particular de veces sea equivalente a un riesgo medio);”
-2.
-“Los resultados dependerán del nivel de detalle del análisis, es decir, cuanto más detallado sea el análisis, mayor será el número de escenarios, cada uno con una probabilidad menor. Esto subestimará el nivel real de riesgo. La forma en que se agrupan los escenarios para describir el riesgo debe ser coherente y definirse al comienzo del estudio”.
-Como se indica en la Sección 4.2 , no se pueden realizar cálculos sobre eventos a los que se les asignan números ordinales. Sin embargo, si se conocen las características de las escalas ordinales , es decir, al tener en cuenta los límites cuantitativos de las categorías, se pueden hacer algunas afirmaciones válidas, que se han utilizado para derivar reglas de agregación en algunas aplicaciones específicas. A saber, para categorías de probabilidad escaladas básicamente logarítmicamente, donde cada categoría es un factor ' n ' más probable que la categoría anterior: cuando n eventos se clasifican en la misma categoría, entonces la probabilidad de que ocurra cualquiera de esos eventos se puede asignar a la siguiente categoría. Esta regla se ha utilizado en las directrices francesas para evaluaciones de riesgos industriales mayores ( PPRT, 2005 ). A pesar de esto, como regla general se debe evitar la necesidad de agregación. Considere casos en los que eventos similares conducen a la misma consecuencia, es decir, la consecuencia se puede describir con los mismos términos y estará en la misma categoría de consecuencia. En casos como estos, los eventos similares deben considerarse como un solo evento. Detallar los eventos no está en línea con el uso de la metodología de matriz de riesgo simple.
-Si las consecuencias se pueden cuantificar en una sola escala, el riesgo se puede expresar mejor mediante la distribución acumulativa de las consecuencias de los eventos individuales, que es independiente del nivel de detalle ( Ale et al., 2015 ), y una matriz de riesgo ya no sería una herramienta adecuada.
-
-4.6 . Matrices de riesgo corporativo
-Varias empresas importantes han intentado estandarizar la gestión de riesgos en toda la empresa y, como la matriz de riesgos se percibe como una herramienta de evaluación de riesgos útil y ampliamente aplicada, esto significa que se propone una matriz de riesgos estándar para su uso en toda la organización. Ruge (2004) describe un ejemplo . Los argumentos a favor de las matrices de riesgo estandarizadas corporativas son la introducción de una forma unificada de realizar la evaluación de riesgos y alinear la terminología y los criterios de aceptación de riesgos en una empresa. Sin embargo, ISO (2010) advierte contra el uso de matrices de riesgo estandarizadas corporativas: " Una matriz debe diseñarse para que sea apropiada para las circunstancias, por lo que puede ser difícil tener un sistema común que se aplique en una variedad de circunstancias relevantes para una organización ". La cuestión también es abordada por Flage y Røed (2012) , quienes observan que lo que puede ser tolerable a nivel de empresa, no es necesariamente tolerable a nivel de departamento.
-En las secciones anteriores se han descrito algunas cuestiones que complican la aplicación de las matrices de riesgo. En ellas se muestra que los juicios subjetivos sobre la clasificación (Sección 4.2 ) y los detalles del estudio (Sección 4.5 ) tienen una influencia significativa en el resultado del estudio y que es importante que las partes interesadas lleguen a un acuerdo antes de iniciar el estudio. La estandarización de las matrices de riesgo empresarial sin una instrucción o capacitación detallada sobre cómo abordar esas cuestiones subjetivas en contextos muy diversos no conduce necesariamente a resultados similares en situaciones comparables.
-Ruge (2004) describe dos ejemplos de la aplicación de una matriz de riesgo corporativa. Ambos ejemplos abordan operaciones unitarias continuas de tamaño comparable. Sin embargo, se ha observado que en varias otras empresas se debe aplicar una matriz de riesgo corporativa estándar tanto a operaciones continuas como a proyectos de construcción y mantenimiento. Por ejemplo, en una empresa de servicios públicos, se debe aplicar la misma matriz de riesgo a la operación de una gran planta de energía a carbón, la construcción de una turbina eólica y el mantenimiento de una estación transformadora . Aplicar la interpretación adecuada de las categorías de probabilidad (utilizando la frecuencia para operaciones continuas y la probabilidad para proyectos puntuales) requiere una consideración cuidadosa en cada caso particular. Armonizar el proceso de gestión de riesgos en estas actividades tan diversas mediante el uso de una matriz de riesgo estándar requiere mucha orientación adicional que contradice la simplicidad de las matrices de riesgo.
-5 . Otras cuestiones
-Además de las cuestiones que han recibido atención en la literatura existente, queremos llamar la atención sobre algunas cuestiones complementarias relacionadas con:
-•
-Diferentes posibilidades a la hora de considerar la consecuencia de un acontecimiento.
-•
-Aversión al peligro que se expresa (implícitamente) mediante la asignación de niveles de riesgo.
-•
-Cómo afrontar la incertidumbre, tema que se tratará en una Sección 6 aparte .
-5.1 . Ambigüedad en la definición de consecuencia
-Existen diferentes prácticas para definir los puntos finales de las consecuencias. En la práctica, se han observado tres posibilidades:
-1.
-La consecuencia está representada por un evento que tiene el potencial de causar daño (peor caso); la probabilidad asociada es la probabilidad de que el evento (independientemente del daño real) ocurra (cf. la definición de categorías de severidad en BASF, donde el término “potencial” se menciona explícitamente ( Ruge, 2004 )).
-2.
-La consecuencia está representada por el daño más probable o más representativo ; la probabilidad asociada es la probabilidad de que el evento (independientemente del daño real) ocurra.
-3.
-La consecuencia está representada por una serie de resultados de daños alternativos y discretos, cada uno en otra categoría de consecuencia; las probabilidades asociadas son las probabilidades de que ocurra cada uno de esos daños.
-La figura 5 demuestra que cada uno de esos métodos puede llevar a otra evaluación del riesgo. El escenario del evento adverso puede representarse utilizando un diagrama de lazo, de causa-consecuencia o de barrera de seguridad, véase la mitad superior de la figura 5. Los resultados de daños individuales se asignan a la matriz de riesgo (método 3 anterior) así como al evento crítico (método 1 anterior), teniendo en cuenta que el potencial del evento crítico debe ser el peor de los tres resultados potenciales. Ahora bien, el método 1 llevaría a la conclusión de que la situación es inaceptable (el evento crítico en combinación con el peor resultado está en el área "roja"). El método 2 es ambiguo: el evento es probable, pero no es obvio cuál debería ser el resultado representativo. ¿El resultado representativo está en la categoría de consecuencia C1 (sin daños personales, 68% de probabilidad) o en la categoría C3 (una víctima mortal y varios heridos, 30% de probabilidad)? Si se selecciona el resultado más probable, la conclusión es que el evento es ampliamente aceptable. El método 3 concluye que ningún resultado es peor que el que se encuentra en la zona “amarilla”. (Tenga en cuenta que el ejemplo se eligió para producir el resultado ampliamente aceptable para el método 2; normalmente, la diferencia será menor que en este ejemplo).
-
-De esto podemos extraer las siguientes conclusiones: el método 1 puede llevar a resultados demasiado conservadores, pero esto no se puede evitar en los casos en que no se puede obtener más información sobre la distribución de los resultados. El método 3 parece preferible porque también permite abordar la mitigación de las consecuencias como opciones de control (es decir, cambiar la distribución de los resultados de los daños), pero puede llevar a muchas entradas en la matriz cuando se consideran varios eventos.
-El método 2 requiere una consideración cuidadosa de lo que puede considerarse el resultado de daño “representativo” para evitar resultados demasiado optimistas.
-Aunque el método 1 no es el enfoque recomendado según ISO (2010) , se utiliza a menudo y tal vez esté bastante en línea con la naturaleza aproximada general de las matrices de riesgo, si el enfoque se utiliza de manera consistente (es decir, el enfoque se utiliza para todos los eventos evaluados en la matriz de riesgo) y la aceptación del riesgo tiene en cuenta el hecho de que la probabilidad real de daño será menor que la probabilidad del evento crítico (con el potencial de daño).
-5.2 . Aversión a los grandes riesgos
-En las secciones 2.1 Definición del riesgo en el marco de la matriz de riesgo y 4.1 Coherencia entre las matrices de riesgo y las medidas cuantitativas de riesgo se consideró la relación entre la pérdida esperada como definición del riesgo y el riesgo definido por la coloración de la matriz de riesgo. En este artículo sostenemos que la coloración de la matriz de riesgo puede aceptarse como una definición de riesgo por derecho propio. Sin embargo, el usuario y el diseñador de una matriz de riesgo y su coloración deben ser conscientes de cómo se relaciona esa coloración con la pérdida esperada, porque la coloración y la escala de categorías juntas determinan la cantidad de aversión al peligro. La aversión al riesgo debe entenderse como la actitud de que a un evento de baja probabilidad y gran consecuencia se le asigna un valor de riesgo mayor que a un evento de alta probabilidad y baja consecuencia, incluso cuando la pérdida esperada para ambos eventos es la misma (en otros documentos, esto a menudo se denomina aversión al riesgo , véase, por ejemplo, Jonkman et al., 2003 , pero debido a que la aversión al riesgo originalmente incluye la aversión a la incertidumbre en lugar de la gravedad de las consecuencias, Bedford, 2013 , este documento utiliza el término "aversión al peligro (mayor)" en su lugar).
-Las matrices de riesgo son muy adecuadas para expresar la aversión al riesgo de acuerdo con las preferencias de las partes interesadas. Es posible aplicar la aversión al riesgo solo en el extremo de riesgo alto del rango de consecuencias de la matriz y expresar una actitud más neutral en el extremo de riesgo bajo. Sin embargo, se debe tener en cuenta que la escala de las categorías también debe tenerse en cuenta al expresar la aversión al riesgo. Esto se ilustra con el siguiente caso.
-La figura 6 muestra una matriz de riesgo inspirada en un caso real. Como se puede ver, las categorías de probabilidad están escaladas logarítmicamente con un aumento de factor 10 en la probabilidad entre categorías subsiguientes. Las categorías de consecuencia C3 a C5 también muestran una escala básicamente logarítmica; a partir de los números de clasificación de consecuencia adicionales incluidos en la matriz original se puede deducir que la escala logarítmica se extendió a todas las categorías de consecuencia. Además, que el factor de aumento de gravedad entre categorías de consecuencia fue significativamente menor que 10. En la figura 6, este factor se elige como 5, igual al aumento en el número de muertes entre la categoría C4 y C5.
-
-Si el factor de aumento de la gravedad entre las categorías de consecuencia hubiera sido el mismo que el factor de aumento de la probabilidad entre las categorías de probabilidad, las celdas en las diagonales de la esquina superior izquierda a la esquina inferior derecha representarían la misma pérdida esperada (por lo que la celda C1–F5 tendría la misma pérdida esperada que la celda C5–F1). Si ese hubiera sido el caso, una coloración que siga a dicha diagonal representaría una actitud neutral ante el peligro (ninguna aversión a los peligros mayores). En este caso, sin embargo, el factor de aumento de la gravedad es menor que el factor de aumento de la probabilidad, por lo que moverse hacia abajo a lo largo de una diagonal significaría una disminución de la pérdida esperada (como el factor de la probabilidad es el doble del factor de la consecuencia, la pérdida esperada en cada celda a lo largo de una diagonal es un factor de 2 menor que la pérdida esperada en la celda anterior). Por lo tanto, una coloración que siga estrictamente la diagonal representaría ya cierta aversión al peligro debido a esta diferencia en la escala de las categorías a lo largo de los dos ejes. Ahora bien, la figura 7 muestra una coloración que es coherente con la pérdida esperada, es decir, si la pérdida esperada en dos celdas es la misma, entonces el color de la celda (la categoría de riesgo) también es el mismo. Se ha elegido la coloración para la columna C3 para que sea la misma que en la figura 6. Para obtener coherencia con la pérdida esperada, los bordes de las regiones de color están ligeramente "aplanados" en comparación con las diagonales debido a los diferentes factores de categoría para ambos ejes (de hecho, hay otra coloración coherente, en la que las celdas C1–F4 y C5–F1 son ambas "verdes").
-
-Sin embargo, en la matriz original que se muestra en la Fig. 6, los bordes de las regiones de color son más pronunciados que las diagonales (dos celdas hacia abajo, luego una hacia la derecha). Esto expresa una aversión a los peligros mayores: mientras que las lesiones mayores (C3) se toleran con una probabilidad F5, la siguiente consecuencia grave, la muerte (C4), solo se tolera en F3, es decir, una frecuencia que es un factor 100 menor. Dichos bordes pueden interpretarse como la expresión:
-Aquí N representa la gravedad de la consecuencia y f la probabilidad o frecuencia esperada. En el ejemplo de la Fig. 6 , n  =  2,86. Si los factores entre categorías son idénticos en ambos ejes, entonces un borde como este (dos celdas hacia abajo, una celda a la derecha) correspondería a n  =  2. Una actitud neutral hacia la aversión al peligro (ninguna aversión) se expresa mediante n  =  1 (lo que significaría bordes diagonales mientras que los factores entre categorías son idénticos en ambos ejes). Este exponente n se puede comparar con los criterios aplicados al riesgo social o grupal en la evaluación de riesgos cuantificada: los criterios holandeses y daneses (para, entre otros, industrias de riesgo mayor) aplican n  =  2 ( Jonkman et al., 2003 ), aunque debe notarse que el último valor se aplica al criterio para la distribución de frecuencia acumulada ( F ) de los eventos adversos.
-Los analistas de riesgos que utilizan una matriz de riesgos deben ser conscientes de la aversión implícita a los grandes peligros y de las consecuencias que ello implica para la priorización de los recursos. Si bien es justificable favorecer la protección contra accidentes graves, también puede resultar problemático gastar todos los recursos en eventos altamente improbables y, al mismo tiempo, ofrecer una protección limitada contra eventos menos graves, aunque más probables.
-6. Incertidumbre : diagramas de probabilidad-consecuencia continua como alternativa a las matrices de riesgo
-Las matrices de riesgo utilizan categorías discretas de consecuencia y probabilidad y, en consecuencia, niveles de riesgo discretos. Como se mencionó en la Sección 2 , la incertidumbre de las evaluaciones se utiliza a menudo como justificación para no utilizar valores puntuales, sino, en cambio, para asignar consecuencia y probabilidad a categorías discretas que cubren un rango de valores. Sin embargo, la asignación de categoría no representa necesariamente incertidumbre: al asignar un evento a una categoría, el analista en realidad afirma que el atributo no excederá ni el límite superior ni el inferior de la categoría. Si los atributos están cerca del valor central de la categoría, se tiene en cuenta un alto grado de incertidumbre, pero cuando el atributo está cerca del límite de la categoría, la incertidumbre representada (en la dirección del límite) puede ser muy pequeña. Además, la incertidumbre máxima está restringida al ancho de la categoría.
-La incertidumbre se puede abordar mediante conjuntos difusos. En lugar de asignar un evento a una sola categoría de probabilidad y consecuencia, se utilizan funciones de pertenencia para “distribuir” el evento entre categorías adyacentes. El evento cubre entonces varias celdas de riesgo y, mediante un proceso difuso inverso, se puede derivar un único indicador de riesgo. Markowski y Mannan (2008) describen una técnica de este tipo, en la que la entrada en una escala continua (cuantificada) se puede transferir a una matriz de riesgo difusa, pero, lamentablemente, el artículo no demuestra de manera concluyente cómo los diferentes niveles de incertidumbre en la entrada afectan el proceso. Obsérvese que la incertidumbre que se puede expresar en el “riesgo difuso” se perderá en el proceso difuso inverso; la matriz de riesgo no puede expresar la incertidumbre de otra manera que no sea mediante el ancho de sus categorías, como se describe en el párrafo anterior.
-Una alternativa al uso de “celdas” discretas en una matriz sería utilizar escalas continuas para las consecuencias y la probabilidad, produciendo así un diagrama de consecuencia de probabilidad continua. Un requisito previo para utilizar una escala continua es, por supuesto, que la consecuencia y la probabilidad se puedan expresar a lo largo de escalas ordinales , consulte la Sección 2. La incertidumbre se puede incluir mediante cajas o bandas, como se muestra en el ejemplo de la Figura 8. Otra ventaja del diagrama de consecuencia de probabilidad continua es que la resolución se vuelve mejor: es posible discriminar entre peligros que, en una matriz de riesgo, se asignarían a la misma celda.
-
-Los diagramas de probabilidad-consecuencia en general están descritos por Ale et al. (2015) , quienes abordan diagramas que muestran eventos individuales representados por pares de frecuencia y consecuencia, y diagramas que muestran la distribución acumulativa de frecuencia versus consecuencia. En este artículo nos limitamos al primero, ya que es análogo a la matriz de riesgo.
-El diagrama de consecuencia de probabilidad continua puede resolver algunos, aunque no todos, los problemas relacionados con las matrices de riesgo:
-•
-Coherencia con las definiciones de riesgo cuantitativas: como las escalas son continuas y cuantificadas, las definiciones de riesgo independientes basadas en las medidas utilizadas a lo largo de las ordenadas de consecuencia y probabilidad se pueden trazar exactamente en el diagrama de consecuencia de probabilidad continua.
-•
-Resolución.
-•
-Expresar incertidumbre mediante el uso de bandas de incertidumbre.
-•
-Visualización explícita de la aversión al riesgo mayor: cualquier desviación entre las curvas de aceptación del riesgo y las líneas de pérdida esperada igual son fácilmente observables (como, por ejemplo, en la figura 8 ).
-El diagrama de consecuencia de probabilidad continua no puede resolver los problemas relacionados con:
-•
-Asignación subjetiva de probabilidad y consecuencia.
-•
-Agregación y tratamiento de estudios a diferentes niveles de detalle (aunque la necesidad de utilizar una escala de consecuencias cuantitativas permite trasladar los resultados a una distribución acumulativa).
-•
-Ambigüedad de consecuencia (excepto si se considera la incertidumbre).
-Además, el diagrama de consecuencia de probabilidad continua conducirá a nuevos desafíos:
-•
-Evaluar la incertidumbre en la probabilidad y consecuencia asignadas si se desea expresar incertidumbre.
-•
-La necesidad de definir una medida homogénea de las consecuencias que pueda utilizarse en todo el rango de resultados de las consecuencias, por ejemplo, una medida que capture tanto lesiones menores como múltiples muertes.
-7. Conclusiones y recomendaciones
-Las conclusiones de Cox (2008) y Flage y Røed (2012) que afirman que las matrices de riesgo sufren serias desventajas, se ven respaldadas por esta revisión. Cuando las partes interesadas están de acuerdo sobre las medidas cuantificadas y las evaluaciones de riesgo, se prefiere la evaluación cuantificada de riesgos a la aplicación de matrices de riesgo, porque conduce a menos incertidumbres metodológicas y menos ambigüedad en los resultados. Sin embargo, las matrices de riesgo se aplican ampliamente y tratar de restringir su uso será inútil. Además, brindan apoyo en casos en los que no se puede llegar a un acuerdo sobre la cuantificación explícita. Por lo tanto, se considera más productivo destacar algunas de las dificultades con la aplicación de este método aparentemente simple y hacer que los usuarios, diseñadores y tomadores de decisiones sean conscientes de estas dificultades.
-La revisión y las evaluaciones que se incluyen en este documento han dado lugar a una serie de recomendaciones para el uso y el diseño de matrices de riesgo. La mayoría de las evaluaciones respaldan las recomendaciones presentadas en la descripción informativa del método de matriz de riesgo de la ISO (2010) . Sin embargo, estas recomendaciones no se repetirán en su totalidad en este documento. No obstante, el estudio dio lugar a algunas cuestiones adicionales, para las que se proporciona orientación.
-En este artículo se parte de la base de que la coloración de la matriz de riesgo proporciona una definición de riesgo por sí misma. Cualquier comparación con otras medidas cuantitativas de riesgo como, por ejemplo, la pérdida esperada, sirve únicamente para entender las actitudes (subjetivas u objetivas) hacia el riesgo que se expresan mediante la coloración de la matriz. Este enfoque elimina algunos de los argumentos en contra de las matrices de riesgo expresados ​​por Cox (2008) . La coloración definirá el riesgo como una función monótonamente creciente de consecuencia y probabilidad. De los axiomas definidos por Cox, solo el requisito de intermediación debe cumplirse mediante la coloración de la matriz.
-La “coloración” con un número limitado de puntuaciones discriminantes (colores) es suficiente si el propósito de la matriz de riesgo es abordar la aceptación del riesgo. Solo cuando se requiere una mayor priorización de los riesgos, se pueden utilizar puntuaciones más detalladas. Las puntuaciones numéricas (ordinales) no deben entrar en conflicto con los colores aplicados en la matriz de riesgo.
-Siempre se debe procurar que las evaluaciones cualitativas sean lo más objetivas posibles y se basen en evaluaciones cuantitativas o evidencia estadística en la mayor medida posible. Los usuarios deben recibir apoyo en sus evaluaciones añadiendo orientación cuantitativa o semicuantitativa (rangos y puntos de anclaje) a la definición de categorías. Algunos sesgos subjetivos pueden contrarrestarse definiendo el rango de categorías de probabilidad y consecuencia que se extienda más allá del rango que se espera en el estudio, es decir, ampliando los rangos ligeramente más allá de lo recomendado por la ISO. Siempre que sea posible, los usuarios deben recibir capacitación y retroalimentación sobre sus evaluaciones, especialmente cuando a menudo participan en actividades de evaluación de riesgos.
-Resulta ventajoso utilizar (básicamente) una escala logarítmica de las categorías de consecuencia y probabilidad. Esto permite cubrir varios órdenes de magnitud de probabilidad y consecuencia, lo que a menudo se exige en los estudios de seguridad que abordan, por ejemplo, lesiones menores y múltiples muertes. Se recomienda utilizar la misma escala (lineal o logarítmica) para ambas dimensiones en una matriz de riesgo. En ese caso, las líneas divisorias diagonales habituales, escalonadas, entre los niveles de riesgo (colores) se aproximan a los niveles de pérdida esperada igual. Esta correspondencia entre las líneas divisorias diagonales en la matriz de riesgo y la pérdida esperada solo es válida si el factor de aumento entre las categorías subsiguientes para ambas dimensiones (consecuencia y probabilidad) es el mismo (en promedio en el rango de categorías). Si esto no ocurre, las líneas divisorias diagonales expresarán implícitamente (y quizás involuntariamente) una aversión al riesgo mayor (o lo contrario, una apreciación del riesgo mayor).
-Cuando se utiliza una escala (básicamente) logarítmica, los puntajes de riesgo se definen adecuadamente sumando los números ordinales de la consecuencia y la categoría de probabilidad.
-La agregación de riesgos es problemática con las matrices de riesgo y, en consecuencia, el nivel de detalle de un estudio puede afectar la representación en la matriz de riesgo, ya que un estudio más detallado conduce a una clasificación de riesgo más baja. Debido a esto, no se recomienda dividir o detallar eventos básicamente similares con consecuencias idénticas. Como alternativa, es posible definir reglas para mover la probabilidad agregada de varios eventos individuales con resultados (consecuencias) similares a la siguiente categoría de probabilidad.
-Al aplicar (y diseñar) matrices de riesgo, se debe tener en cuenta si la categoría de consecuencia asignada a un evento expresa la consecuencia potencial , la consecuencia representativa o más probable , o una distribución de los resultados posibles. Diferentes opciones pueden llevar a representaciones muy diferentes en la matriz de riesgo y, en consecuencia, a diferentes decisiones de aceptación del riesgo.
-Existen varios argumentos en contra de la implementación de matrices de riesgo corporativas estandarizadas, es decir, matrices de riesgo en las que la coloración se decide de manera centralizada y debe aplicarse a todas las actividades dentro de la empresa. La simplicidad de la herramienta no justifica su aceptación generalizada como estándar de aceptación de riesgo corporativo. La variabilidad del resultado de las matrices de riesgo depende demasiado de la metodología, como se describe en los dos puntos anteriores, y la aceptación de ciertos riesgos depende del tamaño de la operación y también puede diferir para algunas operaciones específicas.
-El diagrama de probabilidad consecuencia continua con su uso de escalas continuas en lugar de categorías discretas se propone como una alternativa a la matriz de riesgo, aportando soluciones a algunos problemas de la matriz de riesgo, es decir, resolución, manejo adecuado de la incertidumbre y mejor comparación con definiciones de riesgo objetivas como la pérdida esperada.
-
-References
-Ale et al., 2015
-B. Ale, P. Burnap, D. Slater
-On the origin of PCDS – (probability consequence diagrams)
-Saf. Sci., 72 (2015), pp. 229-239
-View in ScopusGoogle Scholar
-Bedford, 2013
-T. Bedford
-Decision making for group risk reduction: dealing with epistemic uncertainty
-Risk Anal., 33 (10) (2013), pp. 1884-1898
-View at publisherCrossrefView in ScopusGoogle Scholar
-Carter et al., 2003
-D.A. Carter, I.L. Hirst, T.E. Maddison, S.R. Porter
-Appropriate risk assessment methods for major accident establishments
-Process Saf. Environ. Protect.: Trans. Inst. Chem. Eng., Part B, 81 (1) (2003), pp. 12-18
-View at publisherCrossrefView in ScopusGoogle Scholar
-Cox, 2008
-L.A. Cox Jr.
-What’s wrong with risk matrices?
-Risk Anal., 28 (2) (2008), pp. 497-512
-Google Scholar
-DNV, 2009
-DNV, 2009. Integrity management of submarine pipeline systems. DNV-RP-F116. Det Norske Veritas. Høvik, Norway.
-Google Scholar
-European Railway Agency, 2008
-European Railway Agency, 2008. Recommendation on the common safety methods for calculation, assessment and enforcement to be used in the framework of the 1st set of common safety targets. ERA/REC/01-2008/SAF.
-Google Scholar
-Flage and Røed, 2012
-Flage, R., Røed, W., 2012. A reflection on some practices in the use of risk matrices, 11th International Probabilistic Safety Assessment and Management Conference and the Annual European Safety and Reliability Conference 2012, PSAM11 ESREL 2012. pp. 881–891.
-Google Scholar
-Franks and Maddison, 2006
-A.P. Franks, T. Maddison
-A simplified method for the estimation of individual risk
-Process Saf. Environ. Prot., 84 (2) (2006), pp. 101-108
-View at publisherCrossrefView in ScopusGoogle Scholar
-Franks, not dated
-Franks, A.P., not dated. A simplified approach to estimating individual risk. Vectra300-2017-r03. UK HSE. Bootle, Merseyside, L20 7HS.
-Google Scholar
-Hubbard and Evans, 2010
-D. Hubbard, D. Evans
-Problems with scoring methods and ordinal scales in risk assessment
-IBM J. Res. Dev., 54 (3) (2010)
-Google Scholar
-IEC, 2006
-IEC, 2006. IEC 60812:2006(E) Analysis techniques for system reliability – procedure for failure mode and effect analysis (FMEA), second ed., Brussels.
-Google Scholar
-ISO, 2002
-ISO, 2002. ISO 17776:2002(EN) Petroleum and natural gas industries – Offshore production installations – guidelines on tools and techniques for hazard identification and risk assessment. ISO. Geneva.
-Google Scholar
-ISO, 2009
-ISO, 2009. ISO 31000:2009(E) Risk management – principles and guidelines, first ed. ISO. Geneva.
-Google Scholar
-ISO, 2010
-ISO, 2010. IEC/ISO 31010:2009 Risk management – risk assessment techniques. 2010E ed. CENELEC. Brussels.
-Google Scholar
-Jonkman et al., 2003
-S.N. Jonkman, P.H.A.J.M. Van Gelder, J.K. Vrijling
-An overview of quantitative risk measures for loss of life and economic damage
-J. Hazard. Mater., 99 (1) (2003), pp. 1-30
-View in ScopusGoogle Scholar
-Kent, 1964
-S. Kent
-Words of estimative probability
-Stud. Intell., 8 (4) (1964), pp. 49-65
-Google Scholar
-Levine, 2012
-E.S. Levine
-Improving risk matrices: the advantages of logarithmically scaled axes
-J. Risk Res., 15 (2) (2012), pp. 209-222
-View at publisherCrossrefView in ScopusGoogle Scholar
-Markowski and Mannan, 2008
-A.S. Markowski, M.S. Mannan
-Fuzzy risk matrix
-J. Hazard. Mater., 159 (1) (2008), pp. 152-157
-View in ScopusGoogle Scholar
-Ni et al., 2010
-H. Ni, A. Chen, N. Chen
-Some extensions on risk matrix approach
-Saf. Sci., 48 (10) (2010), pp. 1269-1278
-View in ScopusGoogle Scholar
-PPRT, 2005
-PPRT, 2005. Le plan de prevention des risques technologiques – Guide méthodologique, Ministère de l’Écologie, du Développement et de l’Aménagement Durables, Direction de la Prévention des pollutions et des risques, Service de l’Environnement Industriel. Paris.
-Google Scholar
-Prem et al., 2010
-K.P. Prem, D. Ng, M.S. Mannan
-Harnessing database resources for understanding the profile of chemical process industry incidents
-J. Loss Prev. Process Ind., 23 (4) (2010), pp. 549-560
-View in ScopusGoogle Scholar
-Ruge, 2004
-Ruge, B., 2004. Risk matrix as tool for risk assessment in the chemical process industries, In: Spitzer, C., Schmocker, U., Dang, V.N., (Eds.), Probabilistic Safety Assessment and Management: PSAM 7-ESREL ’04, Springer, pp. 2693–2698.
-Google Scholar
-Smith et al., 2009
-E.D. Smith, W.T. Siefert, D. Drain
-Risk matrix input data biases
-Syst. Eng., 12 (4) (2009), pp. 344-360
+Haz el mejor documento que puedas
