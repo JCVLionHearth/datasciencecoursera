@@ -1,3 +1,19 @@
+Aquí tienes algunas sugerencias de temas y autores que podrían estar disponibles en ScienceDirect para apoyar el análisis de riesgos cualitativos y el diseño de matrices RAM en este contexto. Estos artículos y libros te ofrecerán metodologías y bases teóricas que puedes considerar al construir matrices de riesgo adaptadas a riesgos cualitativos.
+
+	1.	Bowtie Analysis: Ayuda en la identificación y evaluación de riesgos cualitativos al visualizar eventos y posibles impactos. Un artículo relevante podría ser:
+	•	Aven, T., “Risk assessment and risk management: Review of recent advances on their foundation,” European Journal of Operational Research, 253(1), 2016.
+	2.	Fuzzy Logic for Risk Assessment: La lógica difusa es útil para evaluar riesgos cualitativos al manejar incertidumbre y subjetividad. Ejemplos de estudios incluyen:
+	•	Zadeh, L.A., “Fuzzy Sets as a Basis for a Theory of Possibility,” Fuzzy Sets and Systems, 100(1), 1999.
+	•	Cox, E., “The fuzzy systems handbook: a practitioner’s guide to building, using, and maintaining fuzzy systems,” Fuzzy Logic and Neural Network Handbook, 1994.
+	3.	Qualitative Risk Assessment Frameworks: Estos frameworks evalúan factores no numéricos, como la reputación o el impacto social, y se adaptan bien a matrices de riesgo cualitativas. Puedes revisar:
+	•	Hopkin, P., “Fundamentals of Risk Management: Understanding, Evaluating, and Implementing Effective Risk Management,” 5th edition, Kogan Page, 2018.
+	4.	Monte Carlo Simulation for Qualitative Risk: Aunque generalmente cuantitativa, Monte Carlo se puede adaptar para analizar escenarios cualitativos simulando impactos probables. Busca estudios como:
+	•	Rausand, M., “Risk Assessment: Theory, Methods, and Applications,” Wiley Series in Systems Engineering and Management, 2013.
+	5.	Delphi Method and Expert Judgment for Risk: Esta metodología se basa en la consulta a expertos y se utiliza ampliamente para riesgos cualitativos complejos.
+	•	Rowe, G., Wright, G., “The Delphi technique as a forecasting tool: Issues and analysis,” International Journal of Forecasting, 15(4), 1999.
+
+Para cada fuente, asegúrate de revisar las secciones de metodología y estudios de caso; estos pueden proporcionar enfoques aplicables a tu modelo de matriz RAM para riesgos cualitativos. También podrías encontrar capítulos relevantes en estos temas en ScienceDirect y libros especializados en gestión de riesgos.
+
 Para riesgos cualitativos en la matriz de análisis y mitigación (RAM), es esencial emplear metodologías que permitan una evaluación sin depender exclusivamente de datos numéricos. Aquí te detallo algunas técnicas ampliamente utilizadas y recomendadas en la literatura:
 
 1. Método de Evaluación de Expertos
