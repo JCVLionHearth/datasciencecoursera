@@ -1,3 +1,26 @@
+probé la opcion 1, pero me sale el siguiente error:
+
+Writing to file Nota_Tecnica_KRI_PQRS.tex
+Processing code chunks with options ...
+
+You can now run (pdf)latex on 'Nota_Tecnica_KRI_PQRS.tex'
+Compiling document with tinytex ... Error: LaTeX failed to compile C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Material Analitica/Documentos Latex/Nota_Tecnica_KRI_PQRS.tex. See https://yihui.org/tinytex/r/#debugging for debugging tips.
+Además: There were 50 or more warnings (use warnings() to see the first 50)
+Ejecución interrumpida
+failed
+
+Warning: Nota_Tecnica_KRI_PQRS.tex:110: Citation `lecun2015deep' on page 1 undefined on input line 110.
+Warning: Nota_Tecnica_KRI_PQRS.tex:117: Citation `Goodfellow-et-al-2016' on page 1 undefined on input line 117.
+Warning: Nota_Tecnica_KRI_PQRS.tex:121: Citation `hochreiter1997long' on page 1 undefined on input line 121.
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Overfull \hbox (6.10942pt too wide) in paragraph at lines 309--309
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Underfull \hbox (badness 10000) in paragraph at lines 309--309
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Underfull \hbox (badness 10000) in paragraph at lines 309--309
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Underfull \hbox (badness 10000) in paragraph at lines 309--309
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Underfull \hbox (badness 10000) in paragraph at lines 309--309
+Bad Box: Nota_Tecnica_KRI_PQRS.tex:309: Underfull \hbox (badness 10000) in paragraph at lines 309--309
+Error: Nota_Tecnica_KRI_PQRS.tex:339: LaTeX Error: Invalid UTF-8 byte sequence (�\expandafter).
+Error: Nota_Tecnica_KRI_PQRS.tex:  ==> Fatal error occurred, no output PDF file produced!
+
 en R sweave estoy haciendo el siguiente latex, pero me salen errores:
 
 Writing to file Nota_Tecnica_KRI_PQRS.tex
