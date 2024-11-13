@@ -1,3 +1,11 @@
+
+\usepackage{listings}
+\lstset{
+    literate={%}{\%}{1}    % Escapa el símbolo %
+             {_}{\_}{1}    % Escapa el símbolo _
+             {#}{\#}{1}    % Escapa el símbolo #
+             {&}{\&}{1}    % Escapa el símbolo &
+}
 probé la opcion 1, pero me sale el siguiente error:
 
 Writing to file Nota_Tecnica_KRI_PQRS.tex
