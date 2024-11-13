@@ -1,0 +1,249 @@
+en R sweave estoy haciendo el siguiente latex, pero me salen errores:
+
+Writing to file Nota_Tecnica_KRI_PQRS.tex
+Processing code chunks with options ...
+
+You can now run (pdf)latex on 'Nota_Tecnica_KRI_PQRS.tex'
+Compiling document with tinytex ... ! Undefined control sequence.
+<recently read> \addbibresource 
+
+Error: LaTeX failed to compile C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Material Analitica/Documentos Latex/Nota_Tecnica_KRI_PQRS.tex. See https://yihui.org/tinytex/r/#debugging for debugging tips. See Nota_Tecnica_KRI_PQRS.log for more info.
+Ejecución interrumpida
+failed
+
+Error: Nota_Tecnica_KRI_PQRS.tex:22: Undefined control sequence.
+Error: Nota_Tecnica_KRI_PQRS.tex:  ==> Fatal error occurred, no output PDF file produced!
+
+codigo latex
+
+\documentclass[a4paper,12pt]{report}
+\usepackage[top=1in, bottom=1in, left=0.8in, right=0.8in]{geometry}
+\usepackage{fancyhdr} % Para encabezados y pies de página personalizados
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{verbatim}
+\usepackage{float} % Para controlar la posición de tablas y figuras
+\usepackage{xcolor}
+\usepackage{tabularx} % Para usar el entorno tabularx
+\usepackage{array} % Para usar p{} en tabularx
+\usepackage{listings}
+\usepackage{pmboxdraw} %Sirve para que los simbolos unicode se visualicen usando 
+%\usepackage{cite} % Opcional, para mejorar la apariencia de las citas
+%\usepackage{natbib} % Para manejar citas
+\usepackage[sort]{natbib}
+%\usepackage[natbib=true]{biblatex}
+\addbibresource{bibliografia_kri.bib}
+\usepackage{booktabs} % Para manejo de tablas
+
+\usepackage[table]{xcolor}
+\usepackage{longtable}
+
+% Definir comando para extraer el título de la referencia
+\newcommand{\bibtitle}[1]{\emph{\citealp{#1}}}
+% Cambiar el título de la bibliografía
+\renewcommand{\bibname}{Referencias} % Para clases tipo libro o reporte
+\renewcommand{\contentsname}{Índice} % Cambiar el título de la tabla de contenido
+\renewcommand{\abstractname}{Resumen} % Cambiar el título del resumen
+\setcounter{tocdepth}{1} % Solo incluir secciones en la tabla de contenido
+\renewcommand\thesection{} % Eliminar números de sección
+\renewcommand\thesubsection{} % Eliminar números de subsección
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=blue,
+    pdfborder={0 0 0}
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{Desarrollo de KRI Observado y Prospectivo Utilizando Redes Neuronales}
+\author{}
+\date{Noviembre 2024}
+
+% Configuración encabezado
+\setlength{\headheight}{29.33336pt}
+%\setlength{\headheight}{14.61858pt} % Ajusta la altura del encabezado
+\addtolength{\topmargin}{-2.61858pt} % Ajusta el margen superior
+\pagestyle{fancy}
+\fancyhf{} % Limpia los encabezados y pies de página
+% Encabezados personalizados
+\fancyhead[L]{\includegraphics[width=1cm]{fondo_iguana.jpg}} % Encabezado izquierdo con imagen
+\fancyhead[R]{\scriptsize Desarrollo de KRI Observado y Prospectivo Utilizando Redes Neuronales} % Encabezado derecho
+
+\fancyfoot[R]{\scriptsize RCU} % Pie de página izquierdo
+\fancyfoot[L]{\thepage} % Pie de página derecho, número de página
+
+% Añadir línea horizontal en el pie de página
+\renewcommand{\footrulewidth}{0.4pt} % Grosor de la línea horizontal en el pie de página
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\section{Introducción}
+En el contexto actual...
+
+El sistema propuesto incluye dos componentes principales:
+\begin{itemize}
+    \item \textbf{KRI Observado}: Este componente se basa en los datos actuales, permitiendo ...
+    \item \textbf{KRI Prospectivo}: Utilizando redes neuronales recurrentes (RNN)...
+\end{itemize}
+
+\section{Descripción de Redes Neuronales}
+Las redes neuronales son modelos ... \cite{lecun2015deep}
+
+\subsection{Redes Neuronales Recurrentes (RNN)}
+Las RNN son un tipo especial de red neuronal diseñada para procesar secuencias de datos. A diferencia de las redes neuronales tradicionales,... \cite{hochreiter1997long}.
+
+\section{Metodología de estimación de los parámetros para el KRI}
+El KRI Prospectivo se obtiene utilizando redes neuronales recurrentes, diseñadas para capturar patrones en series temporales. Para este modelo, se emplearon los siguientes parámetros:
+
+\section{Conclusión}
+El sistema de KRIs desarrollado combina el análisis de ...
+
+
+\newpage
+
+\section{Anexos}
+
+\subsection{A1: Resultados}
+
+\section{Predicción de Eventos Futuros Asociados a Quejas}
+Para abordar la predicción de eventos futuros asociados a quejas, ...
+
+\subsection{Temáticas de Entorno}
+Las predicciones se han realizado para las siguientes temáticas:
+\begin{itemize}
+    \item Insatisfacción temas de accionistas
+    \item Inconformidad Productos - Clientes
+\end{itemize}
+
+\subsection{Regionales}
+Las predicciones se han realizado para las siguientes Regionales:
+\begin{itemize}
+    \item Nivel Nacional
+    \item Regional Central
+\end{itemize}
+
+\subsection{Metodología}
+El modelo RNN ha sido configurado para procesar datos históricos de ...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{prediccion_Serie1.png}
+    \caption{Validación de la Red Neuronal}
+    \label{fig:unique-label1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{prediccion_futura_Serie1.png}
+    \caption{Predicción futura usando RNN}
+    \label{fig:unique-label2}
+\end{figure}
+
+\subsection{Resultados}
+Las predicciones generadas por el modelo RNN proporcionan una visión detallada de los posibles eventos futuros asociados a quejas en diferentes temáticas y regiones. Esto permite a las organizaciones:
+\begin{itemize}
+    \item Identificar áreas de alto riesgo y tomar medidas preventivas.
+    \item Optimizar la asignación de recursos para la gestión de quejas.
+    \item Mejorar la satisfacción de los stakeholders mediante una respuesta oportuna y efectiva.
+\end{itemize}
+
+A continuación, se presenta los resultados de las predicciones de quejas para la temática: \textit{Daños a terceros generados por Ecopetrol o contratistas}, referente a la regional \textbf{Orinoquía}
+
+\begin{table}[H]
+\centering
+
+\begin{tabularx}{\textwidth}{|X|X|X|X|X|X|X|}
+\hline
+\textbf{Fecha} & \textbf{Frecuencia Predicha} & \textbf{Límite Superior} & \textbf{Límite Inferior} & \textbf{Promedio Ult 24Meses} & \textbf{Umbral Min} & \textbf{Umbral Max} \\
+\hline
+1/10/2024 & 13 & 26 & -1 & 11 & 9 & 13 \\
+\hline
+1/11/2024 & 19 & 32 & 6 & 11 & 9 & 13 \\
+\hline
+1/12/2024 & 14 & 28 & 1 & 11 & 9 & 13 \\
+\hline
+\end{tabularx}
+\caption{Predicciones de Frecuencia de Quejas y Umbrales}
+\label{table:predicciones}
+\end{table}
+
+\subsection{Conclusión}
+El uso de Redes Neuronales Recurrentes para la predicción de eventos futuros asociados a quejas ha demostrado...
+
+\newpage
+
+\subsection{A2: Código Python Implementado}
+
+A continuación, se muestra el código elaborado en \texttt{Python}. 
+
+
+\begin{lstlisting}[language=Python]
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout
+import random
+np.random.seed(123)
+tf.random.set_seed(123)
+random.seed(123)
+...
+\end{lstlisting}
+
+\bibliographystyle{apalike} % Estilo de bibliografía (puedes cambiarlo)
+\printbibliography
+%\bibliography{bibliografia_kri} % Nombre del archivo .bib sin la extensión
+
+\newpage
+
+\section{Control de cambios}
+
+\begin{longtable}{|c|c|c|}
+    \hline
+    \rowcolor{gray!30} % Color de relleno para la primera fila
+    \textbf{Versión} & \textbf{Fecha} & \textbf{Descripción} \\
+    \hline
+    1.0 & 2024-11-07 & Versión inicial del documento \\
+    \hline
+     &  &  \\
+    \hline
+    % Añade más filas según sea necesario
+\end{longtable}
+
+\end{document}
