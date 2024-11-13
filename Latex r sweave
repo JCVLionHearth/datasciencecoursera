@@ -1,4 +1,4 @@
-me he dado cuenta que tengo errores al compilar el archivo en latex debido a la mayoría del código que esta entre \begin{lstlisting}[language=Python] \end{lstlisting},como lo resuelvo?
+Aplico el siguiente codigo:
 
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
@@ -16,147 +16,28 @@ me he dado cuenta que tengo errores al compilar el archivo en latex debido a la 
     showspaces=false,                
     showstringspaces=false,
     showtabs=false,                  
-    tabsize=2
+    tabsize=2,
+    literate={%}{\%}{1} {_}{\_}{1} {#}{\#}{1} {&}{\&}{1}
 }
 
 \lstset{style=mystyle}
 
+y me sale este error:
 
-\begin{lstlisting}[language=Python]
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM, Dropout
-import random
-np.random.seed(123)
-tf.random.set_seed(123)
-random.seed(123)
-# Cargar datos desde el archivo Excel
-file_path = 'C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Proyectos Analitica/KRI redes Quejas pqrs/Serie_pqrs.xlsx'  # Ruta
-df = pd.read_excel(file_path,sheet_name="PQRS_Neiva_Orito")
+Writing to file Nota_Tecnica_KRI_PQRS.tex
+Processing code chunks with options ...
 
-# Asegurarse de que las columnas están correctamente nombradas
-df.columns = ['Fecha', 'Serie1', 'Serie2', 'Serie3', 'Serie4', 'Serie5','Serie6','Serie7','Serie8', 'Serie9', 'Serie10', 'Serie11', 'Serie12','Serie13','Serie14','Serie15','Serie16','Serie17']
-# Convertir la columna 'Fecha' a un tipo datetime
-df['Fecha'] = pd.to_datetime(df['Fecha'])
+You can now run (pdf)latex on 'Nota_Tecnica_KRI_PQRS.tex'
+Compiling document with tinytex ... ! Paragraph ended before \lst@DefDriver@@ was complete.
+<to be read again> 
+                   \par 
+l.70 
 
-#Imputar valores faltantes
-df=df.apply(lambda x: x.fillna(x.mean()),axis=0)
+Error: LaTeX failed to compile C:/Users/E0305878/OneDrive - Ecopetrol S.A/Documentos/Material Analitica/Documentos Latex/Nota_Tecnica_KRI_PQRS.tex. See https://yihui.org/tinytex/r/#debugging for debugging tips. See Nota_Tecnica_KRI_PQRS.log for more info.
+Ejecución interrumpida
+failed
 
-# Filtrar fecha de corte
-corte_fecha = '2023-12-31'
-df_futuro = df[df['Fecha'] > corte_fecha]
-df = df[df['Fecha'] <= corte_fecha]
+Error: Nota_Tecnica_KRI_PQRS.tex:70: Paragraph ended before \lst@DefDriver@@ was complete.
+Error: Nota_Tecnica_KRI_PQRS.tex:  ==> Fatal error occurred, no output PDF file produced!
 
-
-# Ordenar el DataFrame por fecha
-df = df.sort_values('Fecha')
-df_futuro = df_futuro.sort_values('Fecha')
-# Función para crear secuencias de entrenamiento y etiquetas
-def create_sequences(data, seq_length):
-   xs, ys = [], []
-   for i in range(len(data) - seq_length):
-       x = data[i:i+seq_length]
-       y = data[i+seq_length]
-       xs.append(x)
-       ys.append(y)
-   return np.array(xs), np.array(ys)
-# Parámetros
-SEQ_LENGTH = 24  # Usar 24 meses para predecir el siguiente mes
-EPOCHS = 50
-NEURONAS=50
-# Crear un archivo Excel para guardar las predicciones
-writer = pd.ExcelWriter('predicciones_series_ejemplo.xlsx', engine='xlsxwriter')
-# Bucle para cada serie
-for serie in ['Serie1', 'Serie2', 'Serie3', 'Serie4', 'Serie5','Serie6','Serie7','Serie8', 'Serie9', 'Serie10', 'Serie11', 'Serie12','Serie13','Serie14','Serie15','Serie16','Serie17']:
-   print(f"Procesando {serie}...")
-   # Crear secuencias de entrenamiento y etiquetas
-   X, y = create_sequences(df[serie].values, SEQ_LENGTH)
-   # Dividir los datos en conjuntos de entrenamiento y prueba
-   split = int(0.7 * len(X))
-   X_train, X_test = X[:split], X[split:]
-   y_train, y_test = y[:split], y[split:]
-   # Redimensionar los datos para que sean compatibles con LSTM [samples, time steps, features]
-   X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
-   X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
-   # Construir el modelo LSTM con Dropout
-   model = Sequential()
-   model.add(Dense(NEURONAS, activation='relu', input_shape=(SEQ_LENGTH,))) #capa con # neuronas para capturar la dependencia temporal
-   model.add(Dropout(0.2)) #20% Esto ayuda a evitar el sobreajuste
-   model.add(Dense(1)) #capa densa con una neurona para producir la predicción para el siguiente paso temporal
-   model.compile(optimizer='adam', loss='mse')
-   # Entrenar el modelo
-   history = model.fit(X_train, y_train, epochs=EPOCHS, validation_data=(X_test, y_test), verbose=1)
-   # Predecir en el conjunto de prueba
-   y_pred = model.predict(X_test)
-   # Calcular los errores y la desviación estándar
-   errors = y_test - y_pred.flatten()
-   std_error = np.std(errors)
-   # Calcular el intervalo de confianza (IC 95\%)
-   confidence_interval_90 = 1.96 * std_error
-   # Visualizar resultados del conjunto de prueba con intervalo de confianza
-   plt.figure(figsize=(10, 6))
-   plt.plot(range(len(y_test)), y_test, label='Actual')
-   plt.plot(range(len(y_pred)), y_pred, label='Predicted')
-   plt.fill_between(range(len(y_pred)),
-                    y_pred.flatten() - confidence_interval_90,
-                    y_pred.flatten() + confidence_interval_90,
-                    color='b', alpha=0.2, label='95\% Confidence Interval')
-   plt.title(f"Predicción de la frecuencia de {serie} con IC 95\% (ARNN)")
-   plt.xlabel("Tiempo")
-   plt.ylabel("Frecuencia")
-   plt.legend()
-   plt.savefig(f'prediccion_{serie}.png')
-   plt.show()
-   # Predecir los próximos 12 meses con intervalos de confianza
-   n_months = 12
-   last_sequence = df[serie].values[-SEQ_LENGTH:]  # Tomar la última secuencia de longitud SEQ_LENGTH
-   future_predictions = []
-   future_confidences = []
-   for _ in range(n_months):
-       input_seq = last_sequence.reshape((1, SEQ_LENGTH, 1))
-       next_pred = model.predict(input_seq)
-       future_predictions.append(next_pred[0, 0])
-       future_confidences.append(confidence_interval_90)
-       last_sequence = np.append(last_sequence[1:], next_pred)  # Actualizar la secuencia para la siguiente predicción
-   # Crear una lista de fechas para los próximos 12 meses
-   last_date = df['Fecha'].iloc[-1]
-   future_dates = [last_date + pd.DateOffset(months=i) for i in range(1, n_months + 1)]
-   # Crear un DataFrame con las predicciones futuras
-   future_df = pd.DataFrame({
-       'Fecha': future_dates,
-       f'Frecuencia_Predicha_{serie}': future_predictions,
-       f'Limite_Superior_{serie}': np.array(future_predictions) + np.array(future_confidences),
-       f'Limite_Inferior_{serie}': np.array(future_predictions) - np.array(future_confidences)
-   })
-   # Calcular el promedio histórico y la desviación estándar de los últimos 24 meses
-   historical_window = 24
-   ventana_total=df[serie].tail(historical_window)
-   # Calcular los cuartiles y el rango intercuartil
-   Q1 = ventana_total.quantile(0.25)
-   Q3 = ventana_total.quantile(0.75)
-   IQR = Q3 - Q1
-   # Definir los límites para los valores atípicos
-   lower_bound = Q1 - 1* IQR
-   upper_bound = Q3 + 1* IQR
-   # Filtrar los valores que no son atípicos
-   filtered_data = ventana_total[(ventana_total >= lower_bound) & (ventana_total <= upper_bound)]
-   # Calcular el promedio y la desviación estándar de los datos filtrados
-   historical_mean = filtered_data.mean() #historical_mean = df[serie].tail(historical_window).mean()
-   historical_std = filtered_data.std()   #historical_std = df[serie].tail(historical_window).std()
-   # Añadir el promedio de los ultimos 24 meses al DataFrame
-   future_df[f'promedioUlt24meses_{serie}'] = historical_mean
-   #Umbral
-   threshold0 = historical_mean - 0.524*historical_std #-40\% de confianza
-   threshold1 = historical_mean + 0.524*historical_std #+40\% de confianza
-   threshold2 = historical_mean + 1.645*historical_std #90\% de confianza
-   # Añadir el umbral al DataFrame
-   future_df[f'UmbralMin_{serie}'] = threshold0
-   future_df[f'UmbralMax_{serie}'] = threshold1
-  
-# Guardar y cerrar el archivo Excel
-writer.close()
-print("Archivo Excel generado correctamente.")
-\end{lstlisting}
+si corto el codigo de lstlisting en solo las primeras lineas de importacion funciona, pero si agrego el resto del codigo ya no funciona, sale el error anterior
