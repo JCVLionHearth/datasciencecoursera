@@ -1,0 +1,18 @@
+Hola con las siguientes variables categoricas:
+COD_DPTO,MES,TIPO_PARTO,EDAD_MADRE,EST_CIVM,NIV_EDUM,SEG_SOCIAL,NIV_EDUP
+
+quiero crear un modelo con Python predictivo para determinar el número de nacimiento, cada una de las variables anteriores son categóricas, necesito:
+
+1. crear un nuevo dataframe que me agrupe el conteo de nacimientos por las variables anteriores, ya que actualmente el dataframe describe por registro la característica del nacimiento.
+
+2. crear una base train y test para el modelo, que garantice una muestra apropiada para cada grupo
+
+3. identificar las variables más influyentes
+
+3. Diseñar un modelo glm apropiado
+
+4. predicciones del modelo y validación de métricas, graficos etc
+
+5. Adicionalmente diseñar un modelo de árbol de decisión o random forest y hacer las predicciones y validaciones respectivas
+
+6. comparación de modelos para obtener el mejor
