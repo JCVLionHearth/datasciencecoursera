@@ -1,3 +1,91 @@
+
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{multicol}
+
+\geometry{a4paper, margin=1in}
+
+\title{Ficha Técnica del Indicador de Riesgos Preventivo (KRI) - Quejas}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Descripción General}
+Este Key Risk Indicator (KRI) monitorea de forma preventiva el riesgo asociado con el número de quejas en una temática específica a lo largo de un año. Utiliza predicciones mensuales obtenidas mediante un modelo de redes neuronales recurrentes (RNN) aplicado a una serie de tiempo de quejas históricas, para anticipar el número esperado de quejas cada mes. Los valores observados de quejas se comparan con los valores acumulados de esta predicción mensual, lo que permite identificar desviaciones y activar alertas tempranas en función de los umbrales definidos.
+
+\section*{Datos Utilizados}
+\begin{itemize}
+    \item \textbf{Predicción mensual de quejas}: Estimación mensual del número de quejas basada en la serie de tiempo histórica, utilizando un modelo de redes neuronales recurrentes (RNN) para proyectar el comportamiento de las quejas a lo largo del próximo año.
+    \item \textbf{Datos observados}: Número de quejas reportadas mes a mes en tiempo real.
+\end{itemize}
+
+\section*{Cálculo del Acumulado Mensual}
+\begin{itemize}
+    \item La predicción mensual acumulada se va sumando cada mes para reflejar el total de quejas esperadas hasta el momento.
+    \item \textbf{Acumulado mensual de predicción}: Cada mes, se acumula la predicción mensual esperada hasta el mes correspondiente.
+    \item \textbf{Acumulado mensual observado}: Suma de las quejas observadas hasta el mes correspondiente.
+\end{itemize}
+
+\section*{Índice Preventivo (KRI)}
+\subsection*{Fórmula de Cálculo}
+El índice preventivo del KRI se calcula mensualmente como la \textbf{desviación} del acumulado observado respecto al acumulado esperado de la predicción:
+
+\begin{equation}
+\text{Desviación} = \frac{\text{Acumulado Observado} - \text{Acumulado Esperado}}{\text{Acumulado Esperado}}
+\end{equation}
+
+\subsection*{Asignación de Niveles de Alerta}
+El KRI se clasifica en tres niveles de alerta basados en la desviación calculada:
+
+\begin{itemize}
+    \item \textbf{Alerta baja}: Si la desviación está entre -5\% y +5\%.
+    \item \textbf{Alerta media}: Si la desviación está entre +5\% y +10\%.
+    \item \textbf{Alerta alta}: Si la desviación supera el +10\%.
+\end{itemize}
+
+\subsection*{Ejemplo de Cálculo}
+A continuación, se muestra un cálculo de la desviación en algunos meses clave, comparando el acumulado observado de quejas y el acumulado de predicción.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Mes} & \textbf{Quejas Observadas (acumulado)} & \textbf{Predicción Acumulada} & \textbf{Desviación} \\
+        \midrule
+        Enero        & 15                                    & 10                             & \( \frac{15 - 10}{10} = 0.5 \) \\
+        Mayo         & 58                                    & 50                             & \( \frac{58 - 50}{50} = 0.16 \) \\
+        Diciembre    & 150                                   & 120                            & \( \frac{150 - 120}{120} = 0.25 \) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Ejemplos de cálculo de desviación mensual}
+\end{table}
+
+\section*{Conclusiones del KRI Preventivo}
+\begin{itemize}
+    \item \textbf{Enero}: Con una desviación del 50\% sobre la predicción acumulada, el índice preventivo muestra una alerta alta temprana. Este valor alto desde el primer mes sugiere una tendencia de incremento de quejas que requiere monitoreo cercano.
+    \item \textbf{Mayo}: La desviación acumulada del 16\% en mayo continúa en un nivel superior al esperado, activando una alerta alta. A estas alturas, el análisis sugiere una reevaluación de las medidas preventivas.
+    \item \textbf{Diciembre}: La desviación acumulada alcanza un 25\% al final del año, confirmando una tendencia de riesgo alto en el KRI preventivo, con quejas excediendo las expectativas significativamente.
+\end{itemize}
+
+\section*{Interpretación y Recomendaciones}
+El KRI preventivo indica un aumento significativo en el número de quejas frente a la predicción esperada, lo que activa una \textbf{alerta alta persistente} a lo largo del año. Se recomienda:
+\begin{itemize}
+    \item Implementar un análisis de causa raíz para identificar los motivos del incremento en quejas.
+    \item Evaluar e intensificar las acciones preventivas y de respuesta rápida para mitigar futuras quejas.
+    \item Realizar una revisión y ajuste de los umbrales si las condiciones o el contexto cambian.
+\end{itemize}
+
+\section*{Conclusión Final}
+El KRI preventivo de quejas ha permitido detectar una tendencia de aumento en las quejas por encima de lo predicho. Este indicador, junto con el monitoreo mensual, facilita la detección temprana de desviaciones, activando alertas para la toma de decisiones proactiva en la gestión del riesgo.
+
+\end{document}
+
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{graphicx}
