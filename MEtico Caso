@@ -1,3 +1,82 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage{longtable}
+\usepackage{geometry}
+\usepackage{array}
+\geometry{margin=1in}
+
+\renewcommand{\arraystretch}{1.5} % Espaciado entre filas
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+\section*{Aplicación de Principios Éticos desde la Perspectiva Actuarial}
+
+\begin{longtable}{|L{3cm}|L{6cm}|L{6cm}|}
+\hline
+\textbf{Principio} & \textbf{Aplicación en Pricing} & \textbf{Aplicación en Reservas de Siniestros} \\ \hline
+\endfirsthead
+\hline
+\textbf{Principio} & \textbf{Aplicación en Pricing} & \textbf{Aplicación en Reservas de Siniestros} \\ \hline
+\endhead
+
+\textbf{Transparencia} 
+& 
+Los modelos de pricing deben documentarse claramente. Por ejemplo, en un modelo GLM (Generalized Linear Model) para fijación de precios, las variables como edad del asegurado o historial de siniestros deben explicarse a los suscriptores. Esto evita discriminaciones ocultas y facilita auditorías. 
+& 
+La documentación de métodos actuariales como el *Chain Ladder* debe incluir los supuestos, las metodologías empleadas y las razones detrás de ajustes en las proyecciones. Esto asegura que las reservas sean comprensibles para reguladores y auditores. \\ \hline
+
+\textbf{Responsabilidad} 
+& 
+Los actuarios deben garantizar que los precios reflejen riesgos reales y sean justos. Por ejemplo, si se utilizan datos externos (como datos meteorológicos para seguros de catástrofes), se debe evaluar la calidad y relevancia de esos datos. 
+& 
+Los actuarios deben revisar periódicamente las reservas para evitar déficits. Por ejemplo, si se detecta un aumento en la severidad de los siniestros de salud, se deben ajustar las estimaciones de las reservas futuras. \\ \hline
+
+\textbf{Equidad} 
+& 
+Evitar sesgos en las tarifas, como el uso de variables indirectamente discriminatorias (por ejemplo, el código postal que podría reflejar inequidad socioeconómica). Algoritmos de machine learning deben pasar pruebas de equidad antes de implementarse. 
+& 
+Calcular las reservas de manera uniforme para todos los clientes. Por ejemplo, no ajustar las reservas por tipo de asegurado a menos que existan datos objetivos que justifiquen un trato diferenciado. \\ \hline
+
+\textbf{Privacidad} 
+& 
+Proteger los datos personales al anonimizar información utilizada en modelos. Por ejemplo, al usar datos de salud para un seguro médico, no incluir nombres ni identificadores que permitan rastrear al asegurado. 
+& 
+Los siniestros reportados deben protegerse mediante técnicas de cifrado, especialmente cuando se comparten con terceros (como reaseguradores). \\ \hline
+
+\textbf{Seguridad} 
+& 
+Implementar controles de seguridad en bases de datos para prevenir filtraciones. Por ejemplo, al trabajar con datos sensibles de asegurados en el proceso de pricing, restringir accesos no autorizados. 
+& 
+Los modelos de reservas deben ser resistentes a manipulaciones externas. Por ejemplo, si un sistema automatizado estima reservas, asegurar que esté blindado contra alteraciones por ciberataques. \\ \hline
+
+\textbf{Inclusión} 
+& 
+Garantizar que las tarifas sean accesibles para todos los segmentos de la población. Por ejemplo, desarrollar productos para sectores no bancarizados usando datos alternativos como hábitos de pago de servicios. 
+& 
+Desarrollar proyecciones que consideren características inclusivas. Por ejemplo, modelos de reservas que incluyan siniestros de baja frecuencia pero alta severidad, comunes en comunidades rurales. \\ \hline
+
+\textbf{Sostenibilidad} 
+& 
+Incorporar métricas de sostenibilidad en el análisis actuarial. Por ejemplo, incluir factores climáticos en la fijación de precios para seguros agrícolas, incentivando prácticas sostenibles en el sector. 
+& 
+Asegurar que las reservas se alineen con un futuro sostenible. Por ejemplo, ajustar estimaciones para productos de largo plazo (como pensiones), considerando factores como longevidad y cambio climático. \\ \hline
+
+\textbf{Control Humano} 
+& 
+Revisar decisiones críticas antes de automatizar la fijación de precios. Por ejemplo, un actuario debe validar las tarifas antes de que un sistema las aplique directamente en cotizaciones. 
+& 
+Asegurar la supervisión humana en modelos automatizados de reservas. Por ejemplo, validar resultados antes de reportar reservas a los reguladores. \\ \hline
+
+\textbf{Beneficio Social} 
+& 
+Desarrollar tarifas que beneficien a la comunidad. Por ejemplo, descuentos para seguros de vida vinculados a hábitos saludables, como no fumar o mantener un peso adecuado. 
+& 
+Asegurar que las reservas cubran siniestros que impactan a la sociedad. Por ejemplo, crear reservas específicas para cubrir catástrofes naturales que afecten zonas vulnerables. \\ \hline
+
+\end{longtable}
+
+\end{document}
+
 \documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{longtable}
