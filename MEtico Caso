@@ -3,6 +3,75 @@
 \usepackage{longtable}
 \usepackage{booktabs}
 \usepackage{geometry}
+\usepackage{array}
+\geometry{margin=1in}
+
+\begin{document}
+
+\section*{Principios Éticos Aplicados al Caso de Estudio}
+
+\renewcommand{\arraystretch}{1.5}
+\setlength{\tabcolsep}{6pt}
+
+\begin{longtable}{>{\small}p{0.10\textwidth}p{0.25\textwidth}p{0.25\textwidth}p{0.25\textwidth}}
+\toprule
+\textbf{Principio} & \textbf{Ética de los Datos} & \textbf{Ética de los Algoritmos} & \textbf{Ética de las Prácticas} \\
+\midrule
+\endhead
+\textbf{Transparencia} 
+& Garantizar que los datos sean accesibles, comprensibles y verificables para todos los actores involucrados en el pricing y los siniestros. 
+& Explicar de manera clara el funcionamiento y las decisiones tomadas por los algoritmos utilizados en el análisis de datos. 
+& Implementar políticas y herramientas que permitan a los clientes comprender cómo se toman las decisiones automatizadas basadas en sus datos. \\
+
+\textbf{Responsabilidad} 
+& Establecer controles para la correcta gestión y auditoría de los datos utilizados, con mecanismos claros de rendición de cuentas. 
+& Desarrollar algoritmos con trazabilidad y asegurarse de que los desarrolladores asuman la responsabilidad por sus resultados. 
+& Diseñar procedimientos regulares de revisión y auditoría de los sistemas de IA, con reportes accesibles a las partes interesadas. \\
+
+\textbf{Equidad} 
+& Mitigar sesgos en la recolección y uso de datos que puedan afectar la equidad en pricing y avisos de siniestros. 
+& Diseñar algoritmos que no discriminen por factores socioeconómicos, geográficos o demográficos. 
+& Establecer prácticas que promuevan el trato justo para todos los clientes, asegurando igualdad de acceso y condiciones en los servicios. \\
+
+\textbf{Privacidad} 
+& Proteger los datos personales mediante medidas de anonimización, cifrado y cumplimiento de regulaciones como la Ley de Protección de Datos en Colombia. 
+& Asegurar que los algoritmos respeten la privacidad de los datos, evitando cualquier filtración o exposición no autorizada. 
+& Crear políticas claras de manejo y protección de datos, informando a los clientes sobre el uso de sus datos en los procesos actuariales. \\
+
+\textbf{Seguridad} 
+& Implementar medidas de ciberseguridad robustas para prevenir accesos no autorizados o manipulaciones de datos. 
+& Desarrollar algoritmos resistentes a ataques, con mecanismos de monitoreo y corrección en tiempo real. 
+& Mantener estándares actualizados de seguridad cibernética en toda la cadena de valor del análisis y procesamiento de datos. \\
+
+\textbf{Inclusión} 
+& Garantizar que los datos representen de forma equilibrada a todos los grupos sociales, eliminando cualquier sesgo de exclusión. 
+& Diseñar algoritmos accesibles y comprensibles para todos los usuarios, independientemente de sus habilidades tecnológicas. 
+& Promover la accesibilidad e inclusión en todas las etapas de desarrollo y operación de la IA en la industria aseguradora. \\
+
+\textbf{Sostenibilidad} 
+& Usar los datos de forma eficiente para minimizar el impacto ambiental y promover prácticas de almacenamiento sostenible. 
+& Crear algoritmos que optimicen recursos y contribuyan a los Objetivos de Desarrollo Sostenible (ODS). 
+& Fomentar prácticas que reduzcan la huella ambiental de las operaciones actuariales y de IA. \\
+
+\textbf{Control Humano} 
+& Asegurar la posibilidad de intervención humana en casos críticos de gestión de datos y decisiones automatizadas. 
+& Diseñar algoritmos con mecanismos que permitan la revisión, corrección o invalidación de decisiones automáticas por parte de expertos humanos. 
+& Mantener un balance adecuado entre la automatización y la supervisión humana en los procesos de pricing y siniestros. \\
+
+\textbf{Beneficio Social} 
+& Orientar el uso de datos hacia la creación de soluciones que impacten positivamente a la sociedad. 
+& Desarrollar algoritmos que prioricen resultados éticos y beneficios sociales, más allá de la eficiencia operativa. 
+& Adoptar prácticas que alineen los objetivos comerciales con el bienestar social, incluyendo acceso a seguros para comunidades vulnerables. \\
+\bottomrule
+\end{longtable}
+
+\end{document}
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{geometry}
 \geometry{margin=1in}
 
 \begin{document}
