@@ -1,0 +1,42 @@
+Hola profe, buenos días.
+
+De acuerdo con nuestra última sesión de asesoría y sobre la necesidad de delimitar el alcance de la propuesta de investigación y además, considerando el artículo que me compartiste y otros similares que he podido revisar, considero necesario ajustar la propuesta anterior y delimitarla a la "Evaluación del Contenido Ético en Respuestas de Modelos de Lenguaje en Español", sin embargo quiero que me indiques si las siguientes ideas pueden tener sentido y además si lo ves viable, para sí ajustar la propuesta, el estado del arte y poder compartir a tiempo la propuesta. (en algunos puntos realizo comentarios adicionales)
+
+entonces el bosquejo sería el siguiente:
+
+Objetivo:
+Evaluar el contenido ético de las respuestas generadas por modelos de lenguaje en español.
+
+Objetivos Específicos:
+1. Adaptar y aplicar métricas de análisis de emociones, polaridad de género e imparcialidad temática al español.
+2. Crear una base de datos de textos en español anotados con estas métricas.
+3. Analizar los resultados y proponer mejoras en los modelos de lenguaje para reducir sesgos y mejorar el contenido ético.
+
+Metodología
+Posible Recolección de Datos por medio Redes sociales, noticias, foros y otros textos en español o generación de promts en español
+
+Etiquetado de Datos
+Anotación manual y automática de textos con etiquetas de emociones, género y temas usando modelos preentrenados y herramientas de procesamiento de lenguaje natural (NLP) adaptadas al español.
+
+Posibles Metricas
+
+Análisis de Emociones (*profe esto ya lo hecho usando R, de forma académica)
+
+1. Analizas las emociones expresadas en el texto generado.
+2. Clasificar las palabras del texto en diferentes categorías emocionales (alegría, tristeza, miedo, etc.) y calcula la frecuencia de cada emoción. para esto se podría utiliza herramientas como NLTK y spaCy para el procesamiento de texto y la clasificación emocional.
+
+Polaridad de Género
+1. Evalúar si el texto generado muestra sesgos hacia un género específico.
+2. Anotar textos con etiquetas de género (masculino, femenino) y analiza la frecuencia de términos asociados a cada género en diferentes contextos, para esto podríamos utilizar técnicas de análisis de frecuencia de términos y modelos de clasificación supervisada.
+
+Imparcialidad Temática
+1. Evalúa si el texto generado trata temas de manera imparcial y equilibrada.
+2. Análisis de contenido temático utilizando modelos de tópicos como LDA (Latent Dirichlet Allocation) *profe esto lo hecho en análisis de tópicos de descripciones en accidentes usando R en un indicador que desarrollé en mi trabajo.
+3. con esto se podría identificar y analizar la distribución de temas en los textos generados para detectar posibles sesgos temáticos. 
+
+
+Los problemas principales que vería están relacionados con:
+1. los datos, en el árticulo en el que desarrollan BOLD ellos construyeron varios prompts para la validación de los sesgos
+2. se debería limitar el alcance a un subconjunto específico de métricas? agregar otras? y grupos demográficos.
+
+Agradezco profe tus valiosos comentarios
