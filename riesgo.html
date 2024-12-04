@@ -1,3 +1,19 @@
+<td>
+    {% for control in detalle.controles %}
+        {{ loop.index }}. {{ control.nombre_control }}<br>
+    {% endfor %}
+</td>
+<td>
+    {% for accion in detalle.acciones %}
+        {{ loop.index }}. {{ accion.at }}<br>
+    {% endfor %}
+</td>
+<td>
+    {% for mitigante in detalle.mitigantes %}
+        {{ loop.index }}. {{ mitigante.mitigante }}<br>
+    {% endfor %}
+</td>
+
 estoy haciendo la siguiente hoja en html, y quiero que la tabla me enumere los controles, acciones y otros mitigantes, actualmente solo me muestra el número 1, me ayudas a corregir:
 
 {% extends "base.html" %}
