@@ -1,94 +1,179 @@
-<td>
-    {% for control in detalle.controles %}
-        {{ loop.index }}. {{ control.nombre_control }}<br>
-    {% endfor %}
-</td>
-<td>
-    {% for accion in detalle.acciones %}
-        {{ loop.index }}. {{ accion.at }}<br>
-    {% endfor %}
-</td>
-<td>
-    {% for mitigante in detalle.mitigantes %}
-        {{ loop.index }}. {{ mitigante.mitigante }}<br>
-    {% endfor %}
-</td>
-
-estoy haciendo la siguiente hoja en html, y quiero que la tabla me enumere los controles, acciones y otros mitigantes, actualmente solo me muestra el número 1, me ayudas a corregir:
+Estoy creando una aplicación para valorar riesgos y en esta hoja: valoracion_riesgos.html se obtiene el resumen del riesgo y las opciones para agregar controles, acciones y mitigantes, pero ahora quiero agregar una opción para calcular o medir el riesgo residual a partir del juicio de experto, en esta se debe indicar probabilidad y el impacto asociada a cada categoría y una justificación, cual seria la mejor manera (usando un modal, o una nueva ventana?) me ayudas
 
 {% extends "base.html" %}
 
 {% block title %}Valoración del Riesgo{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <div class="card p-4 mt-4 mb-4">
-            <h1>Riesgo: {{ riesgo.nombre }}</h1>
-            <!-- <p><strong>Código:</strong> {{ riesgo.codigo }}</p> -->
-            <p><strong>Escenario:</strong> {{ riesgo.escenario }}</p>
-            <!-- <p><strong>Probabilidad Inherente:</strong> {{ riesgo.probabilidad_inherente }}</p> -->
-
-            <!-- Resumen del Riesgo Inherente y Residual -->
-            {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.impacto_inherente) %}
-            {% set riesgo_residual, color2 = obtener_riesgo_y_color(puntaje_final_causa, puntaje_final_consecuencia) %}
-            <!-- <div class="mb-4"> -->
-                <!-- <h2>Resumen del Riesgo</h2> -->
-                <p><strong>Riesgo Inherente:</strong> <br><span class="badge color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</span></p>
-                <p><strong>Riesgo Residual:</strong> <br><span class="badge color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</span></p>
-            <!-- </div> -->
-
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-tachometer-alt"></i> Regresar
-                </a>
+    <div class="container">
+        <!-- <h3 class="text-center my-4">Valoración del Riesgo:<br> {{ riesgo.nombre }}</h3> -->
+        <h5></h5>
+        <div class="card mb-4">
+            <div class="card-header card-header-custom">
+                <h5 class="text-center card-subtitle">Valoración del Riesgo:<br> {{ riesgo.nombre }}</h5>
             </div>
-
         </div>
 
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header card-header-custom">
-                <h2 class="card-subtitle">Detalles del Riesgo</h2>
+                <h6 class="card-subtitle">Resumen Riesgo</h6>
             </div>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <!-- <th>Riesgo</th> -->
-                            <th>Causa</th>
-                            <th>Controles</th>
-                            <th>Acciones</th>
-                            <th>Otros Mitigantes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for detalle in detalles %}
-                            <tr>
-                                <!-- <td>{{ riesgo.nombre }}</td> -->
-                                <td>{{ detalle.causa }}</td>
-                                <td>
-                                    {% set control_counter = 1 %}
-                                    {% for control in detalle.controles %}
-                                        {{ control_counter }}. {{ control.nombre_control }}<br>
-                                        {% set control_counter = control_counter + 1 %}
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% set accion_counter = 1 %}
-                                    {% for accion in detalle.acciones %}
-                                        {{ accion_counter }}. {{ accion.at }}<br>
-                                        {% set accion_counter = accion_counter + 1 %}
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% set mitigante_counter = 1 %}
-                                    {% for mitigante in detalle.mitigantes %}
-                                        {{ mitigante_counter }}. {{ mitigante.mitigante }}<br>
-                                        {% set mitigante_counter = mitigante_counter + 1 %}
-                                    {% endfor %}
-                                </td>
-                            </tr>
+            <div class="card-body p-2">
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row mb-1">
+                        <label for="nombre" class="col-sm-2 col-form-label col-form-label-sm">{{ form.nombre.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.nombre(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="codigo" class="col-sm-2 col-form-label col-form-label-sm">{{ form.codigo.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.codigo(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="escenario" class="col-sm-2 col-form-label col-form-label-sm">{{ form.escenario.label }}</label>
+                        <div class="col-sm-10">
+                            <a href="#" data-bs-toggle="tooltip" data-bs-placement="right" title="Aquí registra o describe el Escenario en el que este Riesgo se materializaría">
+                                {{ form.escenario(class="form-control form-control-sm", rows="2") }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="probabilidad_inherente" class="col-sm-2 col-form-label col-form-label-sm">{{ form.probabilidad_inherente.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.probabilidad_inherente(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="impacto_personas" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_personas.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.impacto_personas(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="impacto_ambiente" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_ambiente.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.impacto_ambiente(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="impacto_recursos_economicos" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_recursos_economicos.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.impacto_recursos_economicos(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="impacto_reputacional" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_reputacional.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.impacto_reputacional(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="impacto_clientes" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_clientes.label }}</label>
+                        <div class="col-sm-10">
+                            {{ form.impacto_clientes(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de riesgo. ¿Deseas continuar?');">
+                            <i class="fas fa-save"></i> Guardar Valoración
+                        </button>
+                        <a href="{{ url_for('main.agregar_control', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-plus-circle"></i> Agregar Control
+                        </a>
+                        <a href="{{ url_for('main.agregar_accion', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-tasks"></i> Agregar AT
+                        </a>
+                        <a href="{{ url_for('main.agregar_mitigante', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-umbrella"></i> Agregar Otro Mitigante
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-list"></i> Regresar al listado de riesgos
+                        </a>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-tachometer-alt"></i> DashBoard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header card-header-custom">
+                        <h6 class="card-subtitle">Controles Asociados</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for control in riesgo.controles %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ control.nombre_causa }} - {{ control.nombre_control }}
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('main.editar_control', id=control.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará el valor inicial del control. ¿Deseas continuar?');">Editar</a>
+                                    <a href="{{ url_for('main.eliminar_control', id=control.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este control?');">Eliminar</a>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No hay controles asociados a este riesgo.</li>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header card-header-custom">
+                        <h6 class="card-subtitle">Acciones de Tratamiento Asociadas</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for accion in riesgo.acciones_tratamiento %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ accion.nombre_causa }} - {{ accion.at }}
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('main.editar_accion', id=accion.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de la Acción de Tratamiento. ¿Deseas continuar?');">Editar</a>
+                                    <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No hay acciones de tratamiento asociadas a este riesgo.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header card-header-custom">
+                        <h6 class="card-subtitle">Otros Mitigantes Asociados</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for mitigante in riesgo.mitigantes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ mitigante.nombre_causa }} - {{ mitigante.mitigante }}
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('main.editar_mitigante', id=mitigante.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial del mitigante. ¿Deseas continuar?');">Editar</a>
+                                    <a href="{{ url_for('main.eliminar_mitigante', id=mitigante.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este mitigante?');">Eliminar</a>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No hay otros mitigantes asociados a este riesgo.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
         </div>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            $('[data-bs-toggle="tooltip"]').tooltip();   
+        });
+    </script>
 {% endblock %}
