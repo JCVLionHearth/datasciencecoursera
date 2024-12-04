@@ -1,95 +1,17 @@
-Para implementar la opción de calcular o medir el riesgo residual basado en el juicio de expertos, un modal es una excelente elección. Un modal te permite capturar la información sin cambiar de página, manteniendo la interfaz más fluida y centrada en el contexto actual del riesgo. A continuación, te explico cómo hacerlo:
+Esta seria mi posible ruta en routes.py
 
-Ventajas de usar un modal:
-
-	1.	Fluidez: Permite a los usuarios ingresar datos sin abandonar la página actual.
-	2.	Contexto: Toda la información del riesgo está visible mientras se ingresa el juicio experto.
-	3.	Estilo: Es más moderno y amigable para los usuarios.
-
-Implementación con un modal:
-
-	1.	Agrega un botón para abrir el modal:
-Coloca un botón en tu página para abrir el modal que permita calcular el riesgo residual:
-
-<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCalcularResidual">
-    <i class="fas fa-calculator"></i> Calcular Riesgo Residual
-</button>
-
-
-	2.	Define el contenido del modal:
-Incluye un modal en tu archivo HTML para capturar probabilidad, impacto por categoría, y justificación.
-
-<div class="modal fade" id="modalCalcularResidual" tabindex="-1" aria-labelledby="modalCalcularResidualLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalCalcularResidualLabel">Calcular Riesgo Residual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="POST" action="{{ url_for('main.calcular_riesgo_residual', id=riesgo.id) }}">
-                <div class="modal-body">
-                    {{ form.hidden_tag() }}
-                    <div class="row mb-3">
-                        <label for="probabilidad_residual" class="col-sm-4 col-form-label">Probabilidad Residual</label>
-                        <div class="col-sm-8">
-                            {{ form.probabilidad_residual(class="form-control") }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="impacto_personas_residual" class="col-sm-4 col-form-label">Impacto en Personas</label>
-                        <div class="col-sm-8">
-                            {{ form.impacto_personas_residual(class="form-control") }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="impacto_ambiente_residual" class="col-sm-4 col-form-label">Impacto en Ambiente</label>
-                        <div class="col-sm-8">
-                            {{ form.impacto_ambiente_residual(class="form-control") }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="justificacion" class="col-sm-4 col-form-label">Justificación</label>
-                        <div class="col-sm-8">
-                            {{ form.justificacion(class="form-control", rows="3") }}
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-	3.	Actualizar el formulario Flask:
-En tu archivo Flask de formularios (forms.py), agrega los campos necesarios para capturar la probabilidad, el impacto residual, y la justificación.
-
-from flask_wtf import FlaskForm
-from wtforms import DecimalField, TextAreaField
-from wtforms.validators import DataRequired
-
-class RiesgoResidualForm(FlaskForm):
-    probabilidad_residual = DecimalField('Probabilidad Residual', validators=[DataRequired()])
-    impacto_personas_residual = DecimalField('Impacto en Personas', validators=[DataRequired()])
-    impacto_ambiente_residual = DecimalField('Impacto en Ambiente', validators=[DataRequired()])
-    justificacion = TextAreaField('Justificación', validators=[DataRequired()])
-
-
-	4.	Agregar la ruta en Flask:
-En tu archivo principal (app.py o similar), crea la ruta para procesar el cálculo.
-
-@app.route('/calcular_riesgo_residual/<int:id>', methods=['POST'])
-def calcular_riesgo_residual(id):
-    riesgo = Riesgo.query.get_or_404(id)
-    form = RiesgoResidualForm()
+@main.route('/calcular_riesgo_experto/<int:id>', methods=['POST'])
+def calcular_riesgo_experto(id):
+    riesgo = Risk.query.get_or_404(id)
+    form = RiesgoExpertoForm()
 
     if form.validate_on_submit():
         riesgo.probabilidad_residual = form.probabilidad_residual.data
-        riesgo.impacto_personas_residual = form.impacto_personas_residual.data
-        riesgo.impacto_ambiente_residual = form.impacto_ambiente_residual.data
+        riesgo.impacto_personas = form.impacto_personas.data
+        riesgo.impacto_ambiente = form.impacto_ambiente.data
+        riesgo.impacto_recursos_economicos = form.impacto_recursos_economicos.data
+        riesgo.impacto_reputacional = form.impacto_reputacional.data
+        riesgo.impacto_clientes = form.impacto_clientes.data
         riesgo.justificacion = form.justificacion.data
         db.session.commit()
         flash('Riesgo residual actualizado exitosamente.', 'success')
@@ -98,195 +20,213 @@ def calcular_riesgo_residual(id):
     flash('Por favor, completa todos los campos correctamente.', 'danger')
     return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
 
-Estilo adicional (opcional):
+estos son mis formularios en forms.py
 
-Puedes personalizar el modal con estilos CSS específicos para integrarlo visualmente con tu aplicación.
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired
+from app.utils import cargar_controles, cargar_acciones, cargar_causas, cargar_mitigantes,archivos_cargados
 
-.modal-content {
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
+# if archivos_cargados():
+#     controles = cargar_controles()
+#     acciones = cargar_acciones()
+# else:
+#     controles = []
+#     acciones = []
 
-Conclusión:
+class RiskForm(FlaskForm):
+    codigo = StringField('Código del Riesgo', validators=[DataRequired()])
+    nombre = StringField('Nombre del Riesgo', validators=[DataRequired()])
+    escenario = TextAreaField('Escenario de Valoración (Descripción)', render_kw={"rows": 4})
+    probabilidad_inherente = SelectField('Probabilidad Inherente', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_personas = SelectField('Impacto Personas', 
+                          choices=[(1, 'Muy Bajo'), 
+                                   (2, 'Bajo'), 
+                                   (3, 'Medio'), 
+                                   (4, 'Alto'), 
+                                   (5, 'Muy Alto')],
+                          coerce=int)
+    impacto_ambiente = SelectField('Impacto Ambiente', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_recursos_economicos = SelectField('Impacto Recursos Económicos', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_reputacional = SelectField('Impacto Reputacional', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_clientes = SelectField('Impacto Clientes', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    submit = SubmitField('Guardar')
 
-Un modal es una solución ágil y fácil de implementar que mejora la experiencia del usuario. Si necesitas más ayuda con el diseño o la lógica, ¡aquí estoy para ayudarte!
+# class ControlForm(FlaskForm):
+#     nombre_control = SelectField('Nombre del Control', choices=[(control, control) for control in controles])
+#     tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+#     clase = SelectField('Clase de Control', choices=[(5, 'Manual'), (10, 'Manual TI'), (15, 'Automático')])
+#     efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+#     cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+#     cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+#     submit = SubmitField('Guardar')
 
-Estoy creando una aplicación para valorar riesgos y en esta hoja: valoracion_riesgos.html se obtiene el resumen del riesgo y las opciones para agregar controles, acciones y mitigantes, pero ahora quiero agregar una opción para calcular o medir el riesgo residual a partir del juicio de experto, en esta se debe indicar probabilidad y el impacto asociada a cada categoría y una justificación, cual seria la mejor manera (usando un modal, o una nueva ventana?) me ayudas
+# class AccionTratamientoForm(FlaskForm):
+#     # categoria = StringField('Categoría de la Acción', validators=[DataRequired()])
+#     # categoria = SelectField('Categoría de la Acción', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+#     categoria = SelectField('Categoría de la Acción', choices=acciones, coerce=int)
+#     puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+#     puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+#     submit = SubmitField('Guardar') 
 
-{% extends "base.html" %}
+class ControlForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    nombre_control = SelectField('Nombre del Control', choices=[])
+    tipo = SelectField('Tipo de Control', choices=[('preventivo', 'Preventivo'), ('detectivo', 'Detectivo'), ('correctivo', 'Correctivo')])
+    clase = SelectField('Clase de Control', choices=[(5, 'Manual'), (10, 'Manual TI'), (15, 'Automático')])
+    efectividad = SelectField('Efectividad', choices=[(0, 'Inefectivo'), (70, 'Efectivo')], coerce=int)
+    cubrimiento_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    cubrimiento_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (10, 'Parcial'), (15, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
 
-{% block title %}Valoración del Riesgo{% endblock %}
+    def __init__(self, *args, **kwargs):
+        super(ControlForm, self).__init__(*args, **kwargs)
+        self.nombre_control.choices = [(control, control) for control in cargar_controles()]
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
 
-{% block content %}
-    <div class="container">
-        <!-- <h3 class="text-center my-4">Valoración del Riesgo:<br> {{ riesgo.nombre }}</h3> -->
-        <h5></h5>
-        <div class="card mb-4">
-            <div class="card-header card-header-custom">
-                <h5 class="text-center card-subtitle">Valoración del Riesgo:<br> {{ riesgo.nombre }}</h5>
-            </div>
-        </div>
+class AccionTratamientoForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
 
-        <div class="card mb-4">
-            <div class="card-header card-header-custom">
-                <h6 class="card-subtitle">Resumen Riesgo</h6>
-            </div>
-            <div class="card-body p-2">
+    def __init__(self, *args, **kwargs):
+        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
+        self.categoria.choices = cargar_acciones()
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
 
-                <form method="POST">
-                    {{ form.hidden_tag() }}
+class MitigantesForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    categoria = SelectField('Categoría del Mitigante', choices=[], coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
 
-                    <div class="row mb-1">
-                        <label for="nombre" class="col-sm-2 col-form-label col-form-label-sm">{{ form.nombre.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.nombre(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="codigo" class="col-sm-2 col-form-label col-form-label-sm">{{ form.codigo.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.codigo(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="escenario" class="col-sm-2 col-form-label col-form-label-sm">{{ form.escenario.label }}</label>
-                        <div class="col-sm-10">
-                            <a href="#" data-bs-toggle="tooltip" data-bs-placement="right" title="Aquí registra o describe el Escenario en el que este Riesgo se materializaría">
-                                {{ form.escenario(class="form-control form-control-sm", rows="2") }}
-                            </a>
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="probabilidad_inherente" class="col-sm-2 col-form-label col-form-label-sm">{{ form.probabilidad_inherente.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.probabilidad_inherente(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="impacto_personas" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_personas.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.impacto_personas(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="impacto_ambiente" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_ambiente.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.impacto_ambiente(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="impacto_recursos_economicos" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_recursos_economicos.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.impacto_recursos_economicos(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="impacto_reputacional" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_reputacional.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.impacto_reputacional(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <label for="impacto_clientes" class="col-sm-2 col-form-label col-form-label-sm">{{ form.impacto_clientes.label }}</label>
-                        <div class="col-sm-10">
-                            {{ form.impacto_clientes(class="form-control form-control-sm") }}
-                        </div>
-                    </div>
+    def __init__(self, *args, **kwargs):
+        super(MitigantesForm, self).__init__(*args, **kwargs)
+        self.categoria.choices = cargar_mitigantes()
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de riesgo. ¿Deseas continuar?');">
-                            <i class="fas fa-save"></i> Guardar Valoración
+class RiesgoExpertoForm(FlaskForm):
+    probabilidad_residual = SelectField('Probabilidad Residual', choices=[(1, 'Raro'), (2, 'Improbable'), (3, 'Posible'), (4, 'Probable'), (5, 'Con Certeza')], coerce=int)
+    impacto_personas = SelectField('Impacto Personas', 
+                          choices=[(1, 'Muy Bajo'), 
+                                   (2, 'Bajo'), 
+                                   (3, 'Medio'), 
+                                   (4, 'Alto'), 
+                                   (5, 'Muy Alto')],
+                          coerce=int)
+    impacto_ambiente = SelectField('Impacto Ambiente', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_recursos_economicos = SelectField('Impacto Recursos Económicos', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_reputacional = SelectField('Impacto Reputacional', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    impacto_clientes = SelectField('Impacto Clientes', 
+                        choices=[(1, 'Muy Bajo'), 
+                                (2, 'Bajo'), 
+                                (3, 'Medio'), 
+                                (4, 'Alto'), 
+                                (5, 'Muy Alto')],
+                        coerce=int)
+    justificacion = TextAreaField('Justificación', validators=[DataRequired()])
+    submit = SubmitField('Guardar')        
+
+
+este es parte de mi archivo valoracion_riesgo.html
+
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCalcularRiesgoExperto">
+                            <i class="fas fa-calculator"></i> Criterio Experto
                         </button>
-                        <a href="{{ url_for('main.agregar_control', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-plus-circle"></i> Agregar Control
-                        </a>
-                        <a href="{{ url_for('main.agregar_accion', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-tasks"></i> Agregar AT
-                        </a>
-                        <a href="{{ url_for('main.agregar_mitigante', id=riesgo.id) }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-umbrella"></i> Agregar Otro Mitigante
-                        </a>
-                        <a href="{{ url_for('main.index') }}" class="btn btn-warning btn-sm">
-                            <i class="fas fa-list"></i> Regresar al listado de riesgos
-                        </a>
-                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-tachometer-alt"></i> DashBoard
-                        </a>
                     </div>
                 </form>
+                
+            </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="modalCalcularRiesgoExperto" tabindex="-1" aria-labelledby="modalCalcularResidualLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalCalcularResidualLabel">Calcular Riesgo Residual</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('main.calcular_riesgo_experto', id=riesgo.id) }}">
+                        <div class="modal-body">
+                            {{ form.hidden_tag() }}
+                            <div class="row mb-3">
+                                <label for="probabilidad_residual" class="col-sm-4 col-form-label">Probabilidad Residual</label>
+                                <div class="col-sm-8">
+                                    {{ form.probabilidad_residual(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="impacto_personas" class="col-sm-4 col-form-label">Impacto en Personas</label>
+                                <div class="col-sm-8">
+                                    {{ form.impacto_personas(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="impacto_ambiente" class="col-sm-4 col-form-label">Impacto en Ambiente</label>
+                                <div class="col-sm-8">
+                                    {{ form.impacto_ambiente(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="justificacion" class="col-sm-4 col-form-label">Justificación</label>
+                                <div class="col-sm-8">
+                                    {{ form.justificacion(class="form-control", rows="3") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header card-header-custom">
-                        <h6 class="card-subtitle">Controles Asociados</h6>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for control in riesgo.controles %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ control.nombre_causa }} - {{ control.nombre_control }}
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('main.editar_control', id=control.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará el valor inicial del control. ¿Deseas continuar?');">Editar</a>
-                                    <a href="{{ url_for('main.eliminar_control', id=control.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este control?');">Eliminar</a>
-                                </div>
-                            </li>
-                        {% else %}
-                            <li class="list-group-item">No hay controles asociados a este riesgo.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header card-header-custom">
-                        <h6 class="card-subtitle">Acciones de Tratamiento Asociadas</h6>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for accion in riesgo.acciones_tratamiento %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ accion.nombre_causa }} - {{ accion.at }}
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('main.editar_accion', id=accion.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de la Acción de Tratamiento. ¿Deseas continuar?');">Editar</a>
-                                    <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
-                                </div>
-                            </li>
-                        {% else %}
-                            <li class="list-group-item">No hay acciones de tratamiento asociadas a este riesgo.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header card-header-custom">
-                        <h6 class="card-subtitle">Otros Mitigantes Asociados</h6>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for mitigante in riesgo.mitigantes %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ mitigante.nombre_causa }} - {{ mitigante.mitigante }}
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('main.editar_mitigante', id=mitigante.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial del mitigante. ¿Deseas continuar?');">Editar</a>
-                                    <a href="{{ url_for('main.eliminar_mitigante', id=mitigante.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este mitigante?');">Eliminar</a>
-                                </div>
-                            </li>
-                        {% else %}
-                            <li class="list-group-item">No hay otros mitigantes asociados a este riesgo.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-        $(document).ready(function(){
-            $('[data-bs-toggle="tooltip"]').tooltip();   
-        });
-    </script>
-{% endblock %}
+pero me sale el error
+jinja2.exceptions.UndefinedError: 'app.forms.RiskForm object' has no attribute 'probabilidad_residual'
