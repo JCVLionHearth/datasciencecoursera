@@ -1,0 +1,78 @@
+estoy haciendo la siguiente hoja en html, y quiero que la tabla me enumere los controles, acciones y otros mitigantes, actualmente solo me muestra el número 1, me ayudas a corregir:
+
+{% extends "base.html" %}
+
+{% block title %}Valoración del Riesgo{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="card p-4 mt-4 mb-4">
+            <h1>Riesgo: {{ riesgo.nombre }}</h1>
+            <!-- <p><strong>Código:</strong> {{ riesgo.codigo }}</p> -->
+            <p><strong>Escenario:</strong> {{ riesgo.escenario }}</p>
+            <!-- <p><strong>Probabilidad Inherente:</strong> {{ riesgo.probabilidad_inherente }}</p> -->
+
+            <!-- Resumen del Riesgo Inherente y Residual -->
+            {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.impacto_inherente) %}
+            {% set riesgo_residual, color2 = obtener_riesgo_y_color(puntaje_final_causa, puntaje_final_consecuencia) %}
+            <!-- <div class="mb-4"> -->
+                <!-- <h2>Resumen del Riesgo</h2> -->
+                <p><strong>Riesgo Inherente:</strong> <br><span class="badge color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</span></p>
+                <p><strong>Riesgo Residual:</strong> <br><span class="badge color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</span></p>
+            <!-- </div> -->
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-tachometer-alt"></i> Regresar
+                </a>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <div class="card-header card-header-custom">
+                <h2 class="card-subtitle">Detalles del Riesgo</h2>
+            </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <!-- <th>Riesgo</th> -->
+                            <th>Causa</th>
+                            <th>Controles</th>
+                            <th>Acciones</th>
+                            <th>Otros Mitigantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                            <tr>
+                                <!-- <td>{{ riesgo.nombre }}</td> -->
+                                <td>{{ detalle.causa }}</td>
+                                <td>
+                                    {% set control_counter = 1 %}
+                                    {% for control in detalle.controles %}
+                                        {{ control_counter }}. {{ control.nombre_control }}<br>
+                                        {% set control_counter = control_counter + 1 %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% set accion_counter = 1 %}
+                                    {% for accion in detalle.acciones %}
+                                        {{ accion_counter }}. {{ accion.at }}<br>
+                                        {% set accion_counter = accion_counter + 1 %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% set mitigante_counter = 1 %}
+                                    {% for mitigante in detalle.mitigantes %}
+                                        {{ mitigante_counter }}. {{ mitigante.mitigante }}<br>
+                                        {% set mitigante_counter = mitigante_counter + 1 %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+    </div>
+{% endblock %}
