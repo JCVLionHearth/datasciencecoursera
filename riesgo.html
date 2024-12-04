@@ -1,3 +1,116 @@
+Para implementar la opción de calcular o medir el riesgo residual basado en el juicio de expertos, un modal es una excelente elección. Un modal te permite capturar la información sin cambiar de página, manteniendo la interfaz más fluida y centrada en el contexto actual del riesgo. A continuación, te explico cómo hacerlo:
+
+Ventajas de usar un modal:
+
+	1.	Fluidez: Permite a los usuarios ingresar datos sin abandonar la página actual.
+	2.	Contexto: Toda la información del riesgo está visible mientras se ingresa el juicio experto.
+	3.	Estilo: Es más moderno y amigable para los usuarios.
+
+Implementación con un modal:
+
+	1.	Agrega un botón para abrir el modal:
+Coloca un botón en tu página para abrir el modal que permita calcular el riesgo residual:
+
+<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCalcularResidual">
+    <i class="fas fa-calculator"></i> Calcular Riesgo Residual
+</button>
+
+
+	2.	Define el contenido del modal:
+Incluye un modal en tu archivo HTML para capturar probabilidad, impacto por categoría, y justificación.
+
+<div class="modal fade" id="modalCalcularResidual" tabindex="-1" aria-labelledby="modalCalcularResidualLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCalcularResidualLabel">Calcular Riesgo Residual</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.calcular_riesgo_residual', id=riesgo.id) }}">
+                <div class="modal-body">
+                    {{ form.hidden_tag() }}
+                    <div class="row mb-3">
+                        <label for="probabilidad_residual" class="col-sm-4 col-form-label">Probabilidad Residual</label>
+                        <div class="col-sm-8">
+                            {{ form.probabilidad_residual(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="impacto_personas_residual" class="col-sm-4 col-form-label">Impacto en Personas</label>
+                        <div class="col-sm-8">
+                            {{ form.impacto_personas_residual(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="impacto_ambiente_residual" class="col-sm-4 col-form-label">Impacto en Ambiente</label>
+                        <div class="col-sm-8">
+                            {{ form.impacto_ambiente_residual(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="justificacion" class="col-sm-4 col-form-label">Justificación</label>
+                        <div class="col-sm-8">
+                            {{ form.justificacion(class="form-control", rows="3") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+	3.	Actualizar el formulario Flask:
+En tu archivo Flask de formularios (forms.py), agrega los campos necesarios para capturar la probabilidad, el impacto residual, y la justificación.
+
+from flask_wtf import FlaskForm
+from wtforms import DecimalField, TextAreaField
+from wtforms.validators import DataRequired
+
+class RiesgoResidualForm(FlaskForm):
+    probabilidad_residual = DecimalField('Probabilidad Residual', validators=[DataRequired()])
+    impacto_personas_residual = DecimalField('Impacto en Personas', validators=[DataRequired()])
+    impacto_ambiente_residual = DecimalField('Impacto en Ambiente', validators=[DataRequired()])
+    justificacion = TextAreaField('Justificación', validators=[DataRequired()])
+
+
+	4.	Agregar la ruta en Flask:
+En tu archivo principal (app.py o similar), crea la ruta para procesar el cálculo.
+
+@app.route('/calcular_riesgo_residual/<int:id>', methods=['POST'])
+def calcular_riesgo_residual(id):
+    riesgo = Riesgo.query.get_or_404(id)
+    form = RiesgoResidualForm()
+
+    if form.validate_on_submit():
+        riesgo.probabilidad_residual = form.probabilidad_residual.data
+        riesgo.impacto_personas_residual = form.impacto_personas_residual.data
+        riesgo.impacto_ambiente_residual = form.impacto_ambiente_residual.data
+        riesgo.justificacion = form.justificacion.data
+        db.session.commit()
+        flash('Riesgo residual actualizado exitosamente.', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    flash('Por favor, completa todos los campos correctamente.', 'danger')
+    return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+Estilo adicional (opcional):
+
+Puedes personalizar el modal con estilos CSS específicos para integrarlo visualmente con tu aplicación.
+
+.modal-content {
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+Conclusión:
+
+Un modal es una solución ágil y fácil de implementar que mejora la experiencia del usuario. Si necesitas más ayuda con el diseño o la lógica, ¡aquí estoy para ayudarte!
+
 Estoy creando una aplicación para valorar riesgos y en esta hoja: valoracion_riesgos.html se obtiene el resumen del riesgo y las opciones para agregar controles, acciones y mitigantes, pero ahora quiero agregar una opción para calcular o medir el riesgo residual a partir del juicio de experto, en esta se debe indicar probabilidad y el impacto asociada a cada categoría y una justificación, cual seria la mejor manera (usando un modal, o una nueva ventana?) me ayudas
 
 {% extends "base.html" %}
