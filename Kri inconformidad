@@ -1,3 +1,52 @@
+Si aplicas un promedio móvil de tres meses para suavizar las desviaciones mensuales, la fórmula del KRI se modificaría para incorporar esta técnica. El promedio móvil calcularía la media de las últimas tres observaciones, lo que reduce el impacto de picos aislados y permite una visión más representativa del comportamiento reciente.
+
+Fórmula con promedio móvil (3 meses)
+
+Primero, calculamos los acumulados suavizados de las predicciones y observaciones utilizando el promedio móvil.
+
+1. Promedio móvil para los acumulados mensuales
+
+Para cualquier mes ￼, el acumulado mensual suavizado sería:
+
+￼
+
+￼
+
+Esto implica que para cada mes, solo se considerarán los valores de los últimos tres meses.
+
+2. Nueva fórmula del KRI
+
+Con los valores suavizados, el KRI sería:
+
+￼
+
+Ejemplo práctico
+
+Supongamos los siguientes datos:
+
+Mes	Observado (￼)	Esperado (￼)
+Enero	100	95
+Febrero	120	100
+Marzo	80	105
+
+Para calcular el KRI en marzo (￼):
+	1.	Cálculo del acumulado suavizado:
+	•	Acumulado Observado Suavizado:
+￼
+	•	Acumulado Esperado Suavizado:
+￼
+	2.	Cálculo del KRI:
+￼
+
+Ventajas de esta aproximación:
+
+	1.	Reducción del impacto de picos aislados: El promedio móvil reduce la sensibilidad del indicador a un solo mes con valores extremos.
+	2.	Mayor estabilidad: Los valores suavizados reflejan mejor las tendencias reales del sistema.
+	3.	Fácil implementación: El promedio móvil es simple de calcular y comprender, lo que facilita su aceptación por parte de stakeholders.
+
+¿Te gustaría ajustar esta fórmula con otro tipo de suavizado o calcular ejemplos más complejos?
+
+
 Para abordar y justificar el ajuste de los umbrales y mejorar el cálculo del KRI, así como para manejar picos inesperados, se pueden tomar las siguientes acciones y justificaciones basadas en buenas prácticas y principios estadísticos:
 
 1. Justificación de los umbrales propuestos:
