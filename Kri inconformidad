@@ -1,0 +1,59 @@
+Para abordar y justificar el ajuste de los umbrales y mejorar el cálculo del KRI, así como para manejar picos inesperados, se pueden tomar las siguientes acciones y justificaciones basadas en buenas prácticas y principios estadísticos:
+
+1. Justificación de los umbrales propuestos:
+
+	•	Umbral bajo (<10%):
+Desviaciones menores al 10% suelen ser consideradas aceptables en muchas métricas empresariales porque reflejan variabilidad natural o errores de predicción que no comprometen significativamente los objetivos. Esto reduce el “ruido” de falsas alertas que generan innecesariamente acciones correctivas.
+	•	Justificación técnica: En sistemas dinámicos como predicción de inconformidades, una desviación menor al 10% puede deberse a fluctuaciones no sistemáticas. Estas son inevitables y no reflejan problemas operativos graves.
+	•	Valor práctico: Ayuda a mantener la calma en el equipo y a enfocar los recursos en problemas más significativos.
+	•	Umbral medio (10%-50%):
+Este rango capta desviaciones moderadas que podrían implicar problemas operativos incipientes, pero no graves.
+	•	Justificación técnica: Una desviación superior al 10% sugiere un desajuste entre lo observado y lo esperado que merece atención. El límite superior de 50% es amplio para acomodar variabilidad operativa, evitando el sobre-reporte de alertas altas.
+	•	Valor práctico: Proporciona un rango intermedio para detectar problemas sin saturar el sistema de alertas críticas.
+	•	Umbral alto (>50%):
+Desviaciones mayores al 50% son indicativas de problemas graves o eventos fuera de lo común.
+	•	Justificación técnica: Este nivel refleja una brecha sustancial que podría indicar fallos en procesos, cambios estructurales, o eventos extraordinarios que requieren intervención inmediata.
+	•	Valor práctico: Enfoca los recursos solo en casos críticos, evitando la fatiga de alerta.
+
+2. Manejo de picos inesperados:
+
+Los picos inesperados en un mes pueden distorsionar el cálculo del KRI y generar desviaciones altas que permanecen incluso después de que los valores observados vuelvan a la normalidad. Para mitigar este efecto:
+	•	Implementar un suavizado de datos:
+En lugar de utilizar los datos mensuales directamente, aplica un promedio móvil (ej. 3 meses) o un modelo de suavizado exponencial. Esto reduce el impacto de un pico extremo en un único mes.
+	•	Incorporar pesos o atenuación para picos:
+Penaliza menos los meses con valores atípicos (picos) en el cálculo del acumulado mensual. Por ejemplo, puedes agregar un factor de atenuación basado en la desviación estándar histórica.
+	•	Revisar el acumulado:
+Cambia el cálculo del acumulado para que sea ponderado por la estacionalidad o ajuste los valores atípicos antes de acumularlos. Esto mantiene una perspectiva más representativa de la tendencia.
+
+3. Mejora en la fórmula del KRI:
+
+La fórmula actual:
+￼
+puede ajustarse para manejar mejor los picos inesperados y reducir la sensibilidad excesiva a desviaciones temporales.
+	•	Propuesta 1: Normalización por desviación estándar
+En lugar de una simple desviación relativa, utiliza una versión ajustada por la desviación estándar histórica de las inconformidades:
+￼
+Esto convierte la desviación en unidades estándar, lo que ayuda a identificar cuán significativo es un desajuste en relación con la variabilidad pasada.
+	•	Propuesta 2: Factor de suavizado exponencial
+Introduce un factor de suavizado para evitar que los picos tengan un impacto desproporcionado:
+￼
+Donde ￼ es un parámetro de suavizado (ej. 0.3). Esto hace que el KRI responda más lentamente a cambios bruscos, pero refleje mejor las tendencias.
+	•	Propuesta 3: Ajuste por estacionalidad
+Considera incluir un factor estacional para comparar las inconformidades observadas con el comportamiento típico del mes:
+￼
+Donde ￼ es el factor estacional obtenido de la serie histórica. Esto ajusta la predicción esperada para reflejar patrones estacionales normales.
+
+4. Validación de los umbrales y la fórmula:
+
+Para justificar y validar los nuevos umbrales y la fórmula:
+	•	Realiza simulaciones históricas usando tus datos pasados para analizar cómo se comportan los diferentes umbrales y fórmulas frente a picos y tendencias.
+	•	Evalúa las tasas de falsas alertas y alertas críticas correctas para encontrar un balance adecuado.
+	•	Usa métricas como precisión, sensibilidad y especificidad para medir la efectividad del KRI.
+
+5. Conclusión y Recomendaciones:
+
+	1.	Cambiar los umbrales a 10%-50%-50% se justifica para reducir falsas alertas y hacer que el KRI sea más útil operativamente.
+	2.	Suavizar los datos o ajustar la fórmula con factores de estacionalidad y desviación estándar puede prevenir la distorsión por picos inesperados.
+	3.	Validar las propuestas con simulaciones históricas asegura la solidez del modelo y justifica el cambio frente a stakeholders.
+
+Esto hará que el KRI sea más robusto, práctico y confiable para la toma de decisiones.
