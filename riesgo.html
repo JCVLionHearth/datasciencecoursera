@@ -1,3 +1,35 @@
+<script>
+    document.getElementById("printPDF").addEventListener("click", () => {
+        // Selecciona los elementos a ocultar
+        const noPrintElements = document.querySelectorAll(".no-print");
+
+        // Oculta los elementos antes de generar el PDF
+        noPrintElements.forEach(el => el.style.display = "none");
+
+        // Define las opciones para html2pdf.js
+        const options = {
+            margin:       0.5,                  // Márgenes en pulgadas
+            filename:     'ficha_riesgo.pdf',   // Nombre del archivo PDF
+            image:        { type: 'jpeg', quality: 0.98 },  // Formato y calidad de imagen
+            html2canvas:  { scale: 2 },         // Escala para mejorar la resolución
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' } // Configuración de jsPDF
+        };
+
+        // Selecciona el contenedor a exportar
+        const element = document.querySelector(".container");
+
+        // Genera el PDF con las opciones especificadas
+        html2pdf()
+            .set(options)
+            .from(element)
+            .save()
+            .then(() => {
+                // Restaura los elementos después de generar el PDF
+                noPrintElements.forEach(el => el.style.display = "");
+            });
+    });
+</script>
+
 Sí, es posible excluir los botones u otros elementos del PDF generado con html2pdf.js. Para hacerlo, puedes aplicar una clase CSS específica a los elementos que deseas ocultar en el PDF. Luego, utilizas reglas CSS para ocultar estos elementos solo al momento de generar el PDF.
 
 Solución paso a paso
