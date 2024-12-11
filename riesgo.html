@@ -1,3 +1,63 @@
+Sí, es posible excluir los botones u otros elementos del PDF generado con html2pdf.js. Para hacerlo, puedes aplicar una clase CSS específica a los elementos que deseas ocultar en el PDF. Luego, utilizas reglas CSS para ocultar estos elementos solo al momento de generar el PDF.
+
+Solución paso a paso
+	1.	Añadir una clase a los elementos que deseas excluir
+Agrega una clase, por ejemplo no-print, a los botones que no quieres que aparezcan en el PDF:
+
+<div class="d-grid gap-2 d-md-flex justify-content-md-end no-print">
+    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Editar Riesgo</a>
+    <a href="{{ url_for('main.index') }}" class="btn btn-warning">
+        <i class="fas fa-list"></i> Listado de Riesgos
+    </a>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+        <i class="fas fa-tachometer-alt"></i> DashBoard
+    </a>
+    <button id="printPDF" class="btn btn-success">Imprimir PDF</button>
+</div>
+
+
+	2.	Añadir reglas CSS para ocultar la clase no-print en el PDF
+Usa una regla CSS para ocultar los elementos con la clase no-print durante la generación del PDF. Aquí tienes un ejemplo:
+
+<style>
+    .no-print {
+        display: none;
+    }
+</style>
+
+
+	3.	Modificar el JavaScript para aplicar la clase solo durante la generación del PDF
+Puedes temporalmente aplicar o eliminar la clase no-print justo antes y después de generar el PDF con html2pdf.js:
+
+<script>
+    document.getElementById("printPDF").addEventListener("click", () => {
+        // Selecciona los elementos a ocultar
+        const noPrintElements = document.querySelectorAll(".no-print");
+
+        // Oculta los elementos antes de generar el PDF
+        noPrintElements.forEach(el => el.style.display = "none");
+
+        // Genera el PDF
+        const element = document.querySelector(".container");
+        html2pdf()
+            .from(element)
+            .save()
+            .then(() => {
+                // Restaura los elementos después de generar el PDF
+                noPrintElements.forEach(el => el.style.display = "");
+            });
+    });
+</script>
+
+Explicación del código
+	1.	Clase no-print: Se asigna a los botones que no quieres incluir en el PDF.
+	2.	CSS: La regla .no-print { display: none; } oculta los elementos con esta clase.
+	3.	JavaScript:
+	•	Oculta temporalmente los elementos con la clase no-print justo antes de generar el PDF.
+	•	Restaura la visibilidad de los elementos después de que el PDF se ha generado.
+
+Con este método, los botones no aparecerán en el PDF, pero seguirán siendo visibles en la página web.
+
 Sí, es posible mejorar la resolución del PDF generado con html2pdf.js ajustando algunos parámetros en la configuración de la biblioteca. Aquí te explico cómo hacerlo:
 
 Mejorar la resolución en html2pdf.js
