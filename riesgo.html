@@ -1,3 +1,49 @@
+Sí, es posible mejorar la resolución del PDF generado con html2pdf.js ajustando algunos parámetros en la configuración de la biblioteca. Aquí te explico cómo hacerlo:
+
+Mejorar la resolución en html2pdf.js
+
+Puedes especificar opciones como el margen, la formación de imágenes y el valor DPI para mejorar la calidad del PDF generado.
+
+Ejemplo con ajustes de alta calidad
+
+<script>
+    document.getElementById("printPDF").addEventListener("click", () => {
+        const element = document.querySelector(".container");
+        const options = {
+            margin:       0.5,                  // Márgenes en pulgadas (ajústalo según sea necesario)
+            filename:     'ficha_riesgo.pdf',   // Nombre del archivo PDF
+            image:        { type: 'jpeg', quality: 0.98 },  // Tipo y calidad de imagen
+            html2canvas:  { scale: 2 },         // Aumenta el escalado para mejorar la resolución (2x, 3x, etc.)
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' } // Configuración de jsPDF
+        };
+
+        html2pdf().set(options).from(element).save();
+    });
+</script>
+
+Explicación de los parámetros
+	1.	margin:
+Define los márgenes del PDF en pulgadas. Un valor de 0.5 suele ser adecuado para documentos con espacio suficiente.
+	2.	filename:
+El nombre del archivo PDF generado.
+	3.	image:
+	•	type: Define el formato de imagen (por ejemplo, 'jpeg' o 'png').
+	•	quality: La calidad de la imagen (valor entre 0 y 1, donde 0.98 es alta calidad).
+	4.	html2canvas:
+	•	scale: Controla la escala de captura de la página. Un valor de 2 duplica la resolución y mejora la calidad del PDF. Puedes usar valores mayores (2.5, 3), pero ten en cuenta que incrementará el tamaño del archivo y el tiempo de generación.
+	5.	jsPDF:
+	•	unit: Unidad de medida ('in' para pulgadas, 'mm' para milímetros, 'pt' para puntos).
+	•	format: Tamaño del papel ('letter', 'A4', etc.).
+	•	orientation: 'portrait' (vertical) o 'landscape' (horizontal).
+
+Pruebas y ajustes
+	•	Prueba distintos valores de scale para encontrar el equilibrio entre calidad y rendimiento.
+	•	Aumentar quality en image también puede mejorar la nitidez de las imágenes en el PDF.
+	•	Si el archivo resultante es muy pesado, ajusta los valores gradualmente.
+
+Con estos cambios, el PDF generado debería tener una resolución mucho más alta y ser más nítido.
+
+
 Para implementar correctamente la funcionalidad de imprimir en PDF en tu aplicación Flask, tienes varias opciones dependiendo del enfoque que prefieras:
 	1.	Generar el PDF del lado del servidor usando Flask con bibliotecas como reportlab, WeasyPrint o xhtml2pdf.
 	2.	Generar el PDF del lado del cliente usando JavaScript y bibliotecas como jsPDF o html2pdf.js.
