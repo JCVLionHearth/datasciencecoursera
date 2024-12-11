@@ -3,6 +3,42 @@
         // Selecciona los elementos a ocultar
         const noPrintElements = document.querySelectorAll(".no-print");
 
+        // Guarda los estilos originales
+        const originalStyles = [];
+        noPrintElements.forEach(el => {
+            originalStyles.push(el.style.display);
+            el.style.display = "none";
+        });
+
+        // Define las opciones para html2pdf.js
+        const options = {
+            margin:       0.5,                  
+            filename:     'ficha_riesgo.pdf',   
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },         
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        const element = document.querySelector(".container");
+
+        html2pdf()
+            .set(options)
+            .from(element)
+            .save()
+            .then(() => {
+                // Restaura los estilos originales después de generar el PDF
+                noPrintElements.forEach((el, index) => {
+                    el.style.display = originalStyles[index];
+                });
+            });
+    });
+</script>
+
+<script>
+    document.getElementById("printPDF").addEventListener("click", () => {
+        // Selecciona los elementos a ocultar
+        const noPrintElements = document.querySelectorAll(".no-print");
+
         // Oculta los elementos antes de generar el PDF
         noPrintElements.forEach(el => el.style.display = "none");
 
