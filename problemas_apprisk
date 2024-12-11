@@ -1,0 +1,147 @@
+TENGO OTRO PROBLEMA, cuando selecciono una categoría para agregar una accion en el formulario y vuelvo a valoracion_riesgo.html, se muestra un valor disinto al escogido y cuando voy a editar muestra otro valor, cual es mi error?
+
+sección en valoracion_riesgo.html
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header card-header-custom">
+                        <h6 class="card-subtitle">Acciones de Tratamiento Asociadas</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for accion in riesgo.acciones_tratamiento %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ accion.nombre_causa }} - {{ accion.at }}
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('main.editar_accion', id=accion.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de la Acción de Tratamiento. ¿Deseas continuar?');">Editar</a>
+                                    <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No hay acciones de tratamiento asociadas a este riesgo.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+en routes.py:
+
+# Ruta para agregar una acción de tratamiento a un riesgo
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    riesgo = Risk.query.get_or_404(id)    
+    if not archivos_cargados():
+        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
+        return redirect(url_for('main.parametros'))
+   
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        nueva_accion = AccionTratamiento(
+            nombre_causa=form.nombre_causa.data,
+            at=dict(form.categoria.choices).get(form.categoria.data),
+            categoria=form.categoria.data,
+            puntos_causa=form.puntos_causa.data,
+            puntos_consecuencia=form.puntos_consecuencia.data,
+            riesgo_id=id,
+            creador_id=session['user_id']  # Agregar el ID del usuario autenticado que agrega la acción
+        )
+        db.session.add(nueva_accion)
+        db.session.commit()
+        flash('Acción de tratamiento añadida con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+
+## Rutas para editar acciones
+
+@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
+def editar_accion(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+        
+    accion = AccionTratamiento.query.get_or_404(id)
+    form = AccionTratamientoForm(obj=accion)
+
+    if form.validate_on_submit():
+        form.populate_obj(accion)
+        accion.at = dict(form.categoria.choices).get(form.categoria.data)
+        accion.modificador_id = session['user_id']  # Agregar el ID del usuario autenticado que modifica la accion
+        db.session.commit()
+        flash('Acción de tratamiento actualizada con éxito', 'success')
+        return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+    form.process(obj=accion)
+    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
+
+ en forms.py
+
+class AccionTratamientoForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+    def __init__(self, *args, **kwargs):
+        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
+        self.categoria.choices = cargar_acciones()
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
+
+y en agregar_accion.html
+
+{% extends "base.html" %}
+
+{% block title %}Añadir Acción de Tratamiento{% endblock %}
+
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="text-center card-subtitle">Añadir Acción de Tratamiento: <br>{{ riesgo.nombre }}</h5>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header card-header-custom">
+            <h6 class="card-subtitle">Acción de Tratamiento</h6>
+        </div>
+        <div class="card-body p-2">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="row mb-3">
+                    <label for="nombre_causa" class="col-sm-2 col-form-label">{{ form.nombre_causa.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.nombre_causa(class="form-control") }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="categoria" class="col-sm-2 col-form-label">{{ form.categoria.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.categoria(class="form-control", rows="2") }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="puntos_causa" class="col-sm-2 col-form-label">{{ form.puntos_causa.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.puntos_causa(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="puntos_consecuencia" class="col-sm-2 col-form-label">{{ form.puntos_consecuencia.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.puntos_consecuencia(class="form-control") }}
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar AT</button>
+                    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Regresar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
