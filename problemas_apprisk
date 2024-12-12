@@ -1,31 +1,56 @@
-TENGO OTRO PROBLEMA, cuando selecciono una categoría para agregar una accion en el formulario y vuelvo a valoracion_riesgo.html, se muestra un valor disinto al escogido y cuando voy a editar muestra otro valor, cual es mi error?
+estoy revisando la base de datos que se crea en mi aplicación, para esto estoy usando un formulario y uno de los campos deben ser el de categoría, este se visualiza en el formulario, pero el dato que se utiliza es el del puntaje para poder hacer cálculos, este ultimo no se visualiza, he notado que no esta guardando adecuadamente el puntaje, pues lo pone en cero en la base de datos, estos son segmentos de mis códigos:
 
-sección en valoracion_riesgo.html
+en utils.py
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header card-header-custom">
-                        <h6 class="card-subtitle">Acciones de Tratamiento Asociadas</h6>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for accion in riesgo.acciones_tratamiento %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ accion.nombre_causa }} - {{ accion.at }}
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('main.editar_accion', id=accion.id) }}" class="btn btn-secondary btn-sm" onclick="return confirm('Esta operación cambiará la valoración inicial de la Acción de Tratamiento. ¿Deseas continuar?');">Editar</a>
-                                    <a href="{{ url_for('main.eliminar_accion', id=accion.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta acción de tratamiento?');">Eliminar</a>
-                                </div>
-                            </li>
-                        {% else %}
-                            <li class="list-group-item">No hay acciones de tratamiento asociadas a este riesgo.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
 
-en routes.py:
+def calcular_reduccion_por_acciones(acciones):
+    puntos_causa_total = 0
+    puntos_consecuencia_total = 0
+    puntaje_residual_causa=0
+    puntaje_residual_consecuencia=0
+    for accion in acciones:
+        puntos_causa = (accion.puntos_causa + accion.categoria) / 2
+        puntos_consecuencia = (accion.puntos_consecuencia + accion.categoria) / 2
+        puntos_causa_total += puntos_causa
+        puntos_consecuencia_total += puntos_consecuencia
+    return (puntos_causa_total / len(acciones), puntos_consecuencia_total / len(acciones))
 
-# Ruta para agregar una acción de tratamiento a un riesgo
+en models.py
+
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    at = db.Column(db.String(100), nullable=False)
+    categoria = db.Column(db.Integer, nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+en forms.py
+
+class AccionTratamientoForm(FlaskForm):
+    nombre_causa = SelectField('Nombre de la Causa', choices=[])
+    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
+    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
+    submit = SubmitField('Guardar')
+
+    def __init__(self, *args, **kwargs):
+        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
+        self.categoria.choices = [(accion[0], accion[1]) for accion in cargar_acciones()]
+        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
+
+en routes.py
+
+# Ruta para agregar una acción
 @main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
 def agregar_accion(id):
     if 'user_id' not in session:
@@ -38,23 +63,25 @@ def agregar_accion(id):
     form = AccionTratamientoForm()
 
     if form.validate_on_submit():
-        nueva_accion = AccionTratamiento(
-            nombre_causa=form.nombre_causa.data,
-            at=dict(form.categoria.choices).get(form.categoria.data),
-            categoria=form.categoria.data,
-            puntos_causa=form.puntos_causa.data,
-            puntos_consecuencia=form.puntos_consecuencia.data,
-            riesgo_id=id,
-            creador_id=session['user_id']  # Agregar el ID del usuario autenticado que agrega la acción
-        )
-        db.session.add(nueva_accion)
-        db.session.commit()
-        flash('Acción de tratamiento añadida con éxito', 'success')
-        return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+        if accion_data:
+            nueva_accion = AccionTratamiento(
+                nombre_causa=form.nombre_causa.data,
+                at=accion_data[1],
+                categoria=form.categoria.data,
+                puntos_causa=form.puntos_causa.data,
+                puntos_consecuencia=form.puntos_consecuencia.data,
+                riesgo_id=id,
+                creador_id=session['user_id']  # Agregar el ID del usuario autenticado que agrega la acción
+            )
+            db.session.add(nueva_accion)
+            db.session.commit()
+            flash('Acción de tratamiento añadida con éxito', 'success')
+            return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
 
     return render_template('agregar_accion.html', form=form, riesgo=riesgo)
 
-## Rutas para editar acciones
+## Rutas para editar y eliminar
 
 @main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
 def editar_accion(id):
@@ -65,31 +92,30 @@ def editar_accion(id):
     form = AccionTratamientoForm(obj=accion)
 
     if form.validate_on_submit():
-        form.populate_obj(accion)
-        accion.at = dict(form.categoria.choices).get(form.categoria.data)
-        accion.modificador_id = session['user_id']  # Agregar el ID del usuario autenticado que modifica la accion
-        db.session.commit()
-        flash('Acción de tratamiento actualizada con éxito', 'success')
-        return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+        if accion_data:
+            form.populate_obj(accion)
+            accion.at = accion_data[1]
+            accion.modificador_id = session['user_id']  # Agregar el ID del usuario autenticado que modifica la accion
+            db.session.commit()
+            flash('Acción de tratamiento actualizada con éxito', 'success')
+            return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
 
     form.process(obj=accion)
     return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
 
- en forms.py
+@main.route('/accion/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_accion(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+        
+    accion = AccionTratamiento.query.get_or_404(id)
+    db.session.delete(accion)
+    db.session.commit()
+    flash('Acción de tratamiento eliminada con éxito', 'success')
+    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
 
-class AccionTratamientoForm(FlaskForm):
-    nombre_causa = SelectField('Nombre de la Causa', choices=[])
-    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
-    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
-    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
-    submit = SubmitField('Guardar')
-
-    def __init__(self, *args, **kwargs):
-        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
-        self.categoria.choices = cargar_acciones()
-        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
-
-y en agregar_accion.html
+y agregar_accion.html
 
 {% extends "base.html" %}
 
