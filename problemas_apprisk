@@ -1,3 +1,72 @@
+Por lo que describes y al revisar tu código, el problema parece estar relacionado con el valor del puntaje que no se está guardando correctamente en la base de datos y queda en cero. Aquí te doy algunas sugerencias y posibles soluciones para solucionar este problema.
+
+1. Verificar cargar_acciones()
+
+En la función cargar_acciones() de utils.py, asegúrate de que la columna Puntaje_AT en el archivo Excel contiene valores numéricos válidos. Si hay valores nulos o no numéricos en Puntaje_AT, podrían estar generando el problema.
+
+Ejemplo para mejorar el manejo de datos:
+
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    # Verificar si hay valores nulos o incorrectos
+    df['Puntaje_AT'] = pd.to_numeric(df['Puntaje_AT'], errors='coerce').fillna(0)
+    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
+
+Esto se asegura de que todos los puntajes sean numéricos y que los valores inválidos se conviertan en cero por defecto.
+
+2. Comprobar el formulario AccionTratamientoForm
+
+En el AccionTratamientoForm, estás utilizando SelectField con coerce=int para puntos_causa y puntos_consecuencia. Asegúrate de que los valores se están enviando correctamente desde el formulario HTML. Puedes agregar una impresión de depuración para verificar:
+
+if form.validate_on_submit():
+    print("Puntos causa:", form.puntos_causa.data)
+    print("Puntos consecuencia:", form.puntos_consecuencia.data)
+
+Si los valores no son los esperados, puede ser un problema en la selección en el HTML o en la forma en que se envían los datos.
+
+3. Verificar el populate_obj en editar_accion
+
+En la ruta para editar (editar_accion), estás usando form.populate_obj(accion), lo cual es correcto, pero asegúrate de que el formulario está actualizando los campos correctamente. También puedes agregar una impresión de depuración:
+
+print("Datos después de populate_obj:")
+print("Nombre causa:", accion.nombre_causa)
+print("Puntos causa:", accion.puntos_causa)
+print("Puntos consecuencia:", accion.puntos_consecuencia)
+
+4. Actualización correcta del modelo en la ruta
+
+En la ruta agregar_accion, estás obteniendo la información de accion_data para establecer at, pero asegúrate de que categoria es el puntaje correcto:
+
+if accion_data:
+    print("Accion data:", accion_data)
+    nueva_accion = AccionTratamiento(
+        nombre_causa=form.nombre_causa.data,
+        at=accion_data[1],
+        categoria=accion_data[2],  # Asegúrate de usar el puntaje correcto aquí
+        puntos_causa=form.puntos_causa.data,
+        puntos_consecuencia=form.puntos_consecuencia.data,
+        riesgo_id=id,
+        creador_id=session['user_id']
+    )
+
+5. Validar el contenido del archivo Excel
+
+Abre el archivo Acciones.xlsx y asegúrate de que la columna Puntaje_AT tiene valores enteros válidos. También verifica que no haya filas vacías o con errores.
+
+6. Debug en la base de datos
+
+Después de guardar una acción, verifica directamente en la base de datos si los valores se están almacenando correctamente. Por ejemplo, puedes ejecutar una consulta SQL directamente:
+
+SELECT * FROM acciones_tratamiento WHERE id = (último ID insertado);
+
+Resumen de pasos a seguir
+	1.	Revisa el contenido de Acciones.xlsx y asegúrate de que Puntaje_AT sea numérico.
+	2.	Agrega impresiones de depuración para ver los valores en form.validate_on_submit().
+	3.	Asegúrate de que categoria en nueva_accion recibe el puntaje correcto de accion_data[2].
+	4.	Comprueba la base de datos directamente después de insertar una acción para ver los valores guardados.
+
+Con estos pasos, deberías poder identificar por qué el puntaje está siendo guardado como cero y solucionarlo.
+
 estoy revisando la base de datos que se crea en mi aplicación, para esto estoy usando un formulario y uno de los campos deben ser el de categoría, este se visualiza en el formulario, pero el dato que se utiliza es el del puntaje para poder hacer cálculos, este ultimo no se visualiza, he notado que no esta guardando adecuadamente el puntaje, pues lo pone en cero en la base de datos, estos son segmentos de mis códigos:
 
 en utils.py
