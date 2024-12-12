@@ -1,3 +1,68 @@
+Entiendo el problema: si tienes varias categorías con el mismo puntaje (Puntaje_AT), cuando seleccionas una en el formulario, Flask-WTF puede no mostrar la opción correcta porque el valor del SelectField (coerce=int) es ambiguo al tener duplicados.
+
+Para solucionar este conflicto, es mejor utilizar identificadores únicos para las opciones del SelectField mientras sigues guardando el puntaje correcto en la base de datos. Aquí te muestro cómo hacerlo paso a paso.
+
+Solución Propuesta
+
+1. Modificar cargar_acciones() en utils.py
+
+Incluye el índice o una clave única en la estructura para identificar cada acción de manera inequívoca:
+
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
+
+Ahora devuelves una lista de tuplas con:
+	•	index: un identificador único.
+	•	row['AT']: la descripción de la categoría.
+	•	row['Puntaje_AT']: el puntaje asociado.
+
+2. Ajustar las Opciones en el Formulario
+
+En el formulario, asigna el index como el valor del SelectField para que cada opción sea única:
+
+self.categoria.choices = [(accion[0], f"{accion[1]} (Puntaje: {accion[2]})") for accion in cargar_acciones()]
+
+Aquí:
+	•	accion[0]: el index único.
+	•	accion[1]: la descripción de la categoría.
+	•	accion[2]: el puntaje, mostrado junto a la descripción para claridad.
+
+3. Actualizar la Lógica en las Rutas
+
+En las rutas, obtén los datos correctos usando el index único al guardar o editar una acción.
+
+En agregar_accion y editar_accion
+
+accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+
+if accion_data:
+    nueva_accion = AccionTratamiento(
+        nombre_causa=form.nombre_causa.data,
+        at=accion_data[1],  # Descripción de la categoría
+        categoria=accion_data[2],  # Puntaje de la categoría
+        puntos_causa=form.puntos_causa.data,
+        puntos_consecuencia=form.puntos_consecuencia.data,
+        riesgo_id=id,
+        creador_id=session['user_id']
+    )
+
+Nota Importante
+
+Asegúrate de que el campo categoria en el formulario acepte un valor int para el identificador único. Actualiza el SelectField en AccionTratamientoForm:
+
+categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
+
+Resultado Esperado
+	1.	Visualización: En el formulario, cada opción de la categoría se verá algo como:
+	•	Acción 1 (Puntaje: 50)
+	•	Acción 2 (Puntaje: 50)
+	•	Acción 3 (Puntaje: 100)
+	2.	Selección Correcta: Al seleccionar una opción, el identificador único (index) se guarda en el formulario.
+	3.	Almacenamiento: Se guarda el puntaje correcto en la base de datos, y al editar, se muestra la categoría seleccionada previamente sin confusión.
+
+Este enfoque evita la ambigüedad causada por puntajes duplicados y garantiza que la selección sea precisa tanto al guardar como al mostrar los datos.
+
 El problema que describes parece estar relacionado con la forma en que estás manejando las opciones de la categoría y el puntaje asociado en cargar_acciones(). Veamos cómo solucionarlo paso a paso.
 
 Diagnóstico del Problema
