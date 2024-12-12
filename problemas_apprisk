@@ -1,3 +1,42 @@
+Este problema se debe a que el SelectField de la categoría en el formulario no está preseleccionando la opción correcta al momento de cargar el formulario para editar. Esto ocurre porque el SelectField espera que el valor coincida exactamente con una de las opciones disponibles, pero la coincidencia no está funcionando porque las opciones usan identificadores únicos (index), mientras que el valor almacenado en la base de datos es el puntaje.
+
+Para corregir esto, necesitamos asegurarnos de que el SelectField de categoría esté configurado con la opción correcta en función del puntaje guardado en la base de datos.
+
+Solución
+
+1. Ajustar el __init__ del Formulario en forms.py
+
+Modifica el __init__ de AccionTratamientoForm para buscar el identificador (index) correspondiente al puntaje almacenado en la base de datos y establecerlo como el valor preseleccionado.
+
+def __init__(self, *args, **kwargs):
+    super(AccionTratamientoForm, self).__init__(*args, **kwargs)
+    acciones = cargar_acciones()
+    self.categoria.choices = [(accion[0], f"{accion[1]} (Puntaje: {accion[2]})") for accion in acciones]
+
+    # Si ya hay un puntaje en el formulario (por ejemplo, al editar), selecciona el identificador correcto
+    if 'obj' in kwargs and kwargs['obj']:
+        puntaje_actual = kwargs['obj'].categoria
+        for accion in acciones:
+            if accion[2] == puntaje_actual:
+                self.categoria.data = accion[0]
+                break
+
+Explicación del Cambio
+	1.	acciones = cargar_acciones(): Carga las acciones disponibles con sus identificadores únicos, descripciones y puntajes.
+	2.	Asignación de choices: Establece las opciones con el identificador (accion[0]) como valor y una etiqueta descriptiva (f"{accion[1]} (Puntaje: {accion[2]})").
+	3.	Preselección de categoria.data:
+	•	Busca en las acciones una que tenga el mismo puntaje (accion[2]) que el almacenado en la base de datos (kwargs['obj'].categoria).
+	•	Si encuentra una coincidencia, asigna el identificador (accion[0]) a self.categoria.data para que esa opción quede preseleccionada al cargar el formulario.
+
+Resultado Esperado
+
+Cuando edites una acción de tratamiento:
+	•	El formulario cargará todas las opciones de categoría correctamente.
+	•	La opción correspondiente al puntaje guardado en la base de datos estará seleccionada por defecto.
+	•	Ya no se mostrará siempre la primera opción por defecto; en su lugar, se mostrará la categoría correcta asociada a la acción.
+
+Esto debería resolver el problema de visualización en el formulario de edición.
+
 Entiendo el problema: si tienes varias categorías con el mismo puntaje (Puntaje_AT), cuando seleccionas una en el formulario, Flask-WTF puede no mostrar la opción correcta porque el valor del SelectField (coerce=int) es ambiguo al tener duplicados.
 
 Para solucionar este conflicto, es mejor utilizar identificadores únicos para las opciones del SelectField mientras sigues guardando el puntaje correcto en la base de datos. Aquí te muestro cómo hacerlo paso a paso.
