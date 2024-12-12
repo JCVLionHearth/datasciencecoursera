@@ -1,3 +1,134 @@
+Claro, puedo ayudarte a mejorar el código de las rutas en routes.py optimizando la lógica, reduciendo duplicación y añadiendo manejo de errores y mensajes de depuración. A continuación te muestro una versión mejorada:
+
+Código Mejorado para routes.py
+
+from flask import render_template, redirect, url_for, flash, session
+from . import main
+from .models import AccionTratamiento, Risk
+from .forms import AccionTratamientoForm
+from .utils import cargar_acciones, archivos_cargados
+from app import db
+
+# Helper para verificar sesión de usuario
+def verificar_sesion():
+    if 'user_id' not in session:
+        flash('Debes iniciar sesión para acceder a esta funcionalidad.', 'error')
+        return redirect(url_for('main.login'))
+    return None
+
+# Ruta para agregar una acción
+@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
+def agregar_accion(id):
+    if (redireccion := verificar_sesion()):
+        return redireccion
+
+    riesgo = Risk.query.get_or_404(id)
+
+    if not archivos_cargados():
+        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
+        return redirect(url_for('main.parametros'))
+
+    form = AccionTratamientoForm()
+
+    if form.validate_on_submit():
+        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+
+        if accion_data:
+            nueva_accion = AccionTratamiento(
+                nombre_causa=form.nombre_causa.data,
+                at=accion_data[1],
+                categoria=form.categoria.data,
+                puntos_causa=form.puntos_causa.data,
+                puntos_consecuencia=form.puntos_consecuencia.data,
+                riesgo_id=id,
+                creador_id=session['user_id']
+            )
+
+            try:
+                db.session.add(nueva_accion)
+                db.session.commit()
+                flash('Acción de tratamiento añadida con éxito.', 'success')
+                return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error al guardar la acción: {str(e)}', 'error')
+
+    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
+
+
+# Ruta para editar una acción
+@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
+def editar_accion(id):
+    if (redireccion := verificar_sesion()):
+        return redireccion
+
+    accion = AccionTratamiento.query.get_or_404(id)
+    form = AccionTratamientoForm(obj=accion)
+
+    if form.validate_on_submit():
+        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+
+        if accion_data:
+            accion.nombre_causa = form.nombre_causa.data
+            accion.at = accion_data[1]
+            accion.categoria = form.categoria.data
+            accion.puntos_causa = form.puntos_causa.data
+            accion.puntos_consecuencia = form.puntos_consecuencia.data
+            accion.modificador_id = session['user_id']
+
+            try:
+                db.session.commit()
+                flash('Acción de tratamiento actualizada con éxito.', 'success')
+                return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error al actualizar la acción: {str(e)}', 'error')
+
+    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
+
+
+# Ruta para eliminar una acción
+@main.route('/accion/<int:id>/eliminar', methods=['POST'])
+def eliminar_accion(id):
+    if (redireccion := verificar_sesion()):
+        return redireccion
+
+    accion = AccionTratamiento.query.get_or_404(id)
+
+    try:
+        db.session.delete(accion)
+        db.session.commit()
+        flash('Acción de tratamiento eliminada con éxito.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la acción: {str(e)}', 'error')
+
+    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+Explicación de los cambios
+	1.	Función verificar_sesion:
+	•	Se creó una función verificar_sesion para evitar repetir el código de verificación de sesión en cada ruta.
+	•	Esta función devuelve una redirección si el usuario no está autenticado.
+	2.	Manejo de Errores con try-except:
+	•	Se agregaron bloques try-except para manejar posibles errores al interactuar con la base de datos (db.session.add, db.session.commit, db.session.delete).
+	•	Si ocurre un error, se hace un rollback y se muestra un mensaje de error al usuario.
+	3.	Condicional de Redirección con :=:
+	•	Se usa el operador de asignación en expresiones (:=) para simplificar la verificación de sesión.
+	4.	Actualización Manual de Campos en editar_accion:
+	•	En lugar de usar form.populate_obj, se actualizan los campos manualmente para evitar problemas con el formulario.
+	5.	Método POST para Eliminar:
+	•	La ruta eliminar_accion usa methods=['POST'] para asegurar que las eliminaciones no se realicen mediante solicitudes GET, lo cual es una buena práctica de seguridad.
+	6.	Mensajes de Flash:
+	•	Se añadieron mensajes de flash informativos para que el usuario sepa qué sucede en cada operación (éxito o error).
+
+Consejos Adicionales
+	•	Validación de Datos: Asegúrate de validar los datos en AccionTratamientoForm para evitar que se guarden valores incorrectos.
+	•	Logs de Depuración: Agrega print o registros con logging para depurar problemas específicos durante el desarrollo.
+	•	Seguridad: Si es una aplicación en producción, asegúrate de tener protección contra CSRF (Cross-Site Request Forgery) en los formularios.
+
+Este enfoque hace que tu código sea más limpio, mantenible y robusto frente a errores.
+
+
 Si los valores no se están actualizando correctamente al editar una acción, hay varios puntos en el código que podrían estar causando este problema. Aquí te dejo algunas sugerencias para identificar y solucionar el problema:
 
 1. Verificar editar_accion en routes.py
