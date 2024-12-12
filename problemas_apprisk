@@ -1,3 +1,76 @@
+El problema que describes parece estar relacionado con la forma en que estás manejando las opciones de la categoría y el puntaje asociado en cargar_acciones(). Veamos cómo solucionarlo paso a paso.
+
+Diagnóstico del Problema
+
+En tu función cargar_acciones() dentro de utils.py tienes lo siguiente:
+
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
+
+Aquí estás devolviendo una lista de tuplas donde el primer elemento es index (la posición de la fila), el segundo es row['AT'] (la descripción), y el tercero es row['Puntaje_AT'] (el puntaje).
+
+En tu formulario en forms.py:
+
+self.categoria.choices = [(accion[0], accion[1]) for accion in cargar_acciones()]
+
+Aquí las opciones se están asignando como una lista de tuplas donde el primer valor es accion[0] (el índice) y el segundo es accion[1] (la descripción). Al guardar, esto significa que form.categoria.data está devolviendo el índice de la fila y no el Puntaje_AT.
+
+Solución Propuesta
+
+Lo que necesitas es asegurarte de que el formulario pueda capturar el puntaje correcto (Puntaje_AT) al seleccionar una categoría. Vamos a ajustar la función cargar_acciones() y la asignación de las opciones en el formulario.
+
+1. Modificar cargar_acciones()
+
+Cambia la función para devolver una estructura más adecuada que incluya el puntaje como clave:
+
+def cargar_acciones():
+    df = pd.read_excel('uploads/Acciones.xlsx')
+    return [(row['AT'], row['Puntaje_AT']) for _, row in df.iterrows()]
+
+Ahora, cargar_acciones() devuelve una lista de tuplas donde el primer elemento es row['AT'] (la descripción) y el segundo es row['Puntaje_AT'] (el puntaje).
+
+2. Ajustar el Formulario en forms.py
+
+Modifica la asignación de las opciones en el __init__ del formulario para usar el puntaje como valor:
+
+self.categoria.choices = [(accion[1], accion[0]) for accion in cargar_acciones()]
+
+Ahora, self.categoria.choices asigna una lista de tuplas donde el primer valor es accion[1] (el puntaje) y el segundo es accion[0] (la descripción).
+
+3. Ajustar la Lógica en las Rutas
+
+En routes.py, actualiza la parte donde se obtiene accion_data para reflejar este cambio:
+
+En agregar_accion y editar_accion
+
+accion_data = next((accion for accion in cargar_acciones() if accion[1] == form.categoria.data), None)
+
+if accion_data:
+    nueva_accion = AccionTratamiento(
+        nombre_causa=form.nombre_causa.data,
+        at=accion_data[0],  # Descripción de la acción
+        categoria=form.categoria.data,  # Puntaje seleccionado
+        puntos_causa=form.puntos_causa.data,
+        puntos_consecuencia=form.puntos_consecuencia.data,
+        riesgo_id=id,
+        creador_id=session['user_id']
+    )
+
+De este modo, form.categoria.data contendrá el puntaje correcto y se guardará en el campo categoria.
+
+Explicación de los Cambios
+	1.	cargar_acciones():
+	•	Ahora devuelve una lista de tuplas (Descripción, Puntaje_AT) en lugar de (Index, Descripción, Puntaje_AT).
+	2.	Formulario:
+	•	Se asignan las opciones con el puntaje como valor, garantizando que form.categoria.data devolverá el puntaje correcto.
+	3.	Rutas:
+	•	Se selecciona el accion_data basándose en el puntaje (form.categoria.data), y se guarda el puntaje en la base de datos.
+
+Resultado Esperado
+
+Con estos cambios, cuando selecciones una categoría en el formulario, se guardará el Puntaje_AT correcto en el campo categoria de la base de datos.
+
 Claro, puedo ayudarte a mejorar el código de las rutas en routes.py optimizando la lógica, reduciendo duplicación y añadiendo manejo de errores y mensajes de depuración. A continuación te muestro una versión mejorada:
 
 Código Mejorado para routes.py
