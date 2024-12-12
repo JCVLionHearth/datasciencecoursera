@@ -1,3 +1,93 @@
+Si los valores no se están actualizando correctamente al editar una acción, hay varios puntos en el código que podrían estar causando este problema. Aquí te dejo algunas sugerencias para identificar y solucionar el problema:
+
+1. Verificar editar_accion en routes.py
+
+En la función editar_accion, asegúrate de que el populate_obj y las actualizaciones se estén haciendo correctamente:
+
+@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
+def editar_accion(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+        
+    accion = AccionTratamiento.query.get_or_404(id)
+    form = AccionTratamientoForm(obj=accion)
+
+    if form.validate_on_submit():
+        # Depuración para ver los datos antes de actualizar
+        print("Datos del formulario:")
+        print("Nombre causa:", form.nombre_causa.data)
+        print("Categoría:", form.categoria.data)
+        print("Puntos causa:", form.puntos_causa.data)
+        print("Puntos consecuencia:", form.puntos_consecuencia.data)
+
+        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
+        
+        if accion_data:
+            form.populate_obj(accion)  # Llena el objeto 'accion' con los datos del formulario
+            accion.at = accion_data[1]
+            accion.modificador_id = session['user_id']
+            
+            db.session.commit()
+            flash('Acción de tratamiento actualizada con éxito', 'success')
+            return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
+
+    # Procesar el formulario para rellenarlo con los datos actuales de 'accion'
+    form.process(obj=accion)
+    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
+
+2. Problemas con form.process(obj=accion)
+
+Después de form.process(obj=accion), verifica que los valores en el formulario coincidan con los valores del objeto accion:
+
+print("Valores actuales de accion:")
+print("Nombre causa:", accion.nombre_causa)
+print("Categoría:", accion.categoria)
+print("Puntos causa:", accion.puntos_causa)
+print("Puntos consecuencia:", accion.puntos_consecuencia)
+
+Esto te permitirá verificar si los datos del objeto accion están siendo correctamente asignados al formulario.
+
+3. Actualizar el campo categoria
+
+En el formulario, categoria es un SelectField que toma datos de cargar_acciones(). Asegúrate de que el valor que se selecciona al editar existe en las opciones de categoria.
+
+Agrega una impresión para verificar las opciones del campo categoria:
+
+print("Opciones de categoría en el formulario:", form.categoria.choices)
+
+4. Revisar populate_obj
+
+A veces, populate_obj puede no funcionar como se espera si hay conflictos con los datos o si se manipulan manualmente los campos después de procesar el formulario. Si el populate_obj no funciona correctamente, puedes asignar los valores manualmente:
+
+accion.nombre_causa = form.nombre_causa.data
+accion.categoria = form.categoria.data
+accion.puntos_causa = form.puntos_causa.data
+accion.puntos_consecuencia = form.puntos_consecuencia.data
+accion.at = accion_data[1]
+accion.modificador_id = session['user_id']
+
+5. Actualizar en la base de datos
+
+Después de realizar la actualización y el db.session.commit(), verifica directamente en la base de datos si los cambios se aplicaron:
+
+SELECT * FROM acciones_tratamiento WHERE id = <ID de la acción>;
+
+6. Depuración en la plantilla
+
+En la plantilla agregar_accion.html, asegúrate de que los campos muestran los valores correctos al cargar el formulario:
+
+{{ form.categoria.data }}
+{{ form.puntos_causa.data }}
+{{ form.puntos_consecuencia.data }}
+
+Resumen de posibles soluciones
+	1.	Imprime los valores del formulario y del objeto accion para identificar inconsistencias.
+	2.	Verifica que categoria tenga una opción válida seleccionada en el formulario.
+	3.	Asigna los valores manualmente en lugar de usar populate_obj si es necesario.
+	4.	Confirma los cambios en la base de datos después del commit.
+
+Prueba estas sugerencias y dime si el problema persiste o si identificas alguna pista adicional.
+
 Por lo que describes y al revisar tu código, el problema parece estar relacionado con el valor del puntaje que no se está guardando correctamente en la base de datos y queda en cero. Aquí te doy algunas sugerencias y posibles soluciones para solucionar este problema.
 
 1. Verificar cargar_acciones()
