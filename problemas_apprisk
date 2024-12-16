@@ -1,5 +1,45 @@
 <script>
     var graphData = {{ graph_json | safe }};
+
+    // Recorrer las trazas y agregar una flecha para cada par de puntos
+    var annotations = [];
+
+    graphData.data.forEach(function(trace) {
+        if (trace.type === 'scatter' && trace.mode.includes('markers+lines')) {
+            var xStart = trace.x[0];
+            var yStart = trace.y[0];
+            var xEnd = trace.x[1];
+            var yEnd = trace.y[1];
+
+            // Añadir una flecha como una anotación
+            annotations.push({
+                ax: xStart,            // Coordenada X de inicio
+                ay: yStart,            // Coordenada Y de inicio
+                x: xEnd,               // Coordenada X del punto final
+                y: yEnd,               // Coordenada Y del punto final
+                xref: 'x',
+                yref: 'y',
+                axref: 'x',
+                ayref: 'y',
+                showarrow: true,
+                arrowhead: 2,          // Tipo de flecha (2 es una flecha clásica)
+                arrowsize: 1,          // Tamaño de la flecha
+                arrowwidth: 2,         // Grosor de la flecha
+                arrowcolor: trace.marker.color // Color de la flecha igual al de los puntos
+            });
+        }
+    });
+
+    // Agregar las anotaciones al layout del gráfico
+    graphData.layout.annotations = graphData.layout.annotations || [];
+    graphData.layout.annotations = graphData.layout.annotations.concat(annotations);
+
+    // Generar el gráfico con Plotly
+    Plotly.newPlot('grafico', graphData.data, graphData.layout);
+</script>
+
+<script>
+    var graphData = {{ graph_json | safe }};
     
     // Crear una traza adicional para las líneas que conecten los puntos
     graphData.data.forEach(function(trace) {
