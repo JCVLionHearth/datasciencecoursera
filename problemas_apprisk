@@ -1,3 +1,84 @@
+
+Para imprimir el contenido de la página como PDF asegurando que las tablas no se corten y se mantenga una apariencia elegante, puedes utilizar JavaScript y CSS. A continuación, te muestro una solución paso a paso que implementa una funcionalidad de impresión de PDF con ajustes de estilo para que las tablas se dividan correctamente entre páginas.
+
+Solución Completa
+
+1. Agregar CSS para Controlar el Diseño de Impresión
+
+Incluye estilos específicos para impresión en tu plantilla o archivo CSS general. Estos estilos aseguran que las tablas no se corten y aplican un diseño limpio al imprimir.
+
+En agregar_accion.html o un archivo CSS vinculado
+
+<style>
+    @media print {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .no-print {
+            display: none;
+        }
+        .container {
+            width: 100%;
+        }
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        thead {
+            display: table-header-group;
+        }
+        tfoot {
+            display: table-footer-group;
+        }
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+Explicación del CSS
+	1.	@media print: Aplica estos estilos solo cuando se imprime.
+	2.	.no-print: Oculta elementos como botones de navegación o acciones que no deben aparecer en la impresión.
+	3.	table y tr: Evita que las filas de la tabla se corten entre páginas.
+	4.	thead: Asegura que el encabezado de la tabla se repita en cada página impresa.
+	5.	Bordes y sombras: Se eliminan de las tarjetas para una apariencia más limpia en la impresión.
+
+2. Agregar JavaScript para Imprimir en PDF
+
+Usa window.print() para llamar a la funcionalidad de impresión del navegador. Puedes vincular esto al botón “Imprimir PDF”.
+
+En agregar_accion.html (dentro del bloque de contenido)
+
+<script>
+    document.getElementById('printPDF').addEventListener('click', function () {
+        window.print();
+    });
+</script>
+
+3. Resultado Final del Botón
+
+Este botón permitirá imprimir la página completa con los ajustes de diseño aplicados:
+
+<button id="printPDF" class="btn btn-success no-print">
+    <i class="fas fa-file-pdf"></i> Imprimir PDF
+</button>
+
+Resumen de la Implementación
+	1.	CSS: Controla el diseño de la impresión para evitar que las tablas se corten y oculta elementos no deseados.
+	2.	JavaScript: Llama a window.print() para abrir el diálogo de impresión.
+	3.	Botón: El botón “Imprimir PDF” se oculta automáticamente en la versión impresa (no-print).
+
+Esto asegurará que el contenido se imprima de forma ordenada y elegante, con tablas que no se fragmentan entre páginas.
+
 deseo que el boton imprimir pdf, permita imprimir el contenido de la siguiente pagina de tal manera que la tabla no quede cortada, y que lo mas elegantemente posible: 
 
 {% extends "base.html" %}
