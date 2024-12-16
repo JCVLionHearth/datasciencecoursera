@@ -1,3 +1,23 @@
+<script>
+    var graphData = {{ graph_json | safe }};
+    
+    // Crear una traza adicional para las líneas que conecten los puntos
+    graphData.data.forEach(function(trace) {
+        if (trace.type === 'scatter' && trace.mode.includes('markers')) {
+            // Añadir una línea que conecte los dos puntos
+            trace.mode = 'markers+lines'; // Agregar líneas al modo existente
+            trace.line = {
+                width: 2,
+                dash: 'solid',
+                color: trace.marker.color // Utiliza el mismo color que los puntos
+            };
+        }
+    });
+
+    // Generar el gráfico con Plotly
+    Plotly.newPlot('grafico', graphData.data, graphData.layout);
+</script>
+
 ahora deseo que al imprimir el grafico quede centrado, pues al imprimir queda por fuera de margen y no alineado
 
 {% extends "base.html" %}
