@@ -1,217 +1,118 @@
 
-Para implementar un buscador en las listas desplegables (select) de causas y acciones en tu formulario, puedes usar una librería como Select2, que facilita el filtrado y mejora la interfaz de las listas desplegables.
+en esta sección del dashboard.html tengo el siguiente gráfico, es una matriz de riesgos que muestra todos los riesgos valorados, quiero incluirla en ver_riesgo.html pero en esta hoja solo se visualiza el resumen de un riesgo, por lo que quisiera que el grafico solo mostrara el riesgo especifico del que se esta resumiendo, como loo haría
 
-A continuación, te muestro cómo hacerlo paso a paso:
-
-1. Incluir Select2 en tu proyecto
-
-Agrega los enlaces de Select2 (CSS y JS) en tu archivo base.html dentro del bloque <head> y justo antes del cierre del <body>.
-
-En base.html:
-
-<head>
-    <!-- Estilos de Select2 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
-</head>
-
-<body>
-    {% block content %}{% endblock %}
-
-    <!-- Scripts de jQuery y Select2 -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-</body>
-
-2. Modificar el Formulario para Usar Select2
-
-Aplica Select2 a las listas desplegables (nombre_causa y nombre_at). Puedes hacerlo añadiendo una clase específica y utilizando un script para activarlo.
-
-En tu plantilla del formulario:
-
-<div class="row mb-3">
-    <label for="nombre_causa" class="col-sm-2 col-form-label">{{ form.nombre_causa.label }}</label>
-    <div class="col-sm-10">
-        {{ form.nombre_causa(class="form-control select2", multiple=True) }}
-    </div>
-</div>
-
-<div class="row mb-3">
-    <label for="nombre_at" class="col-sm-2 col-form-label">{{ form.nombre_at.label }}</label>
-    <div class="col-sm-10">
-        {{ form.nombre_at(class="form-control select2") }}
-    </div>
-</div>
-
-3. Activar Select2 con un Script
-
-Añade un script al final de tu formulario para inicializar Select2 en los elementos con la clase select2.
-
-<script>
-    $(document).ready(function() {
-        $('.select2').select2({
-            placeholder: "Selecciona una opción",
-            allowClear: true,
-            width: '100%'  // Asegura que el select ocupe el 100% del contenedor
-        });
-    });
-</script>
-
-4. Explicación del Código
-	1.	CDN de Select2: Se incluyen los estilos y scripts de Select2 desde una CDN.
-	2.	Clase select2: Se añade a los elementos de formulario donde deseas habilitar el buscador.
-	3.	Script de inicialización: Se ejecuta cuando el documento está listo y activa Select2 en los elementos con la clase select2.
-
-Resultado Esperado
-	•	Las listas desplegables de causas y acciones tendrán una barra de búsqueda incorporada.
-	•	El usuario podrá escribir para filtrar rápidamente las opciones disponibles.
-	•	La interfaz será más intuitiva y fácil de usar.
-
-¡Prueba esta implementación y verifica que mejora la experiencia de búsqueda en tu formulario!
-en este dashaboard.html tengo un buscador que filtra la tabla de esta manera:
+seccion del grafico en dashboard.html
 
         <div class="card mb-4">
+            <div class="card-header card-header-custom">
+                <h6 class="card-subtitle">Matríz de Valoración de Riesgos</h6>
+            </div>
             <div class="card-body p-2">
-                <p>Escribe algo en el campo de entrada para buscar en la tabla por código de riesgo, nombre del riesgo o escenario:</p> 
-                <input class="form-control mb-3" id="myInput" type="text" placeholder="Buscar...">
-                <table class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Código Riesgo</th>
-                            <th>Nombre del Riesgo</th>
-                            <th>Escenario Riesgo</th>
-                            <th>Riesgo Inherente</th>
-                            <th>Riesgo Residual</th>
-                            <th>Riesgo Experto</th>
-                            <th>Causas Valoradas</th>
-                            <th>Controles</th>
-                            <th>Acciones</th>
-                            <th>Otros Mitigantes</th>
-                            <th>Creación</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="myTable">
-                        {% for riesgo in riesgos_data %}
-                        <tr>
-                            <td>{{ riesgo.nombre }}</td>
-                            <td>{{ riesgo.descripcion }}</td>
-                            <td>{{ riesgo.escenario }}</td>
-                            {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.consecuencia_inherente) %}
-                            <td class="color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</td>
-                            {% set riesgo_residual, color2 = obtener_riesgo_y_color(riesgo.puntaje_final_causa, riesgo.puntaje_final_consecuencia) %}
-                            <td class="color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</td>
-                            {% set riesgo_residual_experto, color3 = obtener_riesgo_y_color(riesgo.probabilidad_residual_experto, riesgo.impacto_residual_experto) %}
-                            <td class="color-cell" style="background-color: {{ color3 }};">{{ riesgo_residual_experto }}</td>
-                            <td>{{ riesgo.num_causas_valoradas }}</td>
-                            <td>{{ riesgo.num_controles }}</td>
-                            <td>{{ riesgo.num_acciones }}</td>
-                            <td>{{ riesgo.num_mitigantes }}</td>
-                            <td>{{ riesgo.fecha_creacion.strftime('%d-%m-%Y') }}</td>
-                            <td>
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                    <a href="{{ url_for('main.eliminar_riesgo', id=riesgo.id) }}" class="btn btn-danger btn-sm" 
-                                    onclick="return confirm('Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?');">
-                                        Eliminar
-                                    </a>
-                                    <a href="{{ url_for('main.ver_riesgo', riesgo_id=riesgo.id) }}" class="btn btn-primary btn-sm">Ver Detalles</a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div id="grafico" class="well"></div>
             </div>
         </div>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a href="{{ url_for('main.index') }}" class="btn btn-secondary"><i class="fas fa-list"></i> Regresar</a>
-            <a href="{{ url_for('main.download_excel') }}" class="btn btn-info" onclick="return confirm('Esto descargará el historial completo de todos los Riesgos con sus respectivos controles y acciones de tratamiento. ¿Deseas continuar?');">
-                <i class="fas fa-file-excel"></i> Descargar Excel</a>
-        </div>
-    </div>
-   
-    <script>
-        var graph_data = {{ graph_json | safe }};
-        Plotly.newPlot('grafico', graph_data.data, graph_data.layout);
-    </script>
-    <script>
-        $(document).ready(function(){
-          $("#myInput").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#myTable tr").filter(function() {
-              $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-            });
-          });
-        });
-    </script>
-
-quiero hacer algo similar con la lista desplegable de causas y de acciones de este formulario, pues habrán muchas categorias y quiero que el usuario solo se centre en el listado de la categoria a buscar, el formulario es el siguiente:
+ver_grafico.html
 
 {% extends "base.html" %}
 
-{% block title %}Añadir Acción de Tratamiento{% endblock %}
+{% block title %}Valoración del Riesgo{% endblock %}
 
 {% block content %}
-    <div class="card mb-4">
-        <div class="card-header card-header-custom">
-            <h5 class="text-center card-subtitle">Añadir Acción de Tratamiento: <br>{{ riesgo.nombre }}</h5>
+    <div class="container mt-5">
+        <div class="card p-4 mt-4 mb-4">
+            <h1>Ficha del Riesgo:</h1>
+            <h2>{{ riesgo.nombre }}</h2>
+            <p><strong>Escenario:</strong> {{ riesgo.escenario }}</p>
+
+            <!-- Resumen del Riesgo Inherente y Residual -->
+            {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.impacto_inherente) %}
+            {% set riesgo_residual, color2 = obtener_riesgo_y_color(puntaje_final_causa, puntaje_final_consecuencia) %}
+            {% set riesgo_residual_experto, color3 = obtener_riesgo_y_color(probabilidad_residual_experto, impacto_residual_experto) %}
+            <div class="d-flex justify-content-between">
+                <div class="text-center">
+                    <p><strong>Riesgo Inherente:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</span>
+                </div>
+                <div class="text-center">
+                    <p><strong>Riesgo Residual:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</span>
+                </div>
+                <div class="text-center">
+                    <p><strong>Riesgo Criterio Experto:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color3 }};">{{ riesgo_residual_experto }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 mb-4  no-print">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end no-print">
+                <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Editar Riesgo</a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-warning">
+                    <i class="fas fa-list"></i> Listado de Riesgos
+                </a>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> DashBoard
+                </a>
+                <button id="printPDF" class="btn btn-success">
+                    <i class="fas fa-file-pdf"></i> Imprimir PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header card-header-custom">
+                <h2 class="card-subtitle">Detalles del Riesgo</h2>
+            </div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Causa</th>
+                        <th>Controles</th>
+                        <th>Acciones</th>
+                        <th>Otros Mitigantes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.causa }}</td>
+                            <td>
+                                {% if detalle.controles %}
+                                    {% for control in detalle.controles %}
+                                        {{ loop.index }}. {{ control.nombre_control }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay controles asociados
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if detalle.acciones %}
+                                    {% for accion in detalle.acciones %}
+                                        {{ loop.index }}. {{ accion.nombre_at }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay acciones asociadas
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if detalle.mitigantes %}
+                                    {% for mitigante in detalle.mitigantes %}
+                                        {{ loop.index }}. {{ mitigante.nombre_mitigante }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay mitigantes adicionales asociados
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="card mb-4">
-        <div class="card-header card-header-custom">
-            <h6 class="card-subtitle">Acción de Tratamiento</h6>
-        </div>
-        <div class="card-body p-2">
-            <form method="POST">
-                {{ form.hidden_tag() }}
-                
-                <div class="row mb-3">
-                    <label for="nombre_causa" class="col-sm-2 col-form-label">{{ form.nombre_causa.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.nombre_causa(class="form-control", multiple=True) }}
-                    </div>
-                </div>
-
-                <!-- <div class="row mb-3">
-                    <label for="nombre_causa" class="col-sm-2 col-form-label">{{ form.nombre_causa.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.nombre_causa(class="form-check-input") }}
-                    </div>
-                </div> -->
-
-                <div class="row mb-3">
-                    <label for="nombre_at" class="col-sm-2 col-form-label">{{ form.nombre_at.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.nombre_at(class="form-control") }}
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <label for="categoria" class="col-sm-2 col-form-label">{{ form.categoria.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.categoria(class="form-control", rows="2") }}
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="puntos_causa" class="col-sm-2 col-form-label">{{ form.puntos_causa.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.puntos_causa(class="form-control") }}
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="puntos_consecuencia" class="col-sm-2 col-form-label">{{ form.puntos_consecuencia.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.puntos_consecuencia(class="form-control") }}
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar AT</button>
-                    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Regresar</a>
-                </div>
-            </form>
-        </div>
-    </div>
+    <script>
+        document.getElementById('printPDF').addEventListener('click', function () {
+            window.print();
+        });
+    </script>
 {% endblock %}
