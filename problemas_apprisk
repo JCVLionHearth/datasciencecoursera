@@ -1,4 +1,102 @@
 
+Sí, puedes incluir el estilo en styles.css y asegurarte de que se llame desde base.html. Además, para disminuir el tamaño de la fuente en la impresión, puedes agregar reglas CSS específicas para impresión.
+
+Aquí te explico cómo hacerlo paso a paso:
+
+1. Incluir styles.css en base.html
+
+Asegúrate de que styles.css esté vinculado en el <head> de base.html:
+
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>
+
+Asegúrate de que styles.css esté en la carpeta static de tu proyecto, por ejemplo:
+
+/static/styles.css
+
+2. Agregar Estilos para Impresión en styles.css
+
+Añade estilos específicos para impresión en tu archivo styles.css usando una regla @media print. También puedes incluir estilos para disminuir el tamaño de fuente.
+
+/* styles.css */
+
+/* Estilos generales para impresión */
+@media print {
+    body {
+        font-size: 12px; /* Reducir el tamaño de la fuente */
+        margin: 0;
+        padding: 0;
+        color: #000;
+    }
+
+    .no-print {
+        display: none; /* Ocultar elementos innecesarios como botones */
+    }
+
+    .container {
+        width: 100%;
+    }
+
+    .card {
+        border: none;
+        box-shadow: none;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* Repetir encabezado de tabla en cada página */
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    h1, h2 {
+        font-size: 16px; /* Reducir tamaño de los encabezados */
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    td, th {
+        font-size: 11px; /* Reducir tamaño del texto en las celdas */
+        padding: 5px;
+    }
+}
+
+3. Explicación de los Estilos
+	1.	font-size: 12px: Reduce el tamaño de la fuente principal del cuerpo.
+	2.	.no-print: Oculta elementos que no deben aparecer en la impresión (botones, enlaces de navegación, etc.).
+	3.	table y tr: Evita que las tablas y filas se corten entre páginas.
+	4.	thead: Hace que el encabezado de la tabla se repita en cada página.
+	5.	h1, h2: Reduce el tamaño de los títulos para que se ajusten mejor a la impresión.
+	6.	td, th: Reduce el tamaño del texto dentro de las celdas de la tabla.
+
+4. Resultado Esperado
+
+Cuando hagas clic en el botón “Imprimir PDF”, el navegador imprimirá el contenido con el tamaño de fuente reducido y las tablas no se cortarán entre páginas. Los elementos innecesarios como botones se ocultarán automáticamente.
+
+¡Prueba la implementación y ajusta los tamaños de fuente según tus necesidades!
+
 Para imprimir el contenido de la página como PDF asegurando que las tablas no se corten y se mantenga una apariencia elegante, puedes utilizar JavaScript y CSS. A continuación, te muestro una solución paso a paso que implementa una funcionalidad de impresión de PDF con ajustes de estilo para que las tablas se dividan correctamente entre páginas.
 
 Solución Completa
