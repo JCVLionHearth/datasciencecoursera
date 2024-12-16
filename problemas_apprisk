@@ -1,4 +1,124 @@
 
+Para mostrar una matriz de riesgos específica en ver_riesgo.html, necesitas modificar tanto el template como la ruta correspondiente para filtrar los datos del gráfico y asegurarte de que solo se muestre el riesgo que estás visualizando. Aquí están los pasos que debes seguir:
+
+1. Crear una nueva ruta para ver_riesgo.html
+
+En routes.py, agrega una nueva función que genere el gráfico solo para el riesgo específico:
+
+@main.route('/ver_riesgo/<int:id>')
+def ver_riesgo(id):
+    riesgo = Risk.query.get_or_404(id)
+    controles = riesgo.controles
+    acciones = riesgo.acciones_tratamiento
+    mitigantes = riesgo.mitigantes
+    criterios = riesgo.criterios
+
+    # Calcular el riesgo residual
+    puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones, mitigantes)
+    puntaje_final_causa = riesgo.probabilidad_inherente - puntaje_residual_causa
+    puntaje_final_consecuencia = riesgo.impacto_inherente - puntaje_residual_consecuencia
+
+    # Obtener los datos del riesgo específico
+    riesgo_data = {
+        'id': riesgo.id,
+        'nombre': riesgo.codigo,
+        'descripcion': riesgo.nombre,
+        'probabilidad_inherente': riesgo.probabilidad_inherente,
+        'consecuencia_inherente': riesgo.impacto_inherente,
+        'puntaje_final_causa': puntaje_final_causa,
+        'puntaje_final_consecuencia': puntaje_final_consecuencia,
+        'color': generar_paleta_unica(1)[0]  # Generar un color único para este riesgo
+    }
+
+    riesgo_matriz, probabilidades, impactos, colores = generar_matriz_riesgo()
+
+    heatmap_data = {
+        'type': 'heatmap',
+        'z': riesgo_matriz,
+        'x': list(range(1, 6)),
+        'y': list(range(1, 6)),
+        'colorscale': colores,
+        'showscale': True
+    }
+
+    scatter_data = {
+        'type': 'scatter',
+        'mode': 'markers',
+        'x': [riesgo_data['probabilidad_inherente'], riesgo_data['puntaje_final_causa']],
+        'y': [riesgo_data['consecuencia_inherente'], riesgo_data['puntaje_final_consecuencia']],
+        'text': [riesgo_data['nombre']],
+        'marker': {'size': 12, 'color': riesgo_data['color']},
+        'name': riesgo_data['nombre']
+    }
+
+    graph_data = {
+        'data': [heatmap_data, scatter_data],
+        'layout': {
+            'xaxis': {'title': 'Probabilidad', 'tickvals': list(range(1, 6)), 'ticktext': probabilidades},
+            'yaxis': {'title': 'Impacto', 'tickvals': list(range(1, 6)), 'ticktext': impactos},
+            'margin': {'t': 50, 'b': 50}
+        }
+    }
+
+    return render_template('ver_riesgo.html', riesgo=riesgo, graph_json=json.dumps(graph_data), obtener_riesgo_y_color=obtener_riesgo_y_color)
+
+2. Modificar ver_riesgo.html para incluir el gráfico
+
+En tu ver_riesgo.html, añade el contenedor del gráfico y un script para renderizarlo:
+
+{% extends "base.html" %}
+
+{% block title %}Valoración del Riesgo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card p-4 mt-4 mb-4">
+        <h1>Ficha del Riesgo:</h1>
+        <h2>{{ riesgo.nombre }}</h2>
+        <p><strong>Escenario:</strong> {{ riesgo.escenario }}</p>
+
+        <!-- Resumen del Riesgo Inherente y Residual -->
+        {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.impacto_inherente) %}
+        {% set riesgo_residual, color2 = obtener_riesgo_y_color(puntaje_final_causa, puntaje_final_consecuencia) %}
+
+        <div class="d-flex justify-content-between">
+            <div class="text-center">
+                <p><strong>Riesgo Inherente:</strong></p>
+                <span class="badge badge-lg color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</span>
+            </div>
+            <div class="text-center">
+                <p><strong>Riesgo Residual:</strong></p>
+                <span class="badge badge-lg color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor del gráfico -->
+    <div class="card mb-4">
+        <div class="card-header card-header-custom">
+            <h6 class="card-subtitle">Matriz de Valoración del Riesgo Específico</h6>
+        </div>
+        <div class="card-body p-2">
+            <div id="grafico"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para renderizar el gráfico -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var graphData = {{ graph_json | safe }};
+    Plotly.newPlot('grafico', graphData.data, graphData.layout);
+</script>
+{% endblock %}
+
+Explicación
+	1.	Ruta ver_riesgo: Filtra solo el riesgo específico según el id y genera los datos para el gráfico (scatter_data y heatmap_data).
+	2.	graph_json: Contiene los datos y layout del gráfico en formato JSON.
+	3.	Gráfico en ver_riesgo.html: Se añade un contenedor <div id="grafico"> donde se renderiza el gráfico usando Plotly.
+
+Con esto, cuando accedas a /ver_riesgo/<id>, se mostrará la matriz de riesgos con solo el riesgo específico.
+
 en esta sección del dashboard.html tengo el siguiente gráfico, es una matriz de riesgos que muestra todos los riesgos valorados, quiero incluirla en ver_riesgo.html pero en esta hoja solo se visualiza el resumen de un riesgo, por lo que quisiera que el grafico solo mostrara el riesgo especifico del que se esta resumiendo, como loo haría
 
 seccion del grafico en dashboard.html
