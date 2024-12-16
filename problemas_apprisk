@@ -116,3 +116,130 @@ ver_grafico.html
         });
     </script>
 {% endblock %}
+
+y esta es la ruta en routes.py que permite hacer el grafico
+
+@main.route('/dashboard')
+def dashboard():
+    riesgos = Risk.query.all()
+    riesgos_data = []
+    colores_unicos = generar_paleta_unica(len(riesgos))
+
+    for i, riesgo in enumerate(riesgos):
+        color_riesgo = colores_unicos[i]
+        controles = riesgo.controles
+        acciones = riesgo.acciones_tratamiento
+        mitigantes = riesgo.mitigantes
+        criterios = riesgo.criterios
+
+        # Calcular el riesgo residual considerando la posible ausencia de controles, acciones o mitigantes
+        puntaje_residual_causa, puntaje_residual_consecuencia = calcular_riesgo_residual(riesgo, controles, acciones, mitigantes)
+
+        probabilidad_inherente = riesgo.probabilidad_inherente
+        consecuencia_inherente = riesgo.impacto_inherente
+        puntaje_final_causa = probabilidad_inherente - puntaje_residual_causa
+        puntaje_final_consecuencia = consecuencia_inherente - puntaje_residual_consecuencia
+
+        # Contar causas únicas
+        causas_controles = {control.nombre_causa for control in controles}
+        causas_acciones = {accion.nombre_causa for accion in acciones}
+        causas_mitigantes = {mitigante.nombre_causa for mitigante in mitigantes}
+        causas_unicas = causas_controles.union(causas_acciones).union(causas_mitigantes)
+        num_causas_valoradas = len(causas_unicas)
+
+        probabilidad_residual_experto = criterios[0].probabilidad_residual if criterios else 0
+        impacto_residual_experto = criterios[0].impacto_residual if criterios else 0
+
+        riesgos_data.append({
+            'id': riesgo.id,
+            'nombre': riesgo.codigo,
+            'descripcion': riesgo.nombre,
+            'escenario': riesgo.escenario,
+            'probabilidad_inherente': probabilidad_inherente,
+            'consecuencia_inherente': consecuencia_inherente,
+            'reduccion_residual_causa': puntaje_residual_causa,
+            'reduccion_residual_consecuencia': puntaje_residual_consecuencia,
+            'puntaje_final_causa': puntaje_final_causa,
+            'puntaje_final_consecuencia': puntaje_final_consecuencia,
+            'color': color_riesgo,
+            'num_causas_valoradas': num_causas_valoradas,  # Nuevo campo
+            'num_controles': len(controles),
+            'num_acciones': len(acciones),
+            'num_mitigantes': len(mitigantes),
+            'fecha_creacion': riesgo.fecha_creacion,
+            'Creado por': riesgo.creador_id,
+            'fecha_modificacion': riesgo.fecha_modificacion,
+            'Modificado por': riesgo.modificador_id,
+            'probabilidad_residual_experto': probabilidad_residual_experto,
+            'impacto_residual_experto': impacto_residual_experto
+        })
+
+    riesgo_matriz, probabilidades, impactos, colores = generar_matriz_riesgo()
+
+    heatmap_data = {
+        'type': 'heatmap',
+        'z': riesgo_matriz,
+        'x': list(range(1, 6)),
+        'y': list(range(1, 6)),
+        'colorscale': colores,
+        'showscale': True,
+        'colorbar': {
+            'orientation': 'v',
+            'x': -0.15,
+            'y': 0.5,
+            'xanchor': 'right',
+            'yanchor': 'middle'
+        }
+    }
+
+    scatter_data = []
+    annotations = []
+
+    # Para evitar la superposición de puntos con calificaciones similares
+    offset_factor = 0.05
+
+    for i, riesgo in enumerate(riesgos_data):
+        x_offset = (i % 5) * offset_factor
+        y_offset = ((i // 5) % 5) * offset_factor
+
+        scatter_data.append({
+            'type': 'scatter',
+            'mode': 'markers+lines',
+            'x': [riesgo['probabilidad_inherente'] + x_offset, riesgo['puntaje_final_causa'] + x_offset],
+            'y': [riesgo['consecuencia_inherente'] + y_offset, riesgo['puntaje_final_consecuencia'] + y_offset],
+            'text': [riesgo['nombre'], riesgo['nombre']],
+            'marker': {'size': 12, 'color': riesgo['color']},
+            'line': {'width': 2, 'dash': 'dot', 'color': riesgo['color']},
+            'name': riesgo['nombre']
+        })
+
+    # Añadir formas y anotaciones para la leyenda de colores
+    shapes = [
+        {'type': 'rect', 'xref': 'paper', 'yref': 'paper', 'x0': 0.1, 'y0': -0.3, 'x1': 0.15, 'y1': -0.25, 'fillcolor': '#006600', 'line': {'width': 0}},
+        {'type': 'rect', 'xref': 'paper', 'yref': 'paper', 'x0': 0.2, 'y0': -0.3, 'x1': 0.25, 'y1': -0.25, 'fillcolor': '#FFFF99', 'line': {'width': 0}},
+        {'type': 'rect', 'xref': 'paper', 'yref': 'paper', 'x0': 0.3, 'y0': -0.3, 'x1': 0.35, 'y1': -0.25, 'fillcolor': '#FFFF00', 'line': {'width': 0}},
+        {'type': 'rect', 'xref': 'paper', 'yref': 'paper', 'x0': 0.4, 'y0': -0.3, 'x1': 0.45, 'y1': -0.25, 'fillcolor': '#FF9900', 'line': {'width': 0}},
+        {'type': 'rect', 'xref': 'paper', 'yref': 'paper', 'x0': 0.5, 'y0': -0.3, 'x1': 0.55, 'y1': -0.25, 'fillcolor': '#FF0000', 'line': {'width': 0}}
+    ]
+
+    color_annotations = [
+        {'x': 0.125, 'y': -0.35, 'xref': 'paper', 'yref': 'paper', 'text': 'Muy Bajo', 'showarrow': False, 'font': {'color': 'black'}},
+        {'x': 0.225, 'y': -0.35, 'xref': 'paper', 'yref': 'paper', 'text': 'Bajo', 'showarrow': False, 'font': {'color': 'black'}},
+        {'x': 0.325, 'y': -0.35, 'xref': 'paper', 'yref': 'paper', 'text': 'Medio', 'showarrow': False, 'font': {'color': 'black'}},
+        {'x': 0.425, 'y': -0.35, 'xref': 'paper', 'yref': 'paper', 'text': 'Alto', 'showarrow': False, 'font': {'color': 'black'}},
+        {'x': 0.525, 'y': -0.35, 'xref': 'paper', 'yref': 'paper', 'text': 'Muy Alto', 'showarrow': False, 'font': {'color': 'black'}}
+    ]
+
+    graph_data = {
+        'data': [heatmap_data] + scatter_data,
+        'layout': {
+            'xaxis': {'title': 'Probabilidad', 'tickvals': list(range(1, 6)), 'ticktext': probabilidades},
+            'yaxis': {'title': 'Impacto', 'tickvals': list(range(1, 6)), 'ticktext': impactos},
+            'annotations': annotations + color_annotations,
+            'shapes': shapes,
+            'legend': {'orientation': 'v', 'x': 1.1, 'y': 0.5, 'xanchor': 'left', 'yanchor': 'middle'},
+            'margin': {'t': 50, 'b': 150}  # Ajustar el margen inferior para la leyenda
+        }
+    }
+
+    return render_template('dashboard.html', riesgos_data=riesgos_data, graph_json=json.dumps(graph_data),obtener_riesgo_y_color=obtener_riesgo_y_color)
