@@ -1,640 +1,99 @@
-Este problema se debe a que el SelectField de la categoría en el formulario no está preseleccionando la opción correcta al momento de cargar el formulario para editar. Esto ocurre porque el SelectField espera que el valor coincida exactamente con una de las opciones disponibles, pero la coincidencia no está funcionando porque las opciones usan identificadores únicos (index), mientras que el valor almacenado en la base de datos es el puntaje.
-
-Para corregir esto, necesitamos asegurarnos de que el SelectField de categoría esté configurado con la opción correcta en función del puntaje guardado en la base de datos.
-
-Solución
-
-1. Ajustar el __init__ del Formulario en forms.py
-
-Modifica el __init__ de AccionTratamientoForm para buscar el identificador (index) correspondiente al puntaje almacenado en la base de datos y establecerlo como el valor preseleccionado.
-
-def __init__(self, *args, **kwargs):
-    super(AccionTratamientoForm, self).__init__(*args, **kwargs)
-    acciones = cargar_acciones()
-    self.categoria.choices = [(accion[0], f"{accion[1]} (Puntaje: {accion[2]})") for accion in acciones]
-
-    # Si ya hay un puntaje en el formulario (por ejemplo, al editar), selecciona el identificador correcto
-    if 'obj' in kwargs and kwargs['obj']:
-        puntaje_actual = kwargs['obj'].categoria
-        for accion in acciones:
-            if accion[2] == puntaje_actual:
-                self.categoria.data = accion[0]
-                break
-
-Explicación del Cambio
-	1.	acciones = cargar_acciones(): Carga las acciones disponibles con sus identificadores únicos, descripciones y puntajes.
-	2.	Asignación de choices: Establece las opciones con el identificador (accion[0]) como valor y una etiqueta descriptiva (f"{accion[1]} (Puntaje: {accion[2]})").
-	3.	Preselección de categoria.data:
-	•	Busca en las acciones una que tenga el mismo puntaje (accion[2]) que el almacenado en la base de datos (kwargs['obj'].categoria).
-	•	Si encuentra una coincidencia, asigna el identificador (accion[0]) a self.categoria.data para que esa opción quede preseleccionada al cargar el formulario.
-
-Resultado Esperado
-
-Cuando edites una acción de tratamiento:
-	•	El formulario cargará todas las opciones de categoría correctamente.
-	•	La opción correspondiente al puntaje guardado en la base de datos estará seleccionada por defecto.
-	•	Ya no se mostrará siempre la primera opción por defecto; en su lugar, se mostrará la categoría correcta asociada a la acción.
-
-Esto debería resolver el problema de visualización en el formulario de edición.
-
-Entiendo el problema: si tienes varias categorías con el mismo puntaje (Puntaje_AT), cuando seleccionas una en el formulario, Flask-WTF puede no mostrar la opción correcta porque el valor del SelectField (coerce=int) es ambiguo al tener duplicados.
-
-Para solucionar este conflicto, es mejor utilizar identificadores únicos para las opciones del SelectField mientras sigues guardando el puntaje correcto en la base de datos. Aquí te muestro cómo hacerlo paso a paso.
-
-Solución Propuesta
-
-1. Modificar cargar_acciones() en utils.py
-
-Incluye el índice o una clave única en la estructura para identificar cada acción de manera inequívoca:
-
-def cargar_acciones():
-    df = pd.read_excel('uploads/Acciones.xlsx')
-    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
-
-Ahora devuelves una lista de tuplas con:
-	•	index: un identificador único.
-	•	row['AT']: la descripción de la categoría.
-	•	row['Puntaje_AT']: el puntaje asociado.
-
-2. Ajustar las Opciones en el Formulario
-
-En el formulario, asigna el index como el valor del SelectField para que cada opción sea única:
-
-self.categoria.choices = [(accion[0], f"{accion[1]} (Puntaje: {accion[2]})") for accion in cargar_acciones()]
-
-Aquí:
-	•	accion[0]: el index único.
-	•	accion[1]: la descripción de la categoría.
-	•	accion[2]: el puntaje, mostrado junto a la descripción para claridad.
-
-3. Actualizar la Lógica en las Rutas
-
-En las rutas, obtén los datos correctos usando el index único al guardar o editar una acción.
-
-En agregar_accion y editar_accion
-
-accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-
-if accion_data:
-    nueva_accion = AccionTratamiento(
-        nombre_causa=form.nombre_causa.data,
-        at=accion_data[1],  # Descripción de la categoría
-        categoria=accion_data[2],  # Puntaje de la categoría
-        puntos_causa=form.puntos_causa.data,
-        puntos_consecuencia=form.puntos_consecuencia.data,
-        riesgo_id=id,
-        creador_id=session['user_id']
-    )
-
-Nota Importante
-
-Asegúrate de que el campo categoria en el formulario acepte un valor int para el identificador único. Actualiza el SelectField en AccionTratamientoForm:
-
-categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
-
-Resultado Esperado
-	1.	Visualización: En el formulario, cada opción de la categoría se verá algo como:
-	•	Acción 1 (Puntaje: 50)
-	•	Acción 2 (Puntaje: 50)
-	•	Acción 3 (Puntaje: 100)
-	2.	Selección Correcta: Al seleccionar una opción, el identificador único (index) se guarda en el formulario.
-	3.	Almacenamiento: Se guarda el puntaje correcto en la base de datos, y al editar, se muestra la categoría seleccionada previamente sin confusión.
-
-Este enfoque evita la ambigüedad causada por puntajes duplicados y garantiza que la selección sea precisa tanto al guardar como al mostrar los datos.
-
-El problema que describes parece estar relacionado con la forma en que estás manejando las opciones de la categoría y el puntaje asociado en cargar_acciones(). Veamos cómo solucionarlo paso a paso.
-
-Diagnóstico del Problema
-
-En tu función cargar_acciones() dentro de utils.py tienes lo siguiente:
-
-def cargar_acciones():
-    df = pd.read_excel('uploads/Acciones.xlsx')
-    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
-
-Aquí estás devolviendo una lista de tuplas donde el primer elemento es index (la posición de la fila), el segundo es row['AT'] (la descripción), y el tercero es row['Puntaje_AT'] (el puntaje).
-
-En tu formulario en forms.py:
-
-self.categoria.choices = [(accion[0], accion[1]) for accion in cargar_acciones()]
-
-Aquí las opciones se están asignando como una lista de tuplas donde el primer valor es accion[0] (el índice) y el segundo es accion[1] (la descripción). Al guardar, esto significa que form.categoria.data está devolviendo el índice de la fila y no el Puntaje_AT.
-
-Solución Propuesta
-
-Lo que necesitas es asegurarte de que el formulario pueda capturar el puntaje correcto (Puntaje_AT) al seleccionar una categoría. Vamos a ajustar la función cargar_acciones() y la asignación de las opciones en el formulario.
-
-1. Modificar cargar_acciones()
-
-Cambia la función para devolver una estructura más adecuada que incluya el puntaje como clave:
-
-def cargar_acciones():
-    df = pd.read_excel('uploads/Acciones.xlsx')
-    return [(row['AT'], row['Puntaje_AT']) for _, row in df.iterrows()]
-
-Ahora, cargar_acciones() devuelve una lista de tuplas donde el primer elemento es row['AT'] (la descripción) y el segundo es row['Puntaje_AT'] (el puntaje).
-
-2. Ajustar el Formulario en forms.py
-
-Modifica la asignación de las opciones en el __init__ del formulario para usar el puntaje como valor:
-
-self.categoria.choices = [(accion[1], accion[0]) for accion in cargar_acciones()]
-
-Ahora, self.categoria.choices asigna una lista de tuplas donde el primer valor es accion[1] (el puntaje) y el segundo es accion[0] (la descripción).
-
-3. Ajustar la Lógica en las Rutas
-
-En routes.py, actualiza la parte donde se obtiene accion_data para reflejar este cambio:
-
-En agregar_accion y editar_accion
-
-accion_data = next((accion for accion in cargar_acciones() if accion[1] == form.categoria.data), None)
-
-if accion_data:
-    nueva_accion = AccionTratamiento(
-        nombre_causa=form.nombre_causa.data,
-        at=accion_data[0],  # Descripción de la acción
-        categoria=form.categoria.data,  # Puntaje seleccionado
-        puntos_causa=form.puntos_causa.data,
-        puntos_consecuencia=form.puntos_consecuencia.data,
-        riesgo_id=id,
-        creador_id=session['user_id']
-    )
-
-De este modo, form.categoria.data contendrá el puntaje correcto y se guardará en el campo categoria.
-
-Explicación de los Cambios
-	1.	cargar_acciones():
-	•	Ahora devuelve una lista de tuplas (Descripción, Puntaje_AT) en lugar de (Index, Descripción, Puntaje_AT).
-	2.	Formulario:
-	•	Se asignan las opciones con el puntaje como valor, garantizando que form.categoria.data devolverá el puntaje correcto.
-	3.	Rutas:
-	•	Se selecciona el accion_data basándose en el puntaje (form.categoria.data), y se guarda el puntaje en la base de datos.
-
-Resultado Esperado
-
-Con estos cambios, cuando selecciones una categoría en el formulario, se guardará el Puntaje_AT correcto en el campo categoria de la base de datos.
-
-Claro, puedo ayudarte a mejorar el código de las rutas en routes.py optimizando la lógica, reduciendo duplicación y añadiendo manejo de errores y mensajes de depuración. A continuación te muestro una versión mejorada:
-
-Código Mejorado para routes.py
-
-from flask import render_template, redirect, url_for, flash, session
-from . import main
-from .models import AccionTratamiento, Risk
-from .forms import AccionTratamientoForm
-from .utils import cargar_acciones, archivos_cargados
-from app import db
-
-# Helper para verificar sesión de usuario
-def verificar_sesion():
-    if 'user_id' not in session:
-        flash('Debes iniciar sesión para acceder a esta funcionalidad.', 'error')
-        return redirect(url_for('main.login'))
-    return None
-
-# Ruta para agregar una acción
-@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
-def agregar_accion(id):
-    if (redireccion := verificar_sesion()):
-        return redireccion
-
-    riesgo = Risk.query.get_or_404(id)
-
-    if not archivos_cargados():
-        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
-        return redirect(url_for('main.parametros'))
-
-    form = AccionTratamientoForm()
-
-    if form.validate_on_submit():
-        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-
-        if accion_data:
-            nueva_accion = AccionTratamiento(
-                nombre_causa=form.nombre_causa.data,
-                at=accion_data[1],
-                categoria=form.categoria.data,
-                puntos_causa=form.puntos_causa.data,
-                puntos_consecuencia=form.puntos_consecuencia.data,
-                riesgo_id=id,
-                creador_id=session['user_id']
-            )
-
-            try:
-                db.session.add(nueva_accion)
-                db.session.commit()
-                flash('Acción de tratamiento añadida con éxito.', 'success')
-                return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error al guardar la acción: {str(e)}', 'error')
-
-    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
-
-
-# Ruta para editar una acción
-@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
-def editar_accion(id):
-    if (redireccion := verificar_sesion()):
-        return redireccion
-
-    accion = AccionTratamiento.query.get_or_404(id)
-    form = AccionTratamientoForm(obj=accion)
-
-    if form.validate_on_submit():
-        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-
-        if accion_data:
-            accion.nombre_causa = form.nombre_causa.data
-            accion.at = accion_data[1]
-            accion.categoria = form.categoria.data
-            accion.puntos_causa = form.puntos_causa.data
-            accion.puntos_consecuencia = form.puntos_consecuencia.data
-            accion.modificador_id = session['user_id']
-
-            try:
-                db.session.commit()
-                flash('Acción de tratamiento actualizada con éxito.', 'success')
-                return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error al actualizar la acción: {str(e)}', 'error')
-
-    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
-
-
-# Ruta para eliminar una acción
-@main.route('/accion/<int:id>/eliminar', methods=['POST'])
-def eliminar_accion(id):
-    if (redireccion := verificar_sesion()):
-        return redireccion
-
-    accion = AccionTratamiento.query.get_or_404(id)
-
-    try:
-        db.session.delete(accion)
-        db.session.commit()
-        flash('Acción de tratamiento eliminada con éxito.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al eliminar la acción: {str(e)}', 'error')
-
-    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
-
-Explicación de los cambios
-	1.	Función verificar_sesion:
-	•	Se creó una función verificar_sesion para evitar repetir el código de verificación de sesión en cada ruta.
-	•	Esta función devuelve una redirección si el usuario no está autenticado.
-	2.	Manejo de Errores con try-except:
-	•	Se agregaron bloques try-except para manejar posibles errores al interactuar con la base de datos (db.session.add, db.session.commit, db.session.delete).
-	•	Si ocurre un error, se hace un rollback y se muestra un mensaje de error al usuario.
-	3.	Condicional de Redirección con :=:
-	•	Se usa el operador de asignación en expresiones (:=) para simplificar la verificación de sesión.
-	4.	Actualización Manual de Campos en editar_accion:
-	•	En lugar de usar form.populate_obj, se actualizan los campos manualmente para evitar problemas con el formulario.
-	5.	Método POST para Eliminar:
-	•	La ruta eliminar_accion usa methods=['POST'] para asegurar que las eliminaciones no se realicen mediante solicitudes GET, lo cual es una buena práctica de seguridad.
-	6.	Mensajes de Flash:
-	•	Se añadieron mensajes de flash informativos para que el usuario sepa qué sucede en cada operación (éxito o error).
-
-Consejos Adicionales
-	•	Validación de Datos: Asegúrate de validar los datos en AccionTratamientoForm para evitar que se guarden valores incorrectos.
-	•	Logs de Depuración: Agrega print o registros con logging para depurar problemas específicos durante el desarrollo.
-	•	Seguridad: Si es una aplicación en producción, asegúrate de tener protección contra CSRF (Cross-Site Request Forgery) en los formularios.
-
-Este enfoque hace que tu código sea más limpio, mantenible y robusto frente a errores.
-
-
-Si los valores no se están actualizando correctamente al editar una acción, hay varios puntos en el código que podrían estar causando este problema. Aquí te dejo algunas sugerencias para identificar y solucionar el problema:
-
-1. Verificar editar_accion en routes.py
-
-En la función editar_accion, asegúrate de que el populate_obj y las actualizaciones se estén haciendo correctamente:
-
-@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
-def editar_accion(id):
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-        
-    accion = AccionTratamiento.query.get_or_404(id)
-    form = AccionTratamientoForm(obj=accion)
-
-    if form.validate_on_submit():
-        # Depuración para ver los datos antes de actualizar
-        print("Datos del formulario:")
-        print("Nombre causa:", form.nombre_causa.data)
-        print("Categoría:", form.categoria.data)
-        print("Puntos causa:", form.puntos_causa.data)
-        print("Puntos consecuencia:", form.puntos_consecuencia.data)
-
-        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-        
-        if accion_data:
-            form.populate_obj(accion)  # Llena el objeto 'accion' con los datos del formulario
-            accion.at = accion_data[1]
-            accion.modificador_id = session['user_id']
-            
-            db.session.commit()
-            flash('Acción de tratamiento actualizada con éxito', 'success')
-            return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
-
-    # Procesar el formulario para rellenarlo con los datos actuales de 'accion'
-    form.process(obj=accion)
-    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
-
-2. Problemas con form.process(obj=accion)
-
-Después de form.process(obj=accion), verifica que los valores en el formulario coincidan con los valores del objeto accion:
-
-print("Valores actuales de accion:")
-print("Nombre causa:", accion.nombre_causa)
-print("Categoría:", accion.categoria)
-print("Puntos causa:", accion.puntos_causa)
-print("Puntos consecuencia:", accion.puntos_consecuencia)
-
-Esto te permitirá verificar si los datos del objeto accion están siendo correctamente asignados al formulario.
-
-3. Actualizar el campo categoria
-
-En el formulario, categoria es un SelectField que toma datos de cargar_acciones(). Asegúrate de que el valor que se selecciona al editar existe en las opciones de categoria.
-
-Agrega una impresión para verificar las opciones del campo categoria:
-
-print("Opciones de categoría en el formulario:", form.categoria.choices)
-
-4. Revisar populate_obj
-
-A veces, populate_obj puede no funcionar como se espera si hay conflictos con los datos o si se manipulan manualmente los campos después de procesar el formulario. Si el populate_obj no funciona correctamente, puedes asignar los valores manualmente:
-
-accion.nombre_causa = form.nombre_causa.data
-accion.categoria = form.categoria.data
-accion.puntos_causa = form.puntos_causa.data
-accion.puntos_consecuencia = form.puntos_consecuencia.data
-accion.at = accion_data[1]
-accion.modificador_id = session['user_id']
-
-5. Actualizar en la base de datos
-
-Después de realizar la actualización y el db.session.commit(), verifica directamente en la base de datos si los cambios se aplicaron:
-
-SELECT * FROM acciones_tratamiento WHERE id = <ID de la acción>;
-
-6. Depuración en la plantilla
-
-En la plantilla agregar_accion.html, asegúrate de que los campos muestran los valores correctos al cargar el formulario:
-
-{{ form.categoria.data }}
-{{ form.puntos_causa.data }}
-{{ form.puntos_consecuencia.data }}
-
-Resumen de posibles soluciones
-	1.	Imprime los valores del formulario y del objeto accion para identificar inconsistencias.
-	2.	Verifica que categoria tenga una opción válida seleccionada en el formulario.
-	3.	Asigna los valores manualmente en lugar de usar populate_obj si es necesario.
-	4.	Confirma los cambios en la base de datos después del commit.
-
-Prueba estas sugerencias y dime si el problema persiste o si identificas alguna pista adicional.
-
-Por lo que describes y al revisar tu código, el problema parece estar relacionado con el valor del puntaje que no se está guardando correctamente en la base de datos y queda en cero. Aquí te doy algunas sugerencias y posibles soluciones para solucionar este problema.
-
-1. Verificar cargar_acciones()
-
-En la función cargar_acciones() de utils.py, asegúrate de que la columna Puntaje_AT en el archivo Excel contiene valores numéricos válidos. Si hay valores nulos o no numéricos en Puntaje_AT, podrían estar generando el problema.
-
-Ejemplo para mejorar el manejo de datos:
-
-def cargar_acciones():
-    df = pd.read_excel('uploads/Acciones.xlsx')
-    # Verificar si hay valores nulos o incorrectos
-    df['Puntaje_AT'] = pd.to_numeric(df['Puntaje_AT'], errors='coerce').fillna(0)
-    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
-
-Esto se asegura de que todos los puntajes sean numéricos y que los valores inválidos se conviertan en cero por defecto.
-
-2. Comprobar el formulario AccionTratamientoForm
-
-En el AccionTratamientoForm, estás utilizando SelectField con coerce=int para puntos_causa y puntos_consecuencia. Asegúrate de que los valores se están enviando correctamente desde el formulario HTML. Puedes agregar una impresión de depuración para verificar:
-
-if form.validate_on_submit():
-    print("Puntos causa:", form.puntos_causa.data)
-    print("Puntos consecuencia:", form.puntos_consecuencia.data)
-
-Si los valores no son los esperados, puede ser un problema en la selección en el HTML o en la forma en que se envían los datos.
-
-3. Verificar el populate_obj en editar_accion
-
-En la ruta para editar (editar_accion), estás usando form.populate_obj(accion), lo cual es correcto, pero asegúrate de que el formulario está actualizando los campos correctamente. También puedes agregar una impresión de depuración:
-
-print("Datos después de populate_obj:")
-print("Nombre causa:", accion.nombre_causa)
-print("Puntos causa:", accion.puntos_causa)
-print("Puntos consecuencia:", accion.puntos_consecuencia)
-
-4. Actualización correcta del modelo en la ruta
-
-En la ruta agregar_accion, estás obteniendo la información de accion_data para establecer at, pero asegúrate de que categoria es el puntaje correcto:
-
-if accion_data:
-    print("Accion data:", accion_data)
-    nueva_accion = AccionTratamiento(
-        nombre_causa=form.nombre_causa.data,
-        at=accion_data[1],
-        categoria=accion_data[2],  # Asegúrate de usar el puntaje correcto aquí
-        puntos_causa=form.puntos_causa.data,
-        puntos_consecuencia=form.puntos_consecuencia.data,
-        riesgo_id=id,
-        creador_id=session['user_id']
-    )
-
-5. Validar el contenido del archivo Excel
-
-Abre el archivo Acciones.xlsx y asegúrate de que la columna Puntaje_AT tiene valores enteros válidos. También verifica que no haya filas vacías o con errores.
-
-6. Debug en la base de datos
-
-Después de guardar una acción, verifica directamente en la base de datos si los valores se están almacenando correctamente. Por ejemplo, puedes ejecutar una consulta SQL directamente:
-
-SELECT * FROM acciones_tratamiento WHERE id = (último ID insertado);
-
-Resumen de pasos a seguir
-	1.	Revisa el contenido de Acciones.xlsx y asegúrate de que Puntaje_AT sea numérico.
-	2.	Agrega impresiones de depuración para ver los valores en form.validate_on_submit().
-	3.	Asegúrate de que categoria en nueva_accion recibe el puntaje correcto de accion_data[2].
-	4.	Comprueba la base de datos directamente después de insertar una acción para ver los valores guardados.
-
-Con estos pasos, deberías poder identificar por qué el puntaje está siendo guardado como cero y solucionarlo.
-
-estoy revisando la base de datos que se crea en mi aplicación, para esto estoy usando un formulario y uno de los campos deben ser el de categoría, este se visualiza en el formulario, pero el dato que se utiliza es el del puntaje para poder hacer cálculos, este ultimo no se visualiza, he notado que no esta guardando adecuadamente el puntaje, pues lo pone en cero en la base de datos, estos son segmentos de mis códigos:
-
-en utils.py
-
-def cargar_acciones():
-    df = pd.read_excel('uploads/Acciones.xlsx')
-    return [(index, row['AT'], row['Puntaje_AT']) for index, row in df.iterrows()]
-
-def calcular_reduccion_por_acciones(acciones):
-    puntos_causa_total = 0
-    puntos_consecuencia_total = 0
-    puntaje_residual_causa=0
-    puntaje_residual_consecuencia=0
-    for accion in acciones:
-        puntos_causa = (accion.puntos_causa + accion.categoria) / 2
-        puntos_consecuencia = (accion.puntos_consecuencia + accion.categoria) / 2
-        puntos_causa_total += puntos_causa
-        puntos_consecuencia_total += puntos_consecuencia
-    return (puntos_causa_total / len(acciones), puntos_consecuencia_total / len(acciones))
-
-en models.py
-
-class AccionTratamiento(db.Model):
-    __tablename__ = 'acciones_tratamiento'
-    id = db.Column(db.Integer, primary_key=True)
-    nombre_causa=db.Column(db.String(100), nullable=False)
-    at = db.Column(db.String(100), nullable=False)
-    categoria = db.Column(db.Integer, nullable=False)
-    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
-    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
-    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
-    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
-    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
-
-en forms.py
-
-class AccionTratamientoForm(FlaskForm):
-    nombre_causa = SelectField('Nombre de la Causa', choices=[])
-    categoria = SelectField('Categoría de la Acción', choices=[], coerce=int)
-    puntos_causa = SelectField('Cubrimiento de Causa', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
-    puntos_consecuencia = SelectField('Cubrimiento de Consecuencia', choices=[(0, 'Ninguna'), (50, 'Parcial'), (100, 'Completa')], coerce=int)
-    submit = SubmitField('Guardar')
-
-    def __init__(self, *args, **kwargs):
-        super(AccionTratamientoForm, self).__init__(*args, **kwargs)
-        self.categoria.choices = [(accion[0], accion[1]) for accion in cargar_acciones()]
-        self.nombre_causa.choices = [(causa, causa) for causa in cargar_causas()]
-
-en routes.py
-
-# Ruta para agregar una acción
-@main.route('/riesgo/<int:id>/agregar_accion', methods=['GET', 'POST'])
-def agregar_accion(id):
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-    riesgo = Risk.query.get_or_404(id)    
-    if not archivos_cargados():
-        flash('No hay archivos cargados. Por favor, cargue los archivos necesarios antes de continuar.', 'error')
-        return redirect(url_for('main.parametros'))
-   
-    form = AccionTratamientoForm()
-
-    if form.validate_on_submit():
-        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-        if accion_data:
-            nueva_accion = AccionTratamiento(
-                nombre_causa=form.nombre_causa.data,
-                at=accion_data[1],
-                categoria=form.categoria.data,
-                puntos_causa=form.puntos_causa.data,
-                puntos_consecuencia=form.puntos_consecuencia.data,
-                riesgo_id=id,
-                creador_id=session['user_id']  # Agregar el ID del usuario autenticado que agrega la acción
-            )
-            db.session.add(nueva_accion)
-            db.session.commit()
-            flash('Acción de tratamiento añadida con éxito', 'success')
-            return redirect(url_for('main.valoracion_riesgo', id=riesgo.id))
-
-    return render_template('agregar_accion.html', form=form, riesgo=riesgo)
-
-## Rutas para editar y eliminar
-
-@main.route('/accion/<int:id>/editar', methods=['GET', 'POST'])
-def editar_accion(id):
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-        
-    accion = AccionTratamiento.query.get_or_404(id)
-    form = AccionTratamientoForm(obj=accion)
-
-    if form.validate_on_submit():
-        accion_data = next((accion for accion in cargar_acciones() if accion[0] == form.categoria.data), None)
-        if accion_data:
-            form.populate_obj(accion)
-            accion.at = accion_data[1]
-            accion.modificador_id = session['user_id']  # Agregar el ID del usuario autenticado que modifica la accion
-            db.session.commit()
-            flash('Acción de tratamiento actualizada con éxito', 'success')
-            return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
-
-    form.process(obj=accion)
-    return render_template('agregar_accion.html', form=form, riesgo=accion.riesgo)
-
-@main.route('/accion/<int:id>/eliminar', methods=['GET', 'POST'])
-def eliminar_accion(id):
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
-        
-    accion = AccionTratamiento.query.get_or_404(id)
-    db.session.delete(accion)
-    db.session.commit()
-    flash('Acción de tratamiento eliminada con éxito', 'success')
-    return redirect(url_for('main.valoracion_riesgo', id=accion.riesgo_id))
-
-y agregar_accion.html
+deseo que el boton imprimir pdf, permita imprimir el contenido de la siguiente pagina de tal manera que la tabla no quede cortada, y que lo mas elegantemente posible: 
 
 {% extends "base.html" %}
 
-{% block title %}Añadir Acción de Tratamiento{% endblock %}
+{% block title %}Valoración del Riesgo{% endblock %}
 
 {% block content %}
-    <div class="card mb-4">
-        <div class="card-header card-header-custom">
-            <h5 class="text-center card-subtitle">Añadir Acción de Tratamiento: <br>{{ riesgo.nombre }}</h5>
-        </div>
-    </div>
+    <div class="container mt-5">
+        <div class="card p-4 mt-4 mb-4">
+            <h1>Ficha del Riesgo:</h1>
+            <h2>{{ riesgo.nombre }}</h2>
+            <p><strong>Escenario:</strong> {{ riesgo.escenario }}</p>
 
-    <div class="card mb-4">
-        <div class="card-header card-header-custom">
-            <h6 class="card-subtitle">Acción de Tratamiento</h6>
+            <!-- Resumen del Riesgo Inherente y Residual -->
+            {% set riesgo_inherente, color = obtener_riesgo_y_color(riesgo.probabilidad_inherente, riesgo.impacto_inherente) %}
+            {% set riesgo_residual, color2 = obtener_riesgo_y_color(puntaje_final_causa, puntaje_final_consecuencia) %}
+            {% set riesgo_residual_experto, color3 = obtener_riesgo_y_color(probabilidad_residual_experto, impacto_residual_experto) %}
+            <div class="d-flex justify-content-between">
+                <div class="text-center">
+                    <p><strong>Riesgo Inherente:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color }};">{{ riesgo_inherente }}</span>
+                </div>
+                <div class="text-center">
+                    <p><strong>Riesgo Residual:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color2 }};">{{ riesgo_residual }}</span>
+                </div>
+                <div class="text-center">
+                    <p><strong>Riesgo Criterio Experto:</strong></p>
+                    <span class="badge badge-lg color-cell" style="background-color: {{ color3 }};">{{ riesgo_residual_experto }}</span>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-2">
-            <form method="POST">
-                {{ form.hidden_tag() }}
-                
-                <div class="row mb-3">
-                    <label for="nombre_causa" class="col-sm-2 col-form-label">{{ form.nombre_causa.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.nombre_causa(class="form-control") }}
-                    </div>
-                </div>
 
-                <div class="row mb-3">
-                    <label for="categoria" class="col-sm-2 col-form-label">{{ form.categoria.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.categoria(class="form-control", rows="2") }}
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="puntos_causa" class="col-sm-2 col-form-label">{{ form.puntos_causa.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.puntos_causa(class="form-control") }}
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="puntos_consecuencia" class="col-sm-2 col-form-label">{{ form.puntos_consecuencia.label }}</label>
-                    <div class="col-sm-10">
-                        {{ form.puntos_consecuencia(class="form-control") }}
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar AT</button>
-                    <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Regresar</a>
-                </div>
-            </form>
+        <div class="card p-4 mb-4">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end no-print">
+                <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary">Editar Riesgo</a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-warning">
+                    <i class="fas fa-list"></i> Listado de Riesgos
+                </a>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> DashBoard
+                </a>
+                <button id="printPDF" class="btn btn-success">
+                    <i class="fas fa-file-pdf"></i> Imprimir PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header card-header-custom">
+                <h2 class="card-subtitle">Detalles del Riesgo</h2>
+            </div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Causa</th>
+                        <th>Controles</th>
+                        <th>Acciones</th>
+                        <th>Otros Mitigantes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.causa }}</td>
+                            <td>
+                                {% if detalle.controles %}
+                                    {% for control in detalle.controles %}
+                                        {{ loop.index }}. {{ control.nombre_control }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay controles asociados
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if detalle.acciones %}
+                                    {% for accion in detalle.acciones %}
+                                        {{ loop.index }}. {{ accion.nombre_at }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay acciones asociadas
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if detalle.mitigantes %}
+                                    {% for mitigante in detalle.mitigantes %}
+                                        {{ loop.index }}. {{ mitigante.nombre_mitigante }}<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No hay mitigantes adicionales asociados
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
-
