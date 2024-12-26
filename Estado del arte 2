@@ -1,3 +1,15 @@
+Resumen/Abstract
+
+Título: Evaluación del Contenido Ético en Respuestas Generadas por Modelos de Lenguaje en Español: Análisis de Sesgos Emocionales, de Género y Temáticos
+
+El uso de modelos de lenguaje ha transformado la generación de contenido automatizado, pero su implementación conlleva riesgos éticos, especialmente relacionados con sesgos emocionales, de género y temáticos. En el contexto hispanohablante, las herramientas y métricas existentes para evaluar estos sesgos son limitadas, lo que plantea desafíos significativos en la implementación de modelos culturalmente responsables. Este proyecto propone evaluar el contenido ético en las respuestas generadas por modelos de lenguaje en español mediante el desarrollo y adaptación de métricas específicas que aborden las dimensiones mencionadas.
+
+La metodología incluye la recolección de textos generados por modelos en español y la creación de un dataset anotado que permita analizar emociones, polaridad de género e imparcialidad temática. Se emplearán tanto técnicas de anotación manual como herramientas automáticas basadas en procesamiento de lenguaje natural (PLN), como NLTK, spaCy y LDA. Los resultados de esta investigación ofrecerán una caracterización detallada de los sesgos presentes y permitirán diseñar estrategias para su mitigación.
+
+Este estudio no solo busca generar un recurso lingüístico relevante para futuras investigaciones, sino también contribuir al desarrollo de modelos de lenguaje en español que sean más inclusivos, éticos y culturalmente adaptados. La investigación tiene aplicaciones en áreas como la educación, los asistentes virtuales y los sistemas de información, donde la equidad y la imparcialidad son esenciales.
+
+Palabras clave: Ética en modelos de lenguaje, sesgos de género, análisis emocional, imparcialidad temática, procesamiento de lenguaje natural, español.
+
 
 Título Propuesto:
 
