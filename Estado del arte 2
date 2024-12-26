@@ -1,41 +1,56 @@
-Resúmenes por categoría:
-Responsabilidad y Gobernanza Colaborativa
-Descripción del texto: Artículos de investigación publicados en revistas académicas. Problema de investigación: ¿Cómo puede la IA colaborar de manera responsable y autónoma para abordar desafíos del mundo real? Tipo de investigación: Pruebas preliminares y desarrollo de paradigmas de colaboración IA-IA. Conclusiones principales: La colaboración estructurada entre diferentes roles de IA puede mejorar la toma de decisiones autónoma y responsable, con aplicaciones prácticas en diversos contextos.
 
-Derechos Humanos y Sostenibilidad
-Descripción del texto: Artículos de investigación y revisiones literarias. Problema de investigación: ¿Cuáles son las implicaciones éticas y de derechos humanos del uso de IA en diferentes contextos? Tipo de investigación: Revisión de la literatura, análisis de contenido y encuestas a expertos. Conclusiones principales: La IA plantea desafíos significativos en términos de privacidad, equidad y sostenibilidad, y se necesitan marcos éticos específicos para abordar estos problemas en contextos urbanos y científicos.
+Hola considerando el artículo (BOLD: Dataset and Metrics for Measuring Biases in Open-Ended Language Generation) y otros similares que he podido revisar, considero necesario realizar una propuesta de grado para la maestris en IA y delimitarla a la "Evaluación del Contenido Ético en Respuestas de Modelos de Lenguaje en Español", sin embargo quiero que me indiques si las siguientes ideas pueden tener sentido y además si lo ves viable, para sí ajustar la propuesta
+Necesito hacer lo siguiente: 
+Mejores la propuesta con base al siguiente bosquejo (interpreta y enriquece el contenido de todo, tipo de investigacion, tipo de metodología, alcance y demas y genera un nombre apropiado para la propuesta):
 
-Desarrollo de Directrices Éticas
-Descripción del texto: Artículos de revisión y análisis de modelos de madurez de IA. Problema de investigación: ¿Cómo pueden las organizaciones desarrollar capacidades responsables de IA? Tipo de investigación: Revisión de la literatura mixta y modelado de temas. Conclusiones principales: La integración de capacidades sociotécnicas es crucial para el desarrollo de modelos de madurez de IA responsables, proporcionando una base para futuras investigaciones y aplicaciones prácticas.
+* Bosquejo:
 
-Explicabilidad y Transparencia
-Descripción del texto: Artículos de investigación y propuestas de marcos conceptuales. Problema de investigación: ¿Cómo se puede desarrollar IA explicable e inclusiva para personas con discapacidades cognitivas? Tipo de investigación: Revisión de la literatura y desarrollo de marcos conceptuales. Conclusiones principales: La IA explicable debe ser inclusiva y accesible, con un enfoque en la transparencia y la comprensión para todos los usuarios, incluyendo aquellos con discapacidades cognitivas.
+Objetivo:
+Evaluar el contenido ético de las respuestas generadas por modelos de lenguaje en español.
 
-Ética en la Construcción y la Ingeniería
-Descripción del texto: Artículos de investigación sobre el uso de chatbots de IA en la educación. Problema de investigación: ¿Cómo pueden los chatbots de IA apoyar el pensamiento crítico y la flexibilidad cognitiva en la educación? Tipo de investigación: Revisión de la literatura y desarrollo de marcos conceptuales. Conclusiones principales: Los chatbots de IA tienen el potencial de mejorar la educación al apoyar habilidades críticas y cognitivas, pero deben ser diseñados y utilizados de manera ética y responsable.
+Objetivos Específicos:
+1. Adaptar y aplicar métricas de análisis de emociones, polaridad de género e imparcialidad temática al español.
+2. Crear una base de datos de textos en español anotados con estas métricas.
+3. Analizar los resultados y proponer mejoras en los modelos de lenguaje para reducir sesgos y mejorar el contenido ético.
 
-Derechos de autor
-Descripción del texto: Artículos de investigación sobre la escritura creativa y la emancipación intelectual. Problema de investigación: ¿Cómo pueden las herramientas de IA generativa influir en la autoría y la creatividad? Tipo de investigación: Análisis cualitativo de programas de escritura creativa. Conclusiones principales: Las herramientas de IA generativa pueden fomentar la emancipación intelectual y la creatividad, desafiando las nociones tradicionales de autoría y promoviendo nuevas competencias en literacidad de IA.
+Metodología
+Posible Recolección de Datos por medio Redes sociales, noticias, foros y otros textos en español o generación de promts en español
 
-Resúmenes por categoría actualizados:
-Responsabilidad y Gobernanza Colaborativa
-Descripción del texto: Artículos de investigación publicados en revistas académicas. Problema de investigación: ¿Cómo puede la IA colaborar de manera responsable y autónoma para abordar desafíos del mundo real? Tipo de investigación: Pruebas preliminares y desarrollo de paradigmas de colaboración IA-IA. Conclusiones principales: La colaboración estructurada entre diferentes roles de IA puede mejorar la toma de decisiones autónoma y responsable, con aplicaciones prácticas en diversos contextos.
+Etiquetado de Datos
+Anotación manual y automática de textos con etiquetas de emociones, género y temas usando modelos preentrenados y herramientas de procesamiento de lenguaje natural (NLP) adaptadas al español.
 
-Derechos Humanos y Sostenibilidad
-Descripción del texto: Artículos de investigación y revisiones literarias. Problema de investigación: ¿Cuáles son las implicaciones éticas y de derechos humanos del uso de IA en diferentes contextos? Tipo de investigación: Revisión de la literatura, análisis de contenido y encuestas a expertos. Conclusiones principales: La IA plantea desafíos significativos en términos de privacidad, equidad y sostenibilidad, y se necesitan marcos éticos específicos para abordar estos problemas en contextos urbanos y científicos.
+Posibles Metricas
 
-Desarrollo de Directrices Éticas
-Descripción del texto: Artículos de revisión y análisis de modelos de madurez de IA. Problema de investigación: ¿Cómo pueden las organizaciones desarrollar capacidades responsables de IA? Tipo de investigación: Revisión de la literatura mixta y modelado de temas. Conclusiones principales: La integración de capacidades sociotécnicas es crucial para el desarrollo de modelos de madurez de IA responsables, proporcionando una base para futuras investigaciones y aplicaciones prácticas.
+Análisis de Emociones (*profe esto ya lo hecho usando R, de forma académica)
 
-Explicabilidad y Transparencia
-Descripción del texto: Artículos de investigación y propuestas de marcos conceptuales. Problema de investigación: ¿Cómo se puede desarrollar IA explicable e inclusiva para personas con discapacidades cognitivas? Tipo de investigación: Revisión de la literatura y desarrollo de marcos conceptuales. Conclusiones principales: La IA explicable debe ser inclusiva y accesible, con un enfoque en la transparencia y la comprensión para todos los usuarios, incluyendo aquellos con discapacidades cognitivas.
+1. Analizas las emociones expresadas en el texto generado.
+2. Clasificar las palabras del texto en diferentes categorías emocionales (alegría, tristeza, miedo, etc.) y calcula la frecuencia de cada emoción. para esto se podría utiliza herramientas como NLTK y spaCy para el procesamiento de texto y la clasificación emocional.
 
-Ética en la Construcción y la Ingeniería
-Descripción del texto: Artículos de investigación sobre el uso de chatbots de IA en la educación y tecnologías de IA en salud. Problema de investigación: ¿Cómo pueden los chatbots de IA apoyar el pensamiento crítico y la flexibilidad cognitiva en la educación? ¿Cuáles
+Polaridad de Género
+1. Evalúar si el texto generado muestra sesgos hacia un género específico.
+2. Anotar textos con etiquetas de género (masculino, femenino) y analiza la frecuencia de términos asociados a cada género en diferentes contextos, para esto podríamos utilizar técnicas de análisis de frecuencia de términos y modelos de clasificación supervisada.
 
-Resúmenes por categoría actualizados:
-Responsabilidad y Gobernanza Colaborativa
-Descripción del texto: Artículos de investigación publicados en revistas académicas. Problema de investigación: ¿Cómo puede la IA colaborar de manera responsable y autónoma para abordar desafíos del mundo real? Tipo de investigación: Pruebas preliminares y desarrollo de paradigmas de colaboración IA-IA. Conclusiones principales: La colaboración estructurada entre diferentes roles de IA puede mejorar la toma de decisiones autónoma y responsable, con aplicaciones prácticas en diversos contextos.
+Imparcialidad Temática
+1. Evalúa si el texto generado trata temas de manera imparcial y equilibrada.
+2. Análisis de contenido temático utilizando modelos de tópicos como LDA (Latent Dirichlet Allocation) (*profe esto lo hecho en análisis de tópicos de descripciones en accidentes usando R en un indicador que desarrollé en mi trabajo).
+3. con esto se podría identificar y analizar la distribución de temas en los textos generados para detectar posibles sesgos temáticos. 
 
-Derechos Humanos y Sostenibilidad
-Descripción del texto: Artículos de investigación y revisiones literarias. Problema de investigación:
+*****
+
+por otro lado ya he adelantado el estado del arte, sobre todo en los sesgos éticos existentes con lo IA, sin embargo me hace falta agregar los resultados de las investigaciones, ayudame a crear un estado de arte que mencione las razones de escoger estos documentos, los aportes a la propuesta, preguntas resueltas por las investigaciones y resultados obtenidos, haz referencias bibliograficas a cada una de las investigaciones hechas
+
+Who's To Blame for the COVID-19 pandemic? Perceptions of responsibility during the crisis using text mining and latent Dirichlet allocation
+https://www-sciencedirect-com.hemeroteca.lasalle.edu.co/science/article/pii/S2590291124000226
+
+Sentiments prediction and thematic analysis for diabetes mobile apps using Embedded Deep Neural Networks and Latent Dirichlet Allocation
+https://www-sciencedirect-com.hemeroteca.lasalle.edu.co/science/article/pii/S0933365723000234
+
+Understanding non-motorists' views on automated vehicle safety through Bayesian network analysis and latent dirichlet allocation
+https://www-sciencedirect-com.hemeroteca.lasalle.edu.co/science/article/pii/S2046043023000515
+
+An analysis of the reproduction of gender bias in the speech of Alexa virtual assistant
+https://ceur-ws.org/Vol-3000/paper123.pdf
+
+Gender Bias in LLM-generated Interview Responses
+https://arxiv.org/html/2410.20739v3
+
