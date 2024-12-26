@@ -1,4 +1,126 @@
 
+Título Propuesto:
+
+“Evaluación del Contenido Ético en Respuestas Generadas por Modelos de Lenguaje en Español: Análisis de Sesgos Emocionales, de Género y Temáticos”
+
+Justificación y Relevancia
+
+Los modelos de lenguaje han demostrado ser herramientas poderosas en la generación de contenido, pero también presentan riesgos asociados con sesgos éticos. En el contexto hispanohablante, la evaluación de estos modelos es limitada, a pesar de su creciente uso en aplicaciones críticas como asistentes virtuales, educación y medios de comunicación. Este proyecto busca abordar esta brecha, adaptando métricas de análisis al español, creando recursos anotados, y proponiendo mejoras que contribuyan a la generación de contenido más ético y equitativo.
+
+Objetivo General
+
+Evaluar el contenido ético en las respuestas generadas por modelos de lenguaje en español, identificando sesgos emocionales, de género y temáticos.
+
+Objetivos Específicos
+	1.	Adaptar métricas de análisis de emociones, polaridad de género e imparcialidad temática al contexto lingüístico y cultural del español.
+	2.	Diseñar y construir un dataset en español con anotaciones relacionadas con estas métricas.
+	3.	Analizar los resultados del análisis para identificar patrones de sesgo y proponer estrategias de mejora en los modelos de lenguaje.
+
+Metodología
+
+Tipo de Investigación
+	•	Exploratoria-descriptiva: Para identificar y caracterizar sesgos en las respuestas generadas.
+	•	Aplicada: Enfocada en generar herramientas y recursos que puedan ser utilizados en la evaluación ética de modelos.
+
+Diseño
+	1.	Recolección de Datos
+	•	Fuentes: Redes sociales, medios digitales, foros y generación de prompts utilizando modelos preentrenados en español.
+	•	Herramientas: Web scraping, APIs de redes sociales y generación manual de prompts relevantes.
+	2.	Creación del Dataset
+	•	Anotación manual: Realizada por expertos, asegurando calidad en las etiquetas relacionadas con emociones, género y temas.
+	•	Anotación automática: Uso de herramientas como NLTK, spaCy, y modelos supervisados adaptados al español.
+	3.	Análisis de Contenido
+	•	Emociones: Identificación y cuantificación de emociones en los textos generados.
+	•	Polaridad de Género: Frecuencia y contexto de términos asociados a géneros, identificando posibles sesgos.
+	•	Imparcialidad Temática: Análisis de distribución de temas mediante modelos como LDA.
+	4.	Propuesta de Mejora
+	•	Diseñar estrategias basadas en los resultados obtenidos, como ajustes en datasets de entrenamiento o filtros en la generación de respuestas.
+
+Herramientas Técnicas
+	•	Procesamiento de texto: NLTK, spaCy.
+	•	Modelos de tópicos: LDA, BERTopic.
+	•	Análisis supervisado: Modelos de clasificación y redes neuronales adaptadas.
+	•	Visualización y análisis estadístico: R y Python.
+
+Estado del Arte
+
+Análisis de las Investigaciones
+	1.	“Who’s To Blame for the COVID-19 pandemic? Perceptions of responsibility during the crisis using text mining and latent Dirichlet allocation”
+	•	Razón de selección: Uso de LDA para identificar temáticas y emociones asociadas a narrativas complejas.
+	•	Aporte: Metodología robusta para aplicar LDA en temas sensibles, relevante para la imparcialidad temática.
+	•	Pregunta resuelta: ¿Qué temáticas dominan las narrativas de responsabilidad durante una crisis global?
+	•	Resultados: Identificación de temas polarizados y emociones vinculadas, útil para aplicar en análisis ético.
+	2.	“Sentiments prediction and thematic analysis for diabetes mobile apps using Embedded Deep Neural Networks and Latent Dirichlet Allocation”
+	•	Razón de selección: Integración de análisis temático y emocional en sistemas de IA.
+	•	Aporte: Ejemplo práctico de cómo evaluar sentimientos y temáticas en aplicaciones específicas.
+	•	Pregunta resuelta: ¿Cómo las aplicaciones de salud movilizan emociones y temas?
+	•	Resultados: Reducción de polaridades emocionales en contenido, aplicable en métricas para evaluar emociones en español.
+	3.	“Understanding non-motorists’ views on automated vehicle safety through Bayesian network analysis and latent dirichlet allocation”
+	•	Razón de selección: Uso de LDA para comprender percepciones sobre tecnología automatizada.
+	•	Aporte: Relación entre el análisis de tópicos y percepciones humanas, alineado con el objetivo de evaluar contenido ético.
+	•	Pregunta resuelta: ¿Qué influye en las percepciones de seguridad de vehículos automatizados?
+	•	Resultados: Identificación de sesgos en percepciones, útil para evaluar imparcialidad temática.
+	4.	“An analysis of the reproduction of gender bias in the speech of Alexa virtual assistant”
+	•	Razón de selección: Relevancia en análisis de sesgos de género en modelos de lenguaje.
+	•	Aporte: Herramientas para medir polaridad de género, aplicables al contexto en español.
+	•	Pregunta resuelta: ¿Cómo los asistentes virtuales reproducen sesgos de género?
+	•	Resultados: Detección de sesgos en respuestas asociadas a roles estereotípicos.
+	5.	“Gender Bias in LLM-generated Interview Responses”
+	•	Razón de selección: Enfoque en modelos generativos avanzados y su impacto ético.
+	•	Aporte: Análisis de preguntas y respuestas para identificar polaridad de género.
+	•	Pregunta resuelta: ¿Cómo se manifiestan los sesgos de género en respuestas generadas?
+	•	Resultados: Sesgos identificados en formulaciones y respuestas, útil para diseñar métricas de género.
+
+Alcances
+	•	Creación de un recurso de datos en español con enfoque ético, disponible para futuras investigaciones.
+	•	Evaluación práctica de modelos existentes y propuesta de estrategias de mejora en el diseño y entrenamiento de modelos en español.
+
+Limitaciones
+	•	Complejidad en la anotación manual de datos.
+	•	Limitada disponibilidad de recursos preentrenados adaptados al español.
+
+¿Te gustaría profundizar en algún aspecto o revisar una sección en mayor detalle?
+
+Estado del Arte: Una Visión Narrativa
+
+La ética en los modelos de lenguaje se ha convertido en un tema crucial en el desarrollo de tecnologías basadas en inteligencia artificial (IA). En este contexto, varias investigaciones recientes han explorado la forma en que los modelos manejan emociones, sesgos de género y temas sensibles. A continuación, se presentan los principales aportes de estos estudios, explicando su relevancia para esta propuesta y destacando los resultados obtenidos.
+
+1. Percepciones de Responsabilidad durante la Crisis del COVID-19
+
+El estudio titulado “Who’s To Blame for the COVID-19 pandemic? Perceptions of responsibility during the crisis using text mining and latent Dirichlet allocation” utiliza LDA (Latent Dirichlet Allocation) para analizar cómo se asigna la culpa durante eventos globales críticos. Este trabajo muestra cómo las narrativas pueden polarizarse dependiendo del enfoque temático y las emociones subyacentes.
+	•	Relevancia para la propuesta: La metodología de LDA aplicada aquí ofrece un marco útil para evaluar la imparcialidad temática en textos generados por modelos de lenguaje en español. Además, resalta cómo los textos pueden transmitir emociones específicas que refuerzan sesgos.
+	•	Resultados clave: Se identificaron patrones temáticos que vinculaban emociones negativas como el miedo o la ira con ciertos actores sociales, destacando la importancia de un análisis detallado de emociones y temáticas en la evaluación ética de textos.
+
+2. Análisis de Sentimientos y Temáticas en Aplicaciones para Diabetes
+
+En “Sentiments prediction and thematic analysis for diabetes mobile apps using Embedded Deep Neural Networks and Latent Dirichlet Allocation”, los autores combinaron análisis emocional y temático para evaluar cómo las aplicaciones móviles abordan temas de salud. Este enfoque demuestra cómo herramientas avanzadas como redes neuronales y LDA pueden integrarse para capturar polaridades emocionales y temáticas.
+	•	Relevancia para la propuesta: Este estudio es un ejemplo de cómo combinar métricas emocionales y temáticas puede ofrecer una visión integral del contenido generado por sistemas de IA, aplicable en el contexto de evaluación de modelos en español.
+	•	Resultados clave: Se detectaron sesgos emocionales que podían influir en las percepciones de los usuarios, lo que subraya la necesidad de evaluar cuidadosamente las respuestas generadas para garantizar contenido ético y equilibrado.
+
+3. Percepciones de Seguridad en Vehículos Automatizados
+
+El trabajo “Understanding non-motorists’ views on automated vehicle safety through Bayesian network analysis and latent dirichlet allocation” explora las percepciones públicas sobre la seguridad de vehículos automatizados, utilizando nuevamente LDA para identificar temas dominantes.
+	•	Relevancia para la propuesta: Este estudio destaca la capacidad de LDA para descubrir cómo los temas y las emociones se entrelazan en narrativas generadas, lo que es directamente aplicable a la evaluación de sesgos temáticos en textos de modelos de lenguaje.
+	•	Resultados clave: Se evidenció que ciertas narrativas estaban marcadas por sesgos, influenciando la confianza de los usuarios en la tecnología automatizada. Esto resalta la importancia de garantizar una representación temática justa y equilibrada.
+
+4. Sesgos de Género en Asistentes Virtuales
+
+El análisis presentado en “An analysis of the reproduction of gender bias in the speech of Alexa virtual assistant” expone cómo los asistentes virtuales como Alexa reproducen sesgos de género. Este estudio se centra en identificar patrones de polaridad de género en las respuestas generadas, vinculándolos con roles estereotípicos.
+	•	Relevancia para la propuesta: Este trabajo ofrece una base metodológica sólida para evaluar sesgos de género en modelos en español, adaptando métricas específicas al contexto cultural y lingüístico.
+	•	Resultados clave: Se identificaron respuestas que reforzaban estereotipos de género, destacando la necesidad de intervenir en los procesos de entrenamiento de modelos para minimizar estos sesgos.
+
+5. Sesgos de Género en Respuestas Generadas por Modelos de Lenguaje
+
+Finalmente, “Gender Bias in LLM-generated Interview Responses” aborda los sesgos de género en entrevistas simuladas generadas por modelos de lenguaje a gran escala. Este estudio analiza cómo los modelos pueden manifestar sesgos tanto en las preguntas como en las respuestas generadas.
+	•	Relevancia para la propuesta: Este enfoque es particularmente útil para identificar cómo los modelos de lenguaje reflejan sesgos de género en textos más complejos, lo que puede ser adaptado para evaluar polaridad de género en español.
+	•	Resultados clave: Los modelos tendían a generar respuestas más favorables o extensas dependiendo del género implícito en el contexto, subrayando la importancia de diseñar métricas específicas para detectar estos patrones.
+
+Síntesis Narrativa
+
+En conjunto, estas investigaciones revelan la necesidad de un análisis exhaustivo y ético del contenido generado por modelos de lenguaje. Aunque estas metodologías han sido aplicadas principalmente en inglés, el reto de adaptarlas al español es particularmente relevante debido a las características lingüísticas y culturales únicas de este idioma. Además, los resultados de estos estudios refuerzan la importancia de combinar análisis de emociones, género y temáticas para garantizar un enfoque integral en la evaluación ética de los modelos de lenguaje.
+
+¿Te gustaría que ampliemos algún aspecto o que incorporemos algún análisis adicional?
+
 Hola considerando el artículo (BOLD: Dataset and Metrics for Measuring Biases in Open-Ended Language Generation) y otros similares que he podido revisar, considero necesario realizar una propuesta de grado para la maestris en IA y delimitarla a la "Evaluación del Contenido Ético en Respuestas de Modelos de Lenguaje en Español", sin embargo quiero que me indiques si las siguientes ideas pueden tener sentido y además si lo ves viable, para sí ajustar la propuesta
 Necesito hacer lo siguiente: 
 Mejores la propuesta con base al siguiente bosquejo (interpreta y enriquece el contenido de todo, tipo de investigacion, tipo de metodología, alcance y demas y genera un nombre apropiado para la propuesta):
