@@ -1,0 +1,121 @@
+estoy escribiendo el siguiente marco conceptual, para la propuesta del proyecto de investigacion que estoy haciendo, pero quiero agregar lo necesario, de manera narrativa, discursiva y clara y ademas que tenga las referencias necesarias para dar mayor argumentacion. necsito que me ayudes y generes recomendaciones de los demas partes de la investigacion
+\section{Marco Conceptual}
+
+Para este marco conceptual, se definen los siguiente conceptos:
+
+\begin{itemize}
+    \item \textbf{Ética en la Inteligencia Artificial (IA)}: La ética en la IA se refiere a los principios y normas que guían el desarrollo, uso y aplicación de la IA de manera responsable y ética. Esto implica considerar cómo se diseñan los algoritmos, cómo se recopilan y utilizan los datos, y cómo se aplican los sistemas de IA en diferentes contextos.
+    \item \textbf{Sesgos en la IA}: Los sesgos en la inteligencia artificial se refieren a los errores sistemáticos que pueden afectar los datos o los análisis basados en ellos. Existen diferentes tipos de sesgos, como el sesgo estadístico y el sesgo cognitivo.
+    \item \textbf{Latent Dirichlet Allocation (LDA)}: LDA es un modelo generativo de tópicos que permite descubrir temas ocultos en un conjunto de documentos. Este modelo asume que cada documento es una mezcla de un pequeño número de temas y que cada palabra en el documento está atribuida a uno de los temas con algún grado de probabilidad. LDA es útil para analizar la distribución de temas y asegurar la imparcialidad y diversidad temática.
+    \item \textbf{Análisis de Emociones}: El análisis de emociones es una técnica de procesamiento de lenguaje natural (PLN) que identifica y clasifica las emociones expresadas en un texto. Las emociones comunes incluyen alegría, tristeza, miedo, enojo, entre otras. Esta técnica es esencial para evaluar el contenido emocional de los textos generados por modelos de lenguaje.
+    \item \textbf{NLTK (Natural Language Toolkit)}: NLTK es una biblioteca de Python ampliamente utilizada para el procesamiento de lenguaje natural. Proporciona herramientas para tareas como tokenización, lematización, etiquetado gramatical, análisis sintáctico y análisis de sentimientos. NLTK es conocida por su versatilidad y su extensa documentación, lo que la hace ideal para proyectos educativos y de investigación.
+    \item \textbf{spaCy}: spaCy es otra biblioteca de Python para el procesamiento de lenguaje natural, diseñada para ser rápida y eficiente en aplicaciones de producción. Incluye modelos preentrenados para múltiples idiomas y es compatible con otras herramientas de aprendizaje automático como TensorFlow y PyTorch.
+\end{itemize}
+
+Por otro lado, se considera que el \textbf{Marco Normativo} del presente proyecto de investigación se enmarca en el Marco Ético Para La Inteligencia Artificial en Colombia\footnote{https://minciencias.gov.co/sites/default/files/marco-etico-ia-colombia-2021.pdf}, el cual proporciona una guía de principios éticos para la implementación de IA en el país. Este documento incluye recomendaciones para asegurar que los sistemas de IA sean transparentes, responsables y justos, evitando así los posibles sesgos.
+
+para contexto, te comparto lo siguiente:
+
+\begin{minipage}{\textwidth}
+\begin{abstract}
+El uso de modelos de lenguaje ha transformado la generación de contenido automatizado, pero su implementación conlleva riesgos éticos, especialmente relacionados con sesgos emocionales, de género y temáticos. En el contexto hispanohablante, las herramientas y métricas existentes para evaluar estos sesgos son limitadas, lo que plantea desafíos significativos en la implementación de modelos culturalmente responsables. Este proyecto propone evaluar el contenido ético en las respuestas generadas por modelos de lenguaje en español mediante el desarrollo y adaptación de métricas específicas que aborden las dimensiones mencionadas.\\
+
+La metodología incluye la recolección de textos generados por modelos en español y la creación de un dataset anotado que permita analizar emociones, polaridad de género e imparcialidad temática. Se emplearán tanto técnicas de anotación manual como herramientas automáticas basadas en procesamiento de lenguaje natural (PLN), como NLTK, spaCy y LDA. Los resultados de esta investigación ofrecerán una caracterización detallada de los sesgos presentes y permitirán diseñar estrategias para su mitigación.\\
+
+Este proyecto no solo busca generar un recurso lingüístico relevante para futuras investigaciones, sino también contribuir al desarrollo de modelos de lenguaje en español que sean más inclusivos, éticos y culturalmente adaptados. La investigación tiene aplicaciones en áreas como la educación, los asistentes virtuales y los sistemas de información, donde la equidad y la imparcialidad son esenciales\\
+\end{abstract}
+
+\keywords{Ética en modelos de lenguaje, sesgos de género, análisis emocional, imparcialidad temática, procesamiento de lenguaje natural, español, Inteligencia Artificial}
+
+\end{minipage}
+
+\tableofcontents
+
+\newpage
+
+\section{Planteamiento del Problema}
+
+En la actualidad, los modelos de lenguaje han demostrado ser herramientas poderosas en la generación de contenido, pero también presentan riesgos asociados con sesgos éticos. Según \citet{karpov2024inducinghumanlikebiasesmoral}, los modelos de lenguaje pueden inducir sesgos similares a los humanos en el razonamiento moral, lo que puede tener consecuencias negativas en la percepción y el uso de la tecnología en la sociedad. En el contexto hispanohablante, la evaluación de estos modelos es limitada, a pesar de su creciente uso en aplicaciones críticas como asistentes virtuales, educación y medios de comunicación.\\
+
+El problema radica en que las herramientas y métricas existentes para evaluar estos sesgos en el contexto hispanohablante son insuficientes, lo que plantea desafíos significativos en la implementación de modelos culturalmente responsables. \citet{hernández2024haciaunaimplementacionetica} destaca la importancia de adoptar un enfoque ético e inclusivo en el desarrollo e implementación de la inteligencia artificial dentro de las organizaciones, subrayando la necesidad de un marco multidimensional que combine ética, regulación, innovación y educación.\\
+
+La relevancia de este problema es evidente en el creciente uso de modelos de lenguaje en diversas aplicaciones, donde la equidad y la imparcialidad son esenciales. Por ejemplo, en la educación, los asistentes virtuales y los medios de comunicación, los sesgos en los modelos de lenguaje pueden influir en la información que reciben los usuarios, perpetuando estereotipos y desigualdades. El estudio de \citet{chinta2024fairaiednavigatingfairnessbias} examina cómo los sesgos inherentes en los algoritmos de IA pueden perpetuar prejuicios contra demografías específicas, especialmente en aplicaciones centradas en humanos como la educación, y propone soluciones para mitigar estos sesgos.\\
+
+Este proyecto busca abordar esta brecha, adaptando métricas de análisis al español, creando recursos anotados, y proponiendo mejoras que contribuyan a la generación de contenido más ético y equitativo. La investigación tiene como objetivo desarrollar herramientas y recursos que permitan una evaluación ética más precisa y culturalmente adaptada de los modelos de lenguaje en español.
+
+\section{Justificación}
+
+Abordar el problema de los sesgos éticos en los modelos de lenguaje es crucial debido a su creciente influencia en diversas aplicaciones, como asistentes virtuales, educación y medios de comunicación. La importancia de esta investigación radica en la necesidad de garantizar que las tecnologías basadas en inteligencia artificial (IA) sean transparentes, responsables y justas, evitando la perpetuación de estereotipos y desigualdades.\\
+
+Algunos beneficios que se consideran de resolver el problema, son los siguientes:
+
+\begin{itemize}
+    \item Al identificar y mitigar los sesgos emocionales, de género y temáticos en los modelos de lenguaje, se promoverá una mayor equidad e inclusión en las interacciones con la IA. Esto es especialmente relevante en contextos educativos y de comunicación, donde la imparcialidad es esencial.
+    \item La creación de métricas adaptadas y datasets anotados en español podría proporcionar herramientas para futuras investigaciones y aplicaciones, facilitando la evaluación ética de modelos de lenguaje en el contexto hispanohablante.
+    \item Los resultados de esta investigación, también, podrían informar la creación de directrices y regulaciones que aseguren el desarrollo y uso ético de la IA.
+\end{itemize}
+
+\section{Objetivo}
+Evaluar el contenido ético en las respuestas generadas por modelos de lenguaje en español, identificando sesgos emocionales, de género y temáticos.
+
+\subsection{Objetivos específicos}
+
+\begin{itemize} 
+    \item Adaptar métricas de análisis de emociones, polaridad de género e imparcialidad temática al contexto lingüístico y cultural del español. 
+    \item Desarrollar un dataset en español con anotaciones acerca del análisis de emociones, polaridad de género e imparcialidad temática, como reconocimiento inicial de los sesgos presentes.
+    \item Analizar las emociones expresadas en los textos generados por modelos de lenguaje, clasificando las palabras en categorías emocionales (alegría, tristeza, miedo, etc.). 
+    \item Evaluar si los textos generados muestran sesgos de género, anotando los textos con etiquetas de género (masculino, femenino) y calculando la frecuencia de términos asociados a cada género en diferentes contextos. 
+    \item Proponer modificaciones en los modelos de lenguaje, relacionadas con la ética en sus contenidos de respuesta, para reducir sesgos en términos de género, emociones o interpretación del contexto.
+\end{itemize}
+
+\section{Metodología}
+
+La metodología propuesta para este proyecto, está basada en investigación exploratoria y descriptiva, ya que identificará y caracterizará sesgos en las respuestas generadas. 
+También, en investigación aplicada, ya que se enfocará en generar herramientas y recursos que puedan ser utilizados en la evaluación ética de modelos.
+
+
+\subsection{Diseño Metodológico}
+
+El diseño metodológico de este proyecto se estructura en fases clave, cada una con objetivos específicos y herramientas dedicadas a asegurar la calidad y relevancia de los datos y análisis.
+
+\begin{enumerate}
+    \item \textbf{Recolección de Datos:} En esta fase, se recopilan datos de diversas fuentes para obtener una muestra representativa y significativa en contenido.
+    \begin{itemize}
+        \item \textbf{Fuentes:} Los datos se obtienen de redes sociales, medios digitales, foros y mediante la generación de prompts utilizando modelos preentrenados en español. Estas fuentes proporcionan una variedad de perspectivas y contextos.
+        \item \textbf{Herramientas:} Se emplean técnicas de web scraping y APIs de redes sociales para la recolección automatizada de datos, complementadas con la generación manual de prompts relevantes, para asegurar la diversidad y profundidad de la información.
+    \end{itemize}
+    
+    \item \textbf{Creación del Dataset:} Una vez recolectados los datos, se procede a la creación del dataset, asegurando la calidad y precisión de las etiquetas.
+    \begin{itemize}
+        \item \textbf{Anotación manual:} Expertos en la materia realizan la anotación manual de los datos, garantizando la calidad en las etiquetas relacionadas con emociones, género y temas específicos.
+        \item \textbf{Anotación automática:} Se utilizan herramientas como NLTK y spaCy, junto con modelos supervisados adaptados al español, para la anotación automática, lo que permite procesar grandes volúmenes de datos de manera eficiente.
+    \end{itemize}
+    
+    \item \textbf{Análisis de Contenido:} Esta fase se centra en el análisis detallado del contenido para extraer información relevante y detectar patrones.
+    
+    \begin{itemize}
+        \item \textbf{Emociones:} Se identifican y cuantifican las emociones presentes en los textos generados, utilizando herramientas como NLTK, spaCy y otros modelos de análisis de emociones.
+
+        \begin{itemize}
+        \item Paso 1: Extraer el texto generado por el modelo.
+        \item Paso 2: Utilizar un modelo preentrenado de análisis de emociones para clasificar las palabras y frases en categorías emocionales (alegría, tristeza, miedo, etc.).
+        \item Paso 3: Cuantificar la frecuencia de cada categoría emocional en el texto.
+        \end{itemize}      
+        
+        \item \textbf{Polaridad de Género:} Se analiza la frecuencia y el contexto de términos asociados a género, identificando posibles sesgos mediante técnicas de procesamiento de lenguaje natural.
+
+        \begin{itemize}
+        \item Paso 1: Crear una lista de términos asociados a género (por ejemplo, "él", "ella", "hombre", "mujer").
+        \item Paso 2: Utilizar técnicas de conteo de palabras y análisis de contexto para identificar la frecuencia de estos términos en el texto.
+        \item Paso 3: Analizar el contexto en el que aparecen estos términos utilizando técnicas como el análisis de co-ocurrencia y el análisis de dependencias sintácticas.
+        \end{itemize}  
+        
+        \item \textbf{Imparcialidad Temática:} Se realiza un análisis de la distribución de temas utilizando modelos como LDA (Latent Dirichlet Allocation) para asegurar la imparcialidad y diversidad temática.
+
+        \begin{itemize}
+        \item Paso 1: Preprocesar el texto para eliminar palabras vacías y realizar lematización.
+        \item Paso 2: Aplicar el modelo LDA para identificar los temas presentes en el texto.
+        \item Paso 3: Analizar la distribución de temas para asegurar que no haya una concentración excesiva en ciertos temas, lo que podría indicar un sesgo temático.
+        \end{itemize} 
+        
+    \end{itemize}
