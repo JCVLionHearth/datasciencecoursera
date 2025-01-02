@@ -1,3 +1,50 @@
+Para enriquecer el marco conceptual y proporcionar una base sólida, puedes agregar definiciones clave que contextualicen mejor la investigación. Aquí te presento algunas sugerencias:
+
+1. Inteligencia Artificial (IA)
+
+Definición básica y específica:
+	•	Inteligencia Artificial (IA): Rama de la informática que desarrolla sistemas capaces de realizar tareas que, cuando son realizadas por humanos, requieren inteligencia. Estas tareas incluyen el aprendizaje, razonamiento, percepción y toma de decisiones (Russell y Norvig, 2010).
+	•	En el contexto de esta investigación: La IA se centra en modelos de lenguaje natural que procesan y generan texto en español, destacando la importancia de hacerlo de manera inclusiva y ética.
+
+2. Modelos de Lenguaje Natural (NLP)
+	•	Procesamiento del Lenguaje Natural (NLP): Subcampo de la IA que permite a las computadoras entender, interpretar y generar lenguaje humano en sus formas habladas y escritas.
+	•	Modelos de Lenguaje: Algoritmos que predicen palabras o secuencias de palabras basándose en patrones observados en datos de texto (Jurafsky y Martin, 2019).
+	•	Ejemplo: GPT, BERT y LDA, que son herramientas clave en el análisis y generación de textos.
+
+3. Sesgo Algorítmico
+	•	Definición: Distorsiones sistemáticas en los resultados generados por algoritmos, que surgen de datos de entrenamiento incompletos, desbalanceados o prejuiciados.
+	•	Tipos de sesgo relevantes:
+	•	Sesgo de género: Representaciones desproporcionadas o estereotípicas de roles masculinos y femeninos.
+	•	Sesgo cultural: Preferencia por narrativas o perspectivas dominantes que excluyen a grupos minoritarios.
+
+4. Ética en la Inteligencia Artificial
+	•	Definición: Rama de la filosofía aplicada que analiza y propone principios para garantizar que la IA opere de manera justa, transparente y responsable (Floridi et al., 2018).
+	•	Principios clave:
+	•	Justicia: Evitar la discriminación.
+	•	Transparencia: Permitir auditar las decisiones de los sistemas.
+	•	Responsabilidad: Asegurar que haya responsables humanos detrás de los sistemas.
+
+5. LDA (Latent Dirichlet Allocation)
+	•	Definición: Algoritmo utilizado para identificar temas latentes en un corpus de texto, clasificando palabras en tópicos en función de sus patrones de co-ocurrencia.
+	•	Relevancia: Permite analizar cómo los temas emergen en textos y detectar tendencias que podrían estar influenciadas por sesgos.
+
+6. Diversidad Lingüística y Particularidades del Español
+	•	Diversidad Lingüística: Conjunto de variaciones en el uso del lenguaje según factores culturales, geográficos y sociales.
+	•	Particularidades del Español:
+	•	Lengua altamente flexiva, con marcadas diferencias gramaticales según género y número.
+	•	Diferencias regionales significativas en vocabulario y expresiones.
+
+7. Inclusión y Representación en Modelos de IA
+	•	Inclusión: Proceso de garantizar que todos los grupos sociales, culturales y demográficos estén representados en los datos y decisiones generadas por IA.
+	•	Representación: Proporción equitativa y precisa de diferentes identidades, evitando estereotipos o exclusiones.
+
+8. Métricas de Evaluación de Sesgos
+	•	Definición: Métodos cuantitativos o cualitativos que permiten medir la presencia e impacto de sesgos en modelos de IA.
+	•	Ejemplo: Índice de equilibrio de género, distribución temática por grupo demográfico, etc.
+
+Si deseas, puedo desarrollar alguna de estas definiciones con ejemplos o aplicarlas específicamente a tu investigación. ¿Qué opinas?
+
+***********
 Aquí tienes el desarrollo detallado de cada uno de los puntos sugeridos:
 
 1. Ampliación del Marco Conceptual
