@@ -1,3 +1,61 @@
+Aquí tienes un desarrollo detallado de las secciones que te faltan en tu propuesta de investigación, redactado en tercera persona, como si fuera el estudiante que está desarrollando el proyecto:
+
+Resultados Esperados
+
+El desarrollo de esta investigación espera obtener resultados significativos en la identificación, medición y mitigación de sesgos emocionales, de género y temáticos en modelos de lenguaje en español. Específicamente, se anticipan los siguientes resultados:
+	1.	Conjunto de métricas adaptadas para la evaluación de sesgos: Se espera la creación de un conjunto de métricas específicas para el análisis de sesgos emocionales, de género y temáticos, adaptadas al contexto lingüístico y cultural del español. Estas métricas permitirán evaluar de forma cuantitativa la presencia de sesgos en textos generados por modelos de lenguaje.
+	2.	Dataset anotado en español: Se planea desarrollar un conjunto de datos etiquetado manual y automáticamente, que contenga información sobre emociones, género e imparcialidad temática. Este recurso contribuirá como un estándar de evaluación en futuras investigaciones y aplicaciones de IA en español.
+	3.	Diagnóstico de sesgos en modelos actuales: El análisis permitirá obtener un diagnóstico detallado sobre los sesgos presentes en modelos de lenguaje ampliamente utilizados en español. Esto servirá como base para la formulación de recomendaciones para la mejora de los modelos existentes.
+	4.	Propuestas de intervención y mejora: Se espera sugerir modificaciones prácticas en los procesos de entrenamiento y ajuste de modelos de lenguaje, para reducir los sesgos identificados.
+
+Contribución al Conocimiento y la Práctica:
+
+Los resultados de esta investigación aportarán al campo del procesamiento de lenguaje natural (PLN) y la ética en IA, proporcionando herramientas concretas y recursos lingüísticos que facilitarán el desarrollo de modelos de lenguaje más inclusivos. En la práctica, estas contribuciones pueden mejorar aplicaciones como asistentes virtuales, motores de búsqueda y herramientas de educación digital, garantizando una interacción más justa y representativa para los usuarios hispanohablantes.
+
+Impactos Potenciales
+
+Impacto Académico y Científico:
+
+Esta investigación tiene el potencial de ampliar el cuerpo de conocimiento en el campo del procesamiento de lenguaje natural y la ética en la inteligencia artificial. Al abordar un vacío crítico en la evaluación de sesgos en español, se espera:
+	•	Aportar nuevas perspectivas teóricas y metodológicas al estudio de sesgos algorítmicos.
+	•	Proveer recursos que puedan ser utilizados como base para futuras investigaciones, especialmente en contextos hispanohablantes.
+	•	Fomentar un debate académico sobre la importancia de la diversidad lingüística en los modelos de IA.
+
+Impacto Social y Económico:
+	•	Mejoras en la equidad tecnológica: Al reducir los sesgos en los modelos de lenguaje, se promoverá un acceso más justo a las tecnologías basadas en IA, beneficiando a comunidades diversas y reduciendo la perpetuación de estereotipos.
+	•	Inclusión en la educación y los medios: Los hallazgos podrían beneficiar aplicaciones en la educación y la comunicación, promoviendo contenidos más equitativos y culturalmente representativos.
+	•	Beneficios económicos: La implementación de modelos de lenguaje más éticos podría favorecer a empresas y organizaciones que busquen alinearse con estándares de equidad e inclusión, aumentando la confianza del público y mejorando la experiencia del usuario.
+
+Impacto Ambiental y Sostenibilidad:
+
+El proyecto se centrará en el desarrollo de métricas y datasets optimizados que promuevan la eficiencia de recursos computacionales. Esto contribuye a la sostenibilidad al reducir la necesidad de procesamientos masivos e innecesarios de datos. Además, la promoción de modelos inclusivos y culturalmente responsables fomenta una sostenibilidad social al evitar la exclusión de comunidades minoritarias.
+
+Declaración Ética
+
+El presente proyecto de investigación se enmarca en el Marco Ético para la Inteligencia Artificial en Colombia (MinCiencias, 2021), alineándose con los principios fundamentales de transparencia, equidad, responsabilidad y privacidad.
+
+1. Transparencia:
+
+El proyecto garantiza la transparencia en todas las etapas del proceso investigativo, incluyendo la documentación clara de los métodos utilizados para la recolección y anotación de datos, así como la descripción detallada de las métricas implementadas. Además, se promoverá el acceso abierto a los resultados y datasets generados, contribuyendo a la replicabilidad y verificación científica.
+
+2. Equidad y No Discriminación:
+
+Uno de los objetivos centrales de la investigación es la identificación y mitigación de sesgos en los modelos de lenguaje, lo que promueve la equidad y la no discriminación en los sistemas de IA. Se evaluarán de manera explícita sesgos de género, emocionales y temáticos, y se propondrán intervenciones para garantizar una representación balanceada de todas las identidades y perspectivas.
+
+3. Privacidad y Protección de Datos:
+
+En el proceso de recolección de datos, se seguirán estrictamente las normativas de protección de datos personales, asegurando la anonimización de la información y evitando la recolección de datos sensibles o identificables. El uso de datos públicos o generados artificialmente permitirá mantener la integridad de la privacidad de los individuos.
+
+4. Responsabilidad:
+
+El investigador asume la responsabilidad de asegurar que los resultados de esta investigación sean utilizados para promover un desarrollo ético de la inteligencia artificial. Se promoverá la colaboración con la comunidad académica y tecnológica para la implementación de prácticas éticas en el desarrollo de modelos de lenguaje.
+
+5. Beneficio Social:
+
+El proyecto busca contribuir al bienestar social al reducir los sesgos algorítmicos, promoviendo una IA más inclusiva y representativa en el contexto hispanohablante. Además, se promoverá la capacitación y divulgación de los resultados para fomentar una mayor conciencia sobre la importancia de la ética en la IA.
+
+¿Deseas que amplíe alguna sección o añada ejemplos específicos?
+
 Me hace falta dentro de mi propuesta de proyecto de investigación, lo siguiente:
 
 *Resultados Esperados
