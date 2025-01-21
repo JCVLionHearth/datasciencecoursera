@@ -61,35 +61,35 @@ La metodología emplea puntajes numéricos para representar el riesgo en cada ce
 
 En este caso, el puntaje de riesgo es proporcional a la pérdida esperada en una escala lineal. Por ejemplo, un riesgo con probabilidad alta (3) y impacto medio (2) tendría un puntaje de riesgo de \(6\) (3 * 2).
 
-En una escala lineal, los valores se incrementan de manera constante. Esto significa que la distancia entre dos puntos consecutivos es siempre la misma, sin importar en qué parte de la escala se encuentre \cite{cruzito-2023}. Por ejemplo, en una recta numérica, la distancia entre 1 y 2 es la misma que entre 100 y 101.
+En una escala lineal, los valores se incrementan de manera constante. Esto significa que la distancia entre dos puntos consecutivos es siempre la misma, sin importar en qué parte de la escala se encuentre. Por ejemplo, en una recta numérica, la distancia entre 1 y 2 es la misma que entre 100 y 101.
 
 Cuando se aplica a la evaluación de riesgos, multiplicar los valores ordinales de probabilidad e impacto refleja una relación directa y proporcional entre estos dos factores. Si ambos factores aumentan, el riesgo total también aumenta proporcionalmente. Esto es útil cuando se quiere reflejar una relación directa entre la probabilidad de un evento y su impacto.
     
-    \item Escala Logarítmica (Aditiva): Para escalas logarítmicas, se emplea la adición de los valores ordinales de probabilidad y consecuencia.
+    \item Escala Logarítmica (Multiplicativa): Para escalas logarítmicas, se emplea la multiplicación de los valores subyacentes de probabilidad y consecuencia.
 
-    Supongamos que tenemos las mismas categorías:
+    Supongamos que tenemos las siguientes categorías:
 
     \begin{itemize}
-        \item \textbf{Probabilidad}: Baja (1), Media (2), Alta (3)
-        \item \textbf{Consecuencia}: Baja (1), Media (2), Alta (3)
+        \item \textbf{Probabilidad}: 0.1, 1, 10
+        \item \textbf{Consecuencia}: 1, 10, 100
     \end{itemize}
 
 La matriz de riesgo se vería así:
 
     \[
     \begin{array}{c|ccc}
-    \text{Probabilidad} \backslash \text{Consecuencia} & \text{Baja (1)} & \text{Media (2)} & \text{Alta (3)} \\
+    \text{Probabilidad} \backslash \text{Consecuencia} & \text{1} & \text{10} & \text{100} \\
     \hline
-    \text{Alta (3)} & 4 & 5 & 6 \\
-    \text{Media (2)} & 3 & 4 & 5 \\
-    \text{Baja (1)} & 2 & 3 & 4 \\
+    \text{10} & 10 & 100 & 1000 \\
+    \text{1} & 1 & 10 & 100 \\
+    \text{0.1} & 0.1 & 1 & 10 \\
     \end{array}
     \]
 
-En este caso, el puntaje de riesgo es uniforme a lo largo de las diagonales, permitiendo representar isoriesgos en bandas diagonales. Por ejemplo, un riesgo con probabilidad alta (3) y consecuencia media (2) tendría un puntaje de riesgo de \(5\) (3 + 2).
+En este caso, el puntaje de riesgo refleja cambios exponenciales. Por ejemplo, un riesgo con probabilidad 10 y consecuencia 10 tendría un puntaje de riesgo de \(100\) (10 * 10).
 
-En una escala logarítmica, los valores se incrementan de manera exponencial. Esto significa que cada incremento en la escala representa un cambio multiplicativo en el valor subyacente \cite{jimenez-2020}. Por ejemplo, en una escala logarítmica base 10, pasar de 1 a 2 representa un aumento de 10 veces, y de 2 a 3 representa un aumento de 100 veces.
+En una escala logarítmica, los valores se incrementan de manera exponencial. Esto significa que cada incremento en la escala representa un cambio multiplicativo en el valor subyacente. Por ejemplo, en una escala logarítmica base 10, pasar de 1 a 2 representa un aumento de 10 veces, y de 2 a 3 representa un aumento de 100 veces.
 
-Cuando se aplica a la evaluación de riesgos, sumar los valores ordinales de probabilidad y consecuencia en una escala logarítmica permite representar los riesgos de manera que los incrementos reflejen cambios exponenciales. Esto es útil para identificar patrones de riesgo que crecen de manera no lineal y para representar isoriesgos en bandas diagonales, donde los riesgos de diferentes combinaciones de probabilidad y consecuencia pueden ser comparables.
+Cuando se aplica a la evaluación de riesgos, multiplicar los valores subyacentes de probabilidad y consecuencia en una escala logarítmica permite representar los riesgos de manera que los incrementos reflejen cambios exponenciales. Esto es útil para identificar patrones de riesgo que crecen de manera no lineal y para representar isoriesgos en bandas diagonales, donde los riesgos de diferentes combinaciones de probabilidad y consecuencia pueden ser comparables.
     
 \end{enumerate}
