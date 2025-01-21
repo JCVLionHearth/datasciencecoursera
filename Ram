@@ -1,3 +1,26 @@
+@book{auditoria-group,
+  title     = {La Matriz RAM: Una Herramienta Esencial Para La Gestión De Riesgos En Auditoría},
+  author    = {Auditoría Group},
+  year      = {2023},
+  publisher = {Auditoría Group Publications}
+}
+
+@manual{ecopetrol,
+  title     = {Instructivo Para Uso De La Matriz RAM},
+  author    = {Ecopetrol},
+  year      = {2021},
+  note      = {Disponible en: \url{https://www.ecopetrol.com.co}}
+}
+
+@manual{urbicad,
+  title     = {Metodología RAM (Risk Assessment Matrix)},
+  author    = {UrbiCAD},
+  year      = {2023},
+  note      = {Disponible en: \url{https://www.urbicad.com}}
+}
+
+
+
 \section{Pasos para el Desarrollo de la Matriz RAM}
 
 \subsection{Identificación de Riesgos}
