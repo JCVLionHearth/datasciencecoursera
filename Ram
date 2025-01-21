@@ -1,10 +1,22 @@
-@book{auditoria-group,
-  title     = {La Matriz RAM: Una Herramienta Esencial Para La Gestión De Riesgos En Auditoría},
-  author    = {Auditoría Group},
-  year      = {2023},
-  publisher = {Auditoría Group Publications}
+@article{Levine01022012},
+author = {E.S. Levine},
+title = {Improving risk matrices: the advantages of logarithmically scaled axes},
+journal = {Journal of Risk Research},
+volume = {15},
+number = {2},
+pages = {209--222},
+year = {2012},
+publisher = {Routledge},
+doi = {10.1080/13669877.2011.634514},
+URL = { 
+    
+        https://doi.org/10.1080/13669877.2011.634514
+},
+eprint = { 
+    
+        https://doi.org/10.1080/13669877.2011.634514
 }
-
+}
 @manual{ecopetrol,
   title     = {Instructivo Para Uso De La Matriz RAM},
   author    = {Ecopetrol},
