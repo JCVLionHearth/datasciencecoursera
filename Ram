@@ -1,29 +1,30 @@
 \section{Pasos para el Desarrollo de la Matriz RAM}
+
 \subsection{Identificación de Riesgos}
 
-Se recomienda una identificación sistemática de riesgos mediante las siguientes metodologías:
+Para identificar riesgos de manera sistemática, se recomienda utilizar las siguientes metodologías:
 
 \begin{itemize}
-    \item Reuniones de Brainstorming: Involucrar a todos los miembros del equipo para identificar posibles riesgos.
-    \item Análisis de Documentación: Revisar documentos históricos y lecciones aprendidas de proyectos anteriores.
-    \item Entrevistas y Encuestas: Consultar a expertos y partes interesadas para identificar riesgos adicionales.
+    \item **Reuniones de Brainstorming**: Involucrar a todos los miembros del equipo para identificar posibles riesgos \cite{auditoria-group}.
+    \item **Análisis de Documentación**: Revisar documentos históricos y lecciones aprendidas de proyectos anteriores \cite{urbicad}.
+    \item **Entrevistas y Encuestas**: Consultar a expertos y partes interesadas para identificar riesgos adicionales \cite{ecopetrol}.
 \end{itemize}
 
 \subsection{Metodología para Determinar Impacto y Probabilidad}
 
 \subsubsection{Análisis de Datos Históricos}
-La determinación de probabilidades se basa en el análisis de frecuencias históricas. Para un evento $E$, la probabilidad empírica se calcula como:
+Para determinar la probabilidad de un evento, se puede utilizar el análisis de frecuencias históricas. La probabilidad empírica de un evento $E$ se calcula como:
 
 \[ P(E) = \frac{n_E}{N} \]
 
 donde:
 \begin{itemize}
-    \item $n_E$: Número de ocurrencias del evento
-    \item $N$: Número total de períodos observados
+    \item $n_E$: Número de ocurrencias del evento.
+    \item $N$: Número total de períodos observados.
 \end{itemize}
 
 \subsubsection{Categorización de Probabilidades}
-La probabilidad e impacto se clasifican en categorías discretas (Tabla~\ref{tab:probabilidad} y Tabla~\ref{tab:impacto}). 
+La probabilidad y el impacto se clasifican en categorías discretas, como se muestra en las siguientes tablas:
 
 \begin{table}[H]
 \centering
@@ -31,17 +32,16 @@ La probabilidad e impacto se clasifican en categorías discretas (Tabla~\ref{tab
 \toprule
 Categoría & Rango de Probabilidad & Descripción \\
 \midrule
-Raro & $P < 0.05$ & Evento excepcional: Representa eventos altamente improbables, estándar de significancia estadística ($\alpha = 0.05$). \\
-Improbable & $0.05 \leq P < 0.20$ & Poco frecuente: Representa eventos que ocurren menos de una vez cada cinco períodos.\\
-Posible & $0.20 \leq P < 0.50$ & Ocurrencia moderada: Eventos que ocurren entre una vez cada cinco períodos y una vez cada dos períodos.\\
-Probable & $0.50 \leq P < 0.80$ & Alta frecuencia: Eventos que ocurren más de la mitad de las veces.\\
-Con certeza & $P \geq 0.80$ & Prácticamente seguro: Eventos que ocurren en más del 80\% de los casos, considerado un estándar en gestión de riesgos. \\
+Raro & $P < 0.05$ & Evento excepcional: Representa eventos altamente improbables \cite{auditoria-group}. \\
+Improbable & $0.05 \leq P < 0.20$ & Poco frecuente: Eventos que ocurren menos de una vez cada cinco períodos \cite{urbicad}. \\
+Posible & $0.20 \leq P < 0.50$ & Ocurrencia moderada: Eventos que ocurren entre una vez cada cinco períodos y una vez cada dos períodos \cite{ecopetrol}. \\
+Probable & $0.50 \leq P < 0.80$ & Alta frecuencia: Eventos que ocurren más de la mitad de las veces \cite{auditoria-group}. \\
+Con certeza & $P \geq 0.80$ & Prácticamente seguro: Eventos que ocurren en más del 80\% de los casos \cite{urbicad}. \\
 \bottomrule
 \end{tabular}
 \caption{Categorías de Probabilidad}
 \label{tab:probabilidad}
 \end{table}
-
 
 \subsubsection{Categorización de Impactos}
 Los impactos se clasifican según la siguiente escala:
@@ -52,26 +52,24 @@ Los impactos se clasifican según la siguiente escala:
 \toprule
 Categoría & Descripción & Criterio Cuantitativo \\
 \midrule
-Insignificante &  El impacto no representa un problema para la organización. & $I < I_1$ \\
-Menor & El impacto que causa la materialización del riesgo en los objetivos de la empresa es mínimo. & $I_1 \leq I < I_2$ \\
-Moderado & La materialización del riesgo puede causar una pérdida momentánea. & $I_2 \leq I < I_3$ \\
-Mayor & Genera retrasos importantes que afectan el cumplimiento de los objetivos. & $I_3 \leq I < I_4$ \\
-Catastrófico & Puede detener la operación de la empresa, incluso, tener consecuencias como el cierre definitivo. & $I \geq I_4$ \\
+Insignificante & El impacto no representa un problema para la organización. & $I < I_1$ \\
+Menor & El impacto es mínimo. & $I_1 \leq I < I_2$ \\
+Moderado & Puede causar una pérdida momentánea. & $I_2 \leq I < I_3$ \\
+Mayor & Genera retrasos importantes. & $I_3 \leq I < I_4$ \\
+Catastrófico & Puede detener la operación de la empresa. & $I \geq I_4$ \\
 \bottomrule
 \end{tabular}
 \caption{Categorías de Impacto}
 \label{tab:impacto}
 \end{table}
 
-donde $I_1, I_2, I_3, I_4$ son umbrales determinados mediante análisis estadístico de datos históricos.
-
-Para los umbrales de impacto, se recomienda usar:
+Para los umbrales de impacto, se recomienda usar percentiles basados en datos históricos:
 
 \begin{itemize}
-    \item $I_1$ (Insignificante-Menor): Percentil 25
-    \item $I_2$ (Menor-Moderado): Percentil 50
-    \item $I_3$ (Moderado-Mayor): Percentil 75
-    \item $I_4$ (Mayor-Catastrófico): Percentil 90
+    \item $I_1$ (Insignificante-Menor): Percentil 25 \cite{ecopetrol}.
+    \item $I_2$ (Menor-Moderado): Percentil 50 \cite{urbicad}.
+    \item $I_3$ (Moderado-Mayor): Percentil 75 \cite{auditoria-group}.
+    \item $I_4$ (Mayor-Catastrófico): Percentil 90 \cite{ecopetrol}.
 \end{itemize}
 
 \subsection{Definición de Umbrales}
@@ -83,32 +81,31 @@ Los umbrales se establecen utilizando el método de percentiles sobre datos hist
 
 donde:
 \begin{itemize}
-    \item $U_k$: Umbral para el nivel $k$
-    \item $F^{-1}$: Función de distribución inversa
-    \item $p_k$: Percentil objetivo para el nivel $k$
+    \item $U_k$: Umbral para el nivel $k$.
+    \item $F^{-1}$: Función de distribución inversa.
+    \item $p_k$: Percentil objetivo para el nivel $k$.
 \end{itemize}
 
 \subsubsection{Calibración mediante Simulación Monte Carlo}
 La calibración de umbrales utiliza simulación Monte Carlo para generar escenarios y validar la clasificación:
 
 \begin{enumerate}
-    \item Generación de $n$ escenarios aleatorios
-    \item Cálculo del riesgo para cada escenario: $R_i = P_i \times I_i$
-    \item Clasificación según umbrales propuestos
-    \item Ajuste iterativo hasta alcanzar las probabilidades objetivo
+    \item Generación de $n$ escenarios aleatorios \cite{urbicad}.
+    \item Cálculo del riesgo para cada escenario: $R_i = P_i \times I_i$ \cite{auditoria-group}.
+    \item Clasificación según umbrales propuestos \cite{ecopetrol}.
+    \item Ajuste iterativo hasta alcanzar las probabilidades objetivo \cite{urbicad}.
 \end{enumerate}
 
 \subsection{Definición de Escalas}
 
 \begin{itemize}
-    \item Escalas Lineales: Adecuadas para contextos donde las categorías de probabilidad o consecuencia se distribuyen de manera uniforme, facilitando una lectura intuitiva y una correlación directa con valores ordinales. Este enfoque es útil en evaluaciones de proyectos donde la probabilidad es medida en porcentaje.
-    \item Escalas Logarítmicas: Utilizadas en escenarios de alta variabilidad, como la seguridad y la prevención de desastres, donde la probabilidad o consecuencia puede abarcar varios órdenes de magnitud. La escala logarítmica es particularmente útil en situaciones en las que la probabilidad se expresa como frecuencia esperada (eventos por unidad de tiempo) o la consecuencia en términos de gravedad incremental.
-
+    \item **Escalas Lineales**: Adecuadas para contextos donde las categorías de probabilidad o consecuencia se distribuyen de manera uniforme, facilitando una lectura intuitiva y una correlación directa con valores ordinales. Este enfoque es útil en evaluaciones de proyectos donde la probabilidad es medida en porcentaje \cite{auditoria-group}.
+    \item **Escalas Logarítmicas**: Utilizadas en escenarios de alta variabilidad, como la seguridad y la prevención de desastres, donde la probabilidad o consecuencia puede abarcar varios órdenes de magnitud. La escala logarítmica es particularmente útil en situaciones en las que la probabilidad se expresa como frecuencia esperada (eventos por unidad de tiempo) o la consecuencia en términos de gravedad incremental \cite{urbicad}.
 \end{itemize}
 
 \subsection{Asignación de Valores}
 
 \begin{itemize}
-    \item Probabilidad: Se selecciona una escala lineal si los valores de probabilidad son cercanos y se busca simplicidad en la lectura. Si las probabilidades varían en varios órdenes de magnitud, se opta por una escala logarítmica.
-    \item Impacto: La escala lineal es útil para impactos cuantificables con una relación uniforme entre categorías. La escala logarítmica es recomendable en casos de consecuencias de distinta naturaleza (p. ej., desde lesiones leves hasta muertes), donde cada incremento representa un aumento significativo de gravedad.
+    \item **Probabilidad**: Se selecciona una escala lineal si los valores de probabilidad son cercanos y se busca simplicidad en la lectura. Si las probabilidades varían en varios órdenes de magnitud, se opta por una escala logarítmica \cite{ecopetrol}.
+    \item **Impacto**: La escala lineal es útil para impactos cuantificables con una relación uniforme entre categorías. La escala logarítmica es recomendable en casos de consecuencias de distinta naturaleza (p. ej., desde lesiones leves hasta muertes), donde cada incremento representa un aumento significativo de gravedad \cite{auditoria-group}.
 \end{itemize}
