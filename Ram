@@ -1,0 +1,95 @@
+\subsection{Construcción de la Matriz RAM}
+
+\subsubsection{Estructura Básica}
+La matriz RAM se construye como una tabla de doble entrada:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Impacto & \multicolumn{5}{c}{Probabilidad} \\
+\cmidrule(l){2-6}
+ & Raro & Improbable & Posible & Probable & Con certeza \\
+\midrule
+Catastrófico & & & & & \\
+Mayor & & & & & \\
+Moderado & & & & & \\
+Menor & & & & & \\
+Insignificante  & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cada celda de la matriz representa una combinación de probabilidad e impacto, reflejando un nivel de riesgo específico. Este esquema facilita la priorización de los riesgos en función de sus valores en la RAM.
+
+\subsubsection{Definición de Zonas de Riesgo}
+Las zonas de riesgo se definen mediante curvas de iso-riesgo:
+
+\[ Z(P,I) = \begin{cases} 
+\text{Muy Alto} & \text{si } P \times I \geq U_4 \\
+\text{Alto} & \text{si } U_3 \leq P \times I < U_4 \\
+\text{Medio} & \text{si } U_2 \leq P \times I < U_3 \\
+\text{Bajo} & \text{si } U_1 \leq P \times I < U_2 \\
+\text{Muy Bajo} & \text{si } P \times I < U_1
+\end{cases} \]
+
+\subsection{Cálculo de Puntajes de Riesgo}
+
+La metodología emplea puntajes numéricos para representar el riesgo en cada celda de la matriz, considerando la escala de las categorías:
+
+\begin{enumerate}
+    \item Escala Lineal (Multiplicativa): Si las categorías están en una escala lineal, el puntaje de riesgo se calcula multiplicando los valores ordinales de probabilidad e impacto. Esto genera una matriz donde el riesgo es proporcional a la pérdida esperada en una escala lineal.
+
+    Supongamos que tenemos las siguientes categorías:
+    
+    \begin{itemize}
+    \item \textbf{Probabilidad}: Baja (1), Media (2), Alta (3)
+    \item \textbf{Impacto}: Bajo (1), Medio (2), Alto (3)
+    \end{itemize}
+
+    La matriz de riesgo se vería así:
+
+    \[
+    \begin{array}{c|ccc}
+    \text{Probabilidad} \backslash \text{Impacto} & \text{Bajo (1)} & \text{Medio (2)} & \text{Alto (3)} \\
+    \hline
+    \text{Alta (3)} & 3 & 6 & 9 \\
+    \text{Media (2)} & 2 & 4 & 6 \\
+    \text{Baja (1)} & 1 & 2 & 3 \\
+    \end{array}
+    \]
+
+En este caso, el puntaje de riesgo es proporcional a la pérdida esperada en una escala lineal. Por ejemplo, un riesgo con probabilidad alta (3) y impacto medio (2) tendría un puntaje de riesgo de \(6\) (3 * 2).
+
+En una escala lineal, los valores se incrementan de manera constante. Esto significa que la distancia entre dos puntos consecutivos es siempre la misma, sin importar en qué parte de la escala se encuentre \cite{cruzito-2023}. Por ejemplo, en una recta numérica, la distancia entre 1 y 2 es la misma que entre 100 y 101.
+
+Cuando se aplica a la evaluación de riesgos, multiplicar los valores ordinales de probabilidad e impacto refleja una relación directa y proporcional entre estos dos factores. Si ambos factores aumentan, el riesgo total también aumenta proporcionalmente. Esto es útil cuando se quiere reflejar una relación directa entre la probabilidad de un evento y su impacto.
+    
+    \item Escala Logarítmica (Aditiva): Para escalas logarítmicas, se emplea la adición de los valores ordinales de probabilidad y consecuencia.
+
+    Supongamos que tenemos las mismas categorías:
+
+    \begin{itemize}
+        \item \textbf{Probabilidad}: Baja (1), Media (2), Alta (3)
+        \item \textbf{Consecuencia}: Baja (1), Media (2), Alta (3)
+    \end{itemize}
+
+La matriz de riesgo se vería así:
+
+    \[
+    \begin{array}{c|ccc}
+    \text{Probabilidad} \backslash \text{Consecuencia} & \text{Baja (1)} & \text{Media (2)} & \text{Alta (3)} \\
+    \hline
+    \text{Alta (3)} & 4 & 5 & 6 \\
+    \text{Media (2)} & 3 & 4 & 5 \\
+    \text{Baja (1)} & 2 & 3 & 4 \\
+    \end{array}
+    \]
+
+En este caso, el puntaje de riesgo es uniforme a lo largo de las diagonales, permitiendo representar isoriesgos en bandas diagonales. Por ejemplo, un riesgo con probabilidad alta (3) y consecuencia media (2) tendría un puntaje de riesgo de \(5\) (3 + 2).
+
+En una escala logarítmica, los valores se incrementan de manera exponencial. Esto significa que cada incremento en la escala representa un cambio multiplicativo en el valor subyacente \cite{jimenez-2020}. Por ejemplo, en una escala logarítmica base 10, pasar de 1 a 2 representa un aumento de 10 veces, y de 2 a 3 representa un aumento de 100 veces.
+
+Cuando se aplica a la evaluación de riesgos, sumar los valores ordinales de probabilidad y consecuencia en una escala logarítmica permite representar los riesgos de manera que los incrementos reflejen cambios exponenciales. Esto es útil para identificar patrones de riesgo que crecen de manera no lineal y para representar isoriesgos en bandas diagonales, donde los riesgos de diferentes combinaciones de probabilidad y consecuencia pueden ser comparables.
+    
+\end{enumerate}
