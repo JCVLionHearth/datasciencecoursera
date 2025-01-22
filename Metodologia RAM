@@ -1,0 +1,381 @@
+Aquí tienes un esquema metodológico para la construcción de la matriz RAM, explicando paso a paso cómo estructurar y aplicar esta herramienta para la evaluación de riesgos en una compañía petrolera:
+
+---
+
+### **Metodología para el Diseño y Construcción de la Matriz RAM**
+
+#### **1. Definición del Alcance del Análisis**
+- Identificar los riesgos estratégicos y empresariales relevantes: financieros, catastróficos, ambientales, de personas, entre otros.
+- Establecer los objetivos del análisis: evaluar riesgos con un enfoque cuantitativo y cualitativo, integrando perspectivas temporales y de consecuencias.
+
+#### **2. Clasificación de los Riesgos**
+- **Riesgos Cuantitativos:** Aquellos que pueden medirse numéricamente (e.g., pérdidas económicas, emisiones ambientales, número de accidentes).
+- **Riesgos Cualitativos:** Aquellos que requieren un enfoque descriptivo (e.g., reputación, impacto en la moral del equipo).
+- Relacionar cada riesgo con categorías predefinidas según su naturaleza.
+
+#### **3. Definición de Escalas para Probabilidad e Impacto**
+- **Escalas de Probabilidad (5 niveles):**
+  - *Raro*: ≤5% de ocurrencia anual.
+  - *Poco probable*: 5-20%.
+  - *Posible*: 21-50%.
+  - *Probable*: 51-80%.
+  - *Con certeza*: >80%.
+  - Se pueden usar distribuciones estadísticas basadas en datos históricos para respaldar estas categorías.
+
+- **Escalas de Impacto (5 niveles):**
+  - *Muy bajo*: Consecuencias mínimas, insignificante impacto financiero o reputacional.
+  - *Bajo*: Consecuencias manejables con recursos existentes.
+  - *Moderado*: Requiere recursos adicionales, afecta múltiples áreas.
+  - *Alto*: Impacto significativo en la operación o cumplimiento.
+  - *Catastrófico*: Paralización total o pérdida masiva.
+
+#### **4. Establecimiento de Métricas Cuantitativas y Cualitativas**
+- Desarrollar un marco que relacione los impactos con:
+  - **Dimensión temporal:** Duración del impacto (días, semanas, años).
+  - **Dimensión financiera:** Pérdidas monetarias estimadas.
+  - **Consecuencias ambientales:** Grado de daño al medioambiente.
+  - **Consecuencias humanas:** Número de personas afectadas.
+- Usar metodologías estadísticas como análisis histórico, modelado probabilístico y distribuciones empíricas.
+
+#### **5. Construcción de la Matriz RAM**
+- Diseñar la matriz como una cuadrícula 5x5, con:
+  - Eje X: Probabilidad.
+  - Eje Y: Impacto.
+- Asignar colores para diferenciar niveles de riesgo (e.g., verde para bajo riesgo, rojo para alto riesgo).
+
+#### **6. Implementación de Análisis de Escenarios**
+- Utilizar simulaciones Monte Carlo para analizar escenarios posibles:
+  - Crear modelos de probabilidad para cada riesgo.
+  - Ejecutar múltiples iteraciones para determinar distribuciones de probabilidad de resultados.
+  - Visualizar los resultados con histogramas o gráficas de densidad.
+
+#### **7. Validación de la Metodología**
+- Revisar y ajustar la matriz con expertos en riesgos y actuaría.
+- Asegurarse de que las categorías y escalas sean prácticas y comprensibles.
+
+#### **8. Documentación y Guía para el Usuario**
+- Explicar cómo interpretar y usar la matriz.
+- Incluir ejemplos prácticos:
+  - Riesgos específicos y cómo se posicionan en la matriz.
+  - Cómo priorizar riesgos para toma de decisiones.
+
+---
+
+### **Referencias Clave**
+1. **COSO ERM Framework:** Principios de gestión de riesgos empresariales.
+2. **ISO 31000:** Gestión del riesgo - Principios y directrices.
+3. **API RP 75 (American Petroleum Institute):** Gestión de seguridad y riesgos en la industria petrolera.
+4. Artículos y estudios sobre análisis Monte Carlo en gestión de riesgos.
+
+---
+
+Si necesitas detalles específicos en alguna sección o ejemplos prácticos para incluir en el documento, indícalo y los elaboro.
+
+A continuación, se desarrolla la metodología para la construcción de una matriz RAM desde una perspectiva técnica y actuarial, integrando definiciones detalladas para probabilidades e impactos y considerando los riesgos cualitativos como los ambientales. Se incluyen también análisis sobre el uso de escalas lineales y logarítmicas, así como métricas estadísticas y matemáticas relevantes.
+
+---
+
+### **Metodología para el Diseño y Construcción de la Matriz RAM**
+
+#### **1. Definición del Alcance del Análisis**
+Este paso establece los límites del análisis y asegura la coherencia metodológica:
+- **Objetivo principal:** Evaluar los riesgos estratégicos y empresariales, cuantitativos y cualitativos, considerando impactos financieros, ambientales, catastróficos y humanos.
+- **Enfoque:** Integrar herramientas estadísticas y actuariales para sustentar decisiones basadas en datos.
+
+---
+
+#### **2. Clasificación de Riesgos**
+Se categorizan los riesgos para facilitar su análisis y evaluación:
+1. **Riesgos Cuantitativos:** Aquellos medibles numéricamente, como pérdidas económicas, emisiones (en toneladas métricas), o frecuencia de accidentes.
+2. **Riesgos Cualitativos:** Riesgos como reputación, percepción pública o impacto ambiental que se evalúan mediante criterios descriptivos y ponderaciones indirectas.
+
+**Nota:** Los riesgos cualitativos requieren técnicas de escalamiento subjetivo, como análisis multicriterio o escalas de Likert, ajustadas con pesos derivados de encuestas expertas o históricos.
+
+---
+
+#### **3. Definición de Escalas de Probabilidad e Impacto**
+##### **3.1. Escalas de Probabilidad**
+Se define la probabilidad de ocurrencia del evento mediante categorías discretas respaldadas por modelos estadísticos, según la siguiente tabla:
+
+| **Categoría**      | **Probabilidad**            | **Descripción técnica**                                           |
+|---------------------|-----------------------------|-------------------------------------------------------------------|
+| *Raro*             | \( P \leq 0.05 \)           | Evento poco probable basado en análisis históricos o simulaciones.|
+| *Poco probable*    | \( 0.05 < P \leq 0.2 \)     | Evento posible bajo ciertas condiciones desfavorables.           |
+| *Posible*          | \( 0.2 < P \leq 0.5 \)      | Evento con una ocurrencia moderada en plazos específicos.         |
+| *Probable*         | \( 0.5 < P \leq 0.8 \)      | Ocurrencia frecuente respaldada por tendencias significativas.    |
+| *Casi seguro*      | \( P > 0.8 \)               | Evento recurrente o seguro dentro de un marco temporal definido.  |
+
+**Análisis actuarial:**
+- Utilizar distribuciones estadísticas como la de Poisson (para eventos raros) o la Binomial (para eventos con múltiples posibilidades de éxito/fallo).
+- Para riesgos ambientales: emplear datos históricos de incidentes (e.g., derrames de petróleo) y ajustar a distribuciones log-normales si los datos presentan sesgo positivo.
+
+##### **3.2. Escalas de Impacto**
+El impacto se clasifica según consecuencias observables en múltiples dimensiones, desde lo financiero hasta lo ambiental:
+
+| **Categoría**      | **Impacto (cuantitativo)**         | **Impacto (cualitativo)**                          |
+|---------------------|------------------------------------|---------------------------------------------------|
+| *Muy bajo*         | \( \text{Pérdidas} \leq \$50,000 \) | Daño ambiental mínimo, recuperable en días.      |
+| *Bajo*             | \( \$50,000 < \text{Pérdidas} \leq \$200,000 \) | Afectación a un área específica; manejable internamente. |
+| *Moderado*         | \( \$200,000 < \text{Pérdidas} \leq \$1,000,000 \) | Alteración ambiental recuperable en meses; daños reputacionales limitados. |
+| *Alto*             | \( \$1,000,000 < \text{Pérdidas} \leq \$10,000,000 \) | Impacto ambiental severo; multas regulatorias significativas. |
+| *Catastrófico*     | \( \text{Pérdidas} > \$10,000,000 \) | Daño ambiental irreversible; impactos globales.   |
+
+**En riesgos cualitativos:**
+- Utilizar ponderaciones indirectas basadas en indicadores, como:
+  - Índices de biodiversidad afectados.
+  - Evaluaciones de impacto social, escaladas según su frecuencia o gravedad.
+  - Percepción de stakeholders (medida con encuestas o matrices multicriterio).
+
+##### **Uso de Escalas Lineales vs. Logarítmicas**
+1. **Escalas lineales:** Útiles cuando los incrementos en probabilidad o impacto son uniformes o de fácil interpretación. Ejemplo: frecuencia de accidentes laborales.
+2. **Escalas logarítmicas:** Apropiadas para eventos raros o con alta dispersión, como riesgos catastróficos o ambientales extremos. Ejemplo: magnitud de derrames de petróleo (donde un incremento de \(10^3\) puede representar eventos más severos).
+
+---
+
+#### **4. Desarrollo de Métricas de Evaluación**
+Las métricas combinan análisis cuantitativo y cualitativo:
+
+1. **Para riesgos cuantitativos:**
+   - Modelos de valor en riesgo (VaR) para medir la exposición financiera.
+   - Simulaciones Monte Carlo para evaluar distribuciones de resultados posibles.
+   - Indicadores clave: pérdida esperada (\(E[L]\)), desviación estándar, y sesgo.
+
+2. **Para riesgos cualitativos:**
+   - Análisis multicriterio (\( \text{AHP, Analytic Hierarchy Process} \)) para ponderar impactos.
+   - Escalamiento subjetivo ajustado con métodos Delphi para validar rangos.
+
+---
+
+#### **5. Construcción de la Matriz RAM**
+La matriz se genera como una cuadrícula 5x5 con:
+- Eje X: Probabilidad ajustada (lineal/logarítmica según el riesgo).
+- Eje Y: Impacto, calculado con métricas cuantitativas y ponderaciones cualitativas.
+
+---
+
+#### **6. Implementación de Simulaciones**
+**Monte Carlo:** Generar \(n\) iteraciones para simular escenarios:
+- Distribuciones de probabilidad asignadas a cada riesgo.
+- Cálculo de percentiles (\(P_{10}, P_{50}, P_{90}\)) para evaluar robustez.
+
+---
+
+#### **7. Validación y Documentación**
+Revisión por expertos y generación de una guía interpretativa para usuarios no técnicos.
+
+---
+
+Esta metodología asegura rigor estadístico y aplicabilidad práctica. Si necesitas desarrollos más específicos, como ejemplos numéricos o cálculos actuarios, puedo generarlos.
+
+Para definir los umbrales de impacto en cada categoría (financiero, ambiental, accidentes, reputacional, etc.), es esencial aplicar un enfoque riguroso y cuantificable basado en datos históricos, estándares industriales y análisis estadístico. A continuación, se detallan las definiciones para cada categoría con métricas técnicas:
+
+---
+
+### **Definición de Umbrales de Impacto por Categoría**
+
+#### **1. Impacto Financiero**
+El impacto financiero se mide en términos de pérdidas económicas directas o indirectas. Los umbrales deben considerar los ingresos anuales de la compañía y el presupuesto asignado para contingencias.
+
+| **Nivel de Impacto** | **Criterio Financiero Absoluto** | **Criterio Financiero Relativo**                      |
+|-----------------------|----------------------------------|------------------------------------------------------|
+| *Muy bajo*           | \( P \leq \$100,000 \)          | Menos del 0.1% de los ingresos anuales.             |
+| *Bajo*               | \( \$100,000 < P \leq \$1,000,000 \) | Entre 0.1% y 0.5% de los ingresos anuales.          |
+| *Moderado*           | \( \$1,000,000 < P \leq \$5,000,000 \) | Entre 0.5% y 2% de los ingresos anuales.            |
+| *Alto*               | \( \$5,000,000 < P \leq \$20,000,000 \) | Entre 2% y 5% de los ingresos anuales.              |
+| *Catastrófico*       | \( P > \$20,000,000 \)          | Más del 5% de los ingresos anuales o pérdidas críticas. |
+
+**Justificación técnica:**  
+- Estos valores deben ajustarse según la capacidad financiera y el sector. En la industria petrolera, el rango catastrófico puede ampliarse considerando las inversiones a gran escala.
+- Usar escenarios de valor en riesgo (VaR) para estimar umbrales financieros extremos.
+
+---
+
+#### **2. Impacto Ambiental**
+El impacto ambiental se evalúa según la magnitud del daño y los costos de remediación, siguiendo normativas internacionales (e.g., ISO 14001).
+
+| **Nivel de Impacto** | **Criterios Ambientales Cuantitativos**                                   | **Criterios Cualitativos**                                  |
+|-----------------------|--------------------------------------------------------------------------|------------------------------------------------------------|
+| *Muy bajo*           | Derrame ≤ 10 litros.                                                     | Daño ambiental recuperable en horas, sin intervención.     |
+| *Bajo*               | Derrame > 10 y ≤ 100 litros.                                             | Daño localizado, remediación ≤ 1 semana.                  |
+| *Moderado*           | Derrame > 100 y ≤ 1,000 litros o afectación ≤ 1 hectárea.                | Daño remediable en 1-3 meses; multa moderada.              |
+| *Alto*               | Derrame > 1,000 y ≤ 10,000 litros o afectación > 1 hectárea y ≤ 10 hectáreas. | Daño severo, remediación prolongada (>6 meses), sanciones graves. |
+| *Catastrófico*       | Derrame > 10,000 litros o afectación > 10 hectáreas.                     | Daño irreparable o con recuperación >2 años; impacto global. |
+
+**Justificación técnica:**  
+- Utilizar un modelo de dispersión logarítmica para predecir el alcance del daño de un derrame.
+- Incorporar simulaciones Monte Carlo para estimar escenarios de derrames en distintas condiciones climáticas y geográficas.
+
+---
+
+#### **3. Impacto en Seguridad y Accidentes**
+Se mide por la cantidad de personas afectadas y la gravedad de las lesiones, conforme a normativas de seguridad laboral (e.g., OSHA).
+
+| **Nivel de Impacto** | **Criterios de Accidentes**                             | **Criterios Cualitativos**                    |
+|-----------------------|--------------------------------------------------------|-----------------------------------------------|
+| *Muy bajo*           | 1 incidente menor sin días perdidos.                   | No afecta la operación ni genera sanciones.  |
+| *Bajo*               | 1-3 incidentes menores o 1 lesión leve con 1-2 días perdidos. | Afecta localmente sin interrupción significativa. |
+| *Moderado*           | 1 incidente grave o hasta 10 lesiones leves con días perdidos. | Interrupción parcial de operaciones.          |
+| *Alto*               | 1 fatalidad o >10 incidentes graves.                   | Sanciones severas y daño significativo.       |
+| *Catastrófico*       | >1 fatalidad o evento masivo (explosión, derrumbe).     | Paralización total; impacto global.           |
+
+**Justificación técnica:**  
+- Evaluar estadísticas de frecuencia y severidad de incidentes usando índices como el TRIR (Total Recordable Incident Rate).
+- Ajustar los niveles según la tolerancia al riesgo de la empresa y las condiciones operativas.
+
+---
+
+#### **4. Impacto Reputacional**
+El impacto reputacional considera la percepción de los stakeholders, clientes y el público en general.
+
+| **Nivel de Impacto** | **Criterios Cuantitativos (Encuestas/Índices)**     | **Criterios Cualitativos**                    |
+|-----------------------|---------------------------------------------------|-----------------------------------------------|
+| *Muy bajo*           | Variación ≤ 1% en índices de satisfacción.         | Sin repercusión mediática ni pérdida de confianza. |
+| *Bajo*               | Variación > 1% y ≤ 5%.                            | Repercusión mínima en medios locales.         |
+| *Moderado*           | Variación > 5% y ≤ 15%.                           | Cobertura mediática nacional negativa; pérdida moderada de confianza. |
+| *Alto*               | Variación > 15% y ≤ 30%.                          | Cobertura internacional; boicots parciales.   |
+| *Catastrófico*       | Variación > 30%.                                  | Daño global a la reputación; boicots masivos. |
+
+**Justificación técnica:**  
+- Realizar encuestas periódicas y calcular índices de Net Promoter Score (NPS) o Customer Satisfaction Index (CSI).
+- Usar métodos estadísticos para correlacionar la percepción con eventos pasados.
+
+---
+
+#### **5. Impacto en la Continuidad Operacional**
+Se refiere al grado de interrupción de las operaciones de la compañía.
+
+| **Nivel de Impacto** | **Duración de la Interrupción**                      | **Criterios Cualitativos**                    |
+|-----------------------|---------------------------------------------------|-----------------------------------------------|
+| *Muy bajo*           | Interrupción ≤ 1 día.                             | Operaciones normales al siguiente turno.      |
+| *Bajo*               | Interrupción > 1 día y ≤ 1 semana.                | Impacto limitado a un área o proceso.         |
+| *Moderado*           | Interrupción > 1 semana y ≤ 1 mes.                | Afectación parcial de la operación.           |
+| *Alto*               | Interrupción > 1 mes y ≤ 6 meses.                 | Impacto significativo en la producción total. |
+| *Catastrófico*       | Interrupción > 6 meses.                           | Paralización total; riesgo de insolvencia.    |
+
+**Justificación técnica:**  
+- Integrar métricas de tiempo promedio para recuperación (MTTR).
+- Usar modelos de simulación de cadena de suministro para prever interrupciones.
+
+---
+
+Si necesitas ejemplos detallados para un caso práctico, puedo desarrollarlos usando datos simulados o ajustando estas métricas a un contexto específico.
+
+Aquí está la ampliación rigurosa, técnica y actuarial de los **umbrales de probabilidad**, considerando enfoques estadísticos, históricos y analíticos:
+
+---
+
+## **Definición de Umbrales para Probabilidades**
+
+Los umbrales de probabilidad establecen las categorías de frecuencia con las que es esperable que ocurra un evento. Estos umbrales son fundamentales en la evaluación de riesgos para priorizar recursos y establecer estrategias de mitigación. Se desarrollan con base en principios actuariales, modelos estadísticos y datos históricos.
+
+---
+
+### **1. Escala de Probabilidad**
+| **Nivel de Probabilidad** | **Definición Cuantitativa (Estadística)**    | **Interpretación Temporal**         | **Ejemplo Práctico**                     |
+|---------------------------|---------------------------------------------|--------------------------------------|-------------------------------------------|
+| **Raro**                 | \( P \leq 0.01 \)                          | ≤ 1 vez en 100 años                 | Terremoto >8.0 en escala de Richter.      |
+| **Poco Probable**        | \( 0.01 < P \leq 0.05 \)                   | 1 vez cada 20-100 años              | Derrame de petróleo en alta mar >10,000 litros. |
+| **Moderado**             | \( 0.05 < P \leq 0.2 \)                    | 1 vez cada 5-20 años                | Daño ambiental moderado en una operación. |
+| **Probable**             | \( 0.2 < P \leq 0.5 \)                     | 1 vez cada 2-5 años                 | Interrupción en la cadena de suministro.  |
+| **Casi Seguro**          | \( P > 0.5 \)                              | Más de 1 vez al año                 | Pérdida financiera leve recurrente.      |
+
+---
+
+### **2. Métodos Actuariales y Estadísticos para Definir Umbrales**
+Los niveles de probabilidad se establecen con base en modelos cuantitativos. Aquí se presentan los enfoques clave para definirlos:
+
+#### **a) Basado en Datos Históricos**
+- **Descripción:** Análisis de series temporales de eventos pasados para calcular frecuencias absolutas y relativas.
+- **Técnica:**  
+  \[
+  P(E) = \frac{\text{Número de eventos en un periodo específico}}{\text{Total de observaciones del periodo}}
+  \]
+  - Ejemplo: Si en los últimos 50 años se reportaron 5 derrames significativos, la probabilidad es:
+    \[
+    P(E) = \frac{5}{50} = 0.1 \, (10\%)
+    \]
+
+#### **b) Distribuciones Probabilísticas**
+- **Objetivo:** Ajustar los datos a una distribución matemática para extrapolar probabilidades futuras.
+- **Distribuciones Comunes:**
+  - **Poisson:** Para eventos discretos (e.g., accidentes laborales).  
+    \[
+    P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}
+    \]
+    Donde \( \lambda \) es la tasa de ocurrencia promedio por unidad de tiempo.
+  - **Gumbel (valores extremos):** Para eventos raros (e.g., desastres naturales).  
+    Función de distribución acumulativa (CDF):  
+    \[
+    F(x) = e^{-e^{-(x-\mu)/\beta}}
+    \]
+    Donde \( \mu \) es la ubicación y \( \beta \) la escala.
+
+#### **c) Simulación Monte Carlo**
+- **Uso:** Evaluar probabilidades a partir de múltiples escenarios hipotéticos basados en distribuciones de entrada.  
+- **Procedimiento:**
+  1. Definir la distribución de entrada para un evento.
+  2. Simular miles de escenarios aleatorios.
+  3. Calcular la frecuencia relativa de ocurrencia para estimar \( P(E) \).
+
+---
+
+### **3. Aplicación de Umbrales por Categoría de Riesgo**
+#### **a) Financiero**
+- **Fuente:** Análisis de series temporales de pérdidas económicas.  
+- **Umbrales de Probabilidad:**  
+  - Raro: Pérdida > 10% de EBITDA en eventos de 50 años.  
+  - Moderado: Pérdida entre 2%-5% de EBITDA en eventos de 5-20 años.
+
+#### **b) Ambiental**
+- **Fuente:** Registro histórico de sanciones y desastres ambientales.  
+- **Umbrales de Probabilidad:**  
+  - Poco Probable: Derrames menores (>100 litros) cada 20 años.  
+  - Probable: Emisiones fuera de normativa (>1 tonelada CO₂) recurrentes.
+
+#### **c) Seguridad**
+- **Fuente:** Indicadores TRIR (Tasa Total de Incidentes Registrables) y LTIR (Lesiones con Pérdida de Tiempo).  
+- **Umbrales de Probabilidad:**  
+  - Raro: Fatalidades múltiples (frecuencia histórica <1 en 50 años).  
+  - Moderado: Incidentes con días perdidos (frecuencia anual promedio).
+
+#### **d) Reputacional**
+- **Fuente:** Encuestas, análisis de redes sociales y medios.  
+- **Umbrales de Probabilidad:**  
+  - Poco Probable: Crisis global (frecuencia histórica <1 en 20 años).  
+  - Probable: Pérdida local de confianza (1-2 incidentes por año).
+
+---
+
+### **4. Escalas Logarítmicas vs. Lineales**
+#### **a) Escalas Logarítmicas**
+- **Uso:** Para eventos con rango de probabilidad muy amplio (p. ej., \(10^{-6}\) a \(10^{-1}\)).  
+- **Ventaja:** Permite comprimir rangos grandes, haciendo visibles los eventos extremos.  
+  \[
+  P_{log} = \log(1 + P)
+  \]
+- **Aplicación:** Riesgos financieros extremos y catastróficos (e.g., default bancario, derrames masivos).
+
+#### **b) Escalas Lineales**
+- **Uso:** Para eventos comunes con probabilidades entre \( 0.1 \) y \( 1.0 \).  
+- **Ventaja:** Más intuitivo y directamente interpretable.  
+- **Aplicación:** Riesgos operativos y recurrentes (e.g., interrupciones menores).
+
+---
+
+### **5. Referencias**
+#### **Literatura y Modelos Actuariales**
+- **"Extreme Value Theory in Risk Management"** – Embrechts et al. (2004): Introducción al uso de EVT para riesgos extremos.  
+- **"Risk Assessment Frameworks"** – ISO 31000:2018: Guía general para gestión de riesgos, incluyendo umbrales de probabilidad.  
+- **"Loss Distributions"** – Klugman et al. (2012): Uso de distribuciones para modelar riesgos financieros.
+
+#### **Práctica Empresarial**
+- **Ecopetrol 2022:** Sistema de Gestión de Riesgos, aplica métricas para riesgos empresariales.  
+- **IFC Environmental Risk Standards (2020):** Estándares para riesgos ambientales.  
+- **COSO ERM Framework (2017):** Marco para evaluar probabilidades en contextos empresariales.
+
+Esta metodología asegura que los umbrales de probabilidad sean consistentes, reproducibles y basados en mejores prácticas actuariales y estadísticas.
+
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.consejo.org.ar/storage/attachments/Informe%20N4.pdf-iRQt7S5tkb.pdf?utm_source=chatgpt.com
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.ifc.org/content/dam/ifc/doc/mgrt/ifc-cia-esp.pdf?utm_source=chatgpt.com
+https://www.researchgate.net/publication/378034768_El_Impacto_de_la_Gestion_de_Riesgos_en_las_Organizaciones_Una_revision_de_la_literatura
+https://es.smartsheet.com/content/enterprise-risk-management-framework-model
