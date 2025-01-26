@@ -1,0 +1,75 @@
+instalar pyinstaller
+
+pip install pyinstaller  
+pyinstaller --onefile --add-data "app;app" --add-data "instance;instance" --add-data "uploads;uploads" run.py
+
+en _init_.py
+
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
+
+db = SQLAlchemy()
+csrf = CSRFProtect()
+
+def create_app():
+    app = Flask(__name__)
+
+    # Define la ruta absoluta de la base de datos
+    BASE_DIR = os.path.expanduser(r"C:\Users\57314\OneDrive\Documentos\AppData\BD_risk_app")
+    os.makedirs(BASE_DIR, exist_ok=True)  # Crea la carpeta si no existe
+    db_path = os.path.join(BASE_DIR, 'risks.db')  # Ruta completa del archivo SQLite
+
+    # Configuración de la base de datos y clave secreta
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"  # Ruta absoluta de la BD
+    app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
+
+    db.init_app(app)
+
+    # Registro del blueprint
+    from .routes import main
+    app.register_blueprint(main)
+
+    return app
+
+
+usando variable de entorno
+
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
+
+db = SQLAlchemy()
+csrf = CSRFProtect()
+
+def create_app():
+    app = Flask(__name__)
+
+    # Construye la ruta dinámica a la carpeta compartida usando %USERPROFILE%
+    shared_folder = os.path.expandvars(r"%USERPROFILE%\OneDrive\SharePoint\Riesgos")
+
+    # Verifica que la carpeta exista
+    if not os.path.exists(shared_folder):
+        raise FileNotFoundError(f"No se encontró la carpeta compartida en '{shared_folder}'. Verifica la configuración de OneDrive y la sincronización.")
+
+    # Construye la ruta de la base de datos dentro de la carpeta compartida
+    db_path = os.path.join(shared_folder, 'BD_risk_app', 'risks.db')
+
+    # Crea la carpeta donde estará la base de datos si no existe
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
+    # Configuración de la base de datos y clave secreta
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+    app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
+
+    db.init_app(app)
+
+    # Registro del blueprint
+    from .routes import main
+    app.register_blueprint(main)
+
+    return app
+
+
