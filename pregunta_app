@@ -1,3 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Riesgos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Gestión de Riesgos</h1>
+        <table class="table table-bordered mt-4">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for riesgo in riesgos %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ riesgo.codigo }}</td>
+                    <td>{{ riesgo.nombre }}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <!-- Botón para duplicar -->
+                            <form action="{{ url_for('main.duplicar_riesgo', id=riesgo.id) }}" method="POST" class="d-inline">
+                                <button class="btn btn-secondary btn-sm" type="submit">Duplicar</button>
+                            </form>
+                            <!-- Botón para eliminar (abre el modal) -->
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setRiesgoId
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setRiesgoId({{ riesgo.id }})">Eliminar</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Modal para confirmar eliminación -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ url_for('main.eliminar_riesgo') }}" method="POST">
+                        <div class="modal-body">
+                            <p>¿Estás seguro de que deseas eliminar este riesgo?</p>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Ingresa la contraseña para confirmar:</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <input type="hidden" id="riesgoId" name="riesgoId">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para asignar el ID del riesgo al campo oculto en el formulario del modal
+        function setRiesgoId(id) {
+            document.getElementById('riesgoId').value = id;
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
 Claro, para implementar las funcionalidades necesarias en el paso 3 (duplicar riesgos y eliminar solicitando contraseña), puedes seguir estas instrucciones:
 
 1. Habilitar la duplicación de riesgos
