@@ -1,3 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Riesgos{% endblock %}
+
+{% block content %}
+    <h5></h5>
+    <div class="card">
+        <div class="card-header card-header-custom">
+            <h3 class="text-center card-subtitle">Listado de Riesgos</h3>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for riesgo in riesgos %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ riesgo.nombre }}</strong> (Código: {{ riesgo.codigo }})
+                        </div>
+                        <div>
+                            <a href="{{ url_for('main.ver_riesgo', riesgo_id=riesgo.id) }}" class="btn btn-primary btn-sm">Ficha del Riesgo</a>
+                            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary btn-sm">Editar Riesgo</a>
+                            <button class="btn btn-warning btn-sm" onclick="duplicarRiesgo({{ riesgo.id }})">
+                                Duplicar Riesgo
+                            </button>
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setRiesgoId({{ riesgo.id }})">
+                                Eliminar Riesgo
+                            </button>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">No hay riesgos definidos.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('main.crear_riesgo') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Crear Nuevo Riesgo
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-tachometer-alt"></i> DashBoard Variación Riesgo
+        </a>
+        <a href="{{ url_for('main.download_excel') }}" class="btn btn-info" onclick="return confirm('Esto descargará el historial completo de todos los Riesgos con sus respectivos controles y acciones de tratamiento. ¿Deseas continuar?');">
+            <i class="fas fa-file-excel"></i> Descargar Excel
+        </a>
+        <a href="{{ url_for('main.parametros') }}" class="btn btn-warning">
+            <i class="fas fa-cogs"></i> Parámetros
+        </a>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('main.eliminar_riesgo') }}" method="POST">
+                    <div class="modal-body">
+                        <p>Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?</p>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Ingresa la contraseña para confirmar:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <input type="hidden" id="riesgoId" name="riesgoId">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para asignar el ID del riesgo al campo oculto en el formulario del modal
+        function setRiesgoId(id) {
+            document.getElementById('riesgoId').value = id;
+        }
+
+        // Función para duplicar riesgo (enviar solicitud al backend)
+        function duplicarRiesgo(id) {
+            if (confirm("¿Estás seguro de que deseas duplicar este riesgo?")) {
+                fetch(`{{ url_for('main.duplicar_riesgo') }}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ riesgo_id: id })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Riesgo duplicado exitosamente.");
+                        window.location.reload();
+                    } else {
+                        alert("Ocurrió un error al duplicar el riesgo.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Ocurrió un error al duplicar el riesgo.");
+                });
+            }
+        }
+    </script>
+{% endblock %}
+
+
 mi index.html está asi, ya corregi las rutas pero este es el index que tengo actualmente, haz el cambio completo
 
 {% extends "base.html" %}
