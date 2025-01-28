@@ -1,0 +1,300 @@
+actualmente tengo este index de listado de riesgos, quiero poder eliminar solictando la contraseña actual del usuario para mayor protección y quiero poder duplicar el riesgo con todo lo que incluye, para asi poder hacer comparaciones de escenarios y demás. pero estos dos botones no hacen nada.
+
+tengo mi index.html
+
+{% extends "base.html" %}
+
+{% block title %}Listado de Riesgos{% endblock %}
+
+{% block content %}
+    <h5></h5>
+    <div class="card">
+        <div class="card-header card-header-custom">
+            <h3 class="text-center card-subtitle">Listado de Riesgos</h3>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for riesgo in riesgos %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ riesgo.nombre }}</strong> (Código: {{ riesgo.codigo }})
+                        </div>
+                        <div>
+                            <a href="{{ url_for('main.ver_riesgo', riesgo_id=riesgo.id) }}" class="btn btn-primary btn-sm">Ficha del Riesgo</a>
+                            <a href="{{ url_for('main.valoracion_riesgo', id=riesgo.id) }}" class="btn btn-secondary btn-sm">Editar Riesgo</a>
+                            <a href="javascript:void(0);" class="btn btn-warning btn-sm" 
+                               onclick="duplicateRisk('{{ riesgo.id }}'); return false;">
+                                Duplicar Riesgo
+                            </a>
+                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" 
+                               onclick="openDeleteModal('{{ riesgo.id }}'); return false;">
+                                Eliminar Riesgo
+                            </a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">No hay riesgos definidos.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('main.crear_riesgo') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Crear Nuevo Riesgo
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-tachometer-alt"></i> DashBoard Variación Riesgo
+        </a>
+        <a href="{{ url_for('main.download_excel') }}" class="btn btn-info" onclick="return confirm('Esto descargará el historial completo de todos los Riesgos con sus respectivos controles y acciones de tratamiento. ¿Deseas continuar?');">
+            <i class="fas fa-file-excel"></i> Descargar Excel
+        </a>
+        <a href="{{ url_for('main.parametros') }}" class="btn btn-warning">
+            <i class="fas fa-cogs"></i> Parámetros
+        </a>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Eliminar este riesgo también eliminará sus controles y acciones asociados. ¿Estás seguro?</p>
+                    <form id="deleteForm" method="POST" action="">
+                        <div class="form-group">
+                            <label for="password">Contraseña:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <input type="hidden" id="riesgoId" name="riesgoId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openDeleteModal(riesgoId) {
+        document.getElementById('riesgoId').value = riesgoId;
+        var deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        deleteModal.show();
+    }
+
+    document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+        var form = document.getElementById('deleteForm');
+        form.action = '/riesgo/' + document.getElementById('riesgoId').value + '/eliminar';
+        form.submit();
+    });
+
+    function duplicateRisk(riesgoId) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/riesgo/' + riesgoId + '/duplicar';
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+{% endblock %}
+
+estos son los modelos en models.py
+
+from . import db
+from datetime import datetime
+
+# Modelo de Usuario
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+class Risk(db.Model):
+    __tablename__ = 'risks'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    escenario = db.Column(db.String(255), nullable=False)
+    probabilidad_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_personas=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_ambiente=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_recursos_economicos=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_reputacional=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_clientes=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_inherente = db.Column(db.Integer, nullable=False)  # 1-5
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    # Relación con controles y acciones
+    controles = db.relationship('Control', backref='riesgo', lazy=True)
+    acciones_tratamiento = db.relationship('AccionTratamiento', backref='riesgo', lazy=True)
+    mitigantes = db.relationship('Mitigantes', backref='riesgo', lazy=True)
+    criterios = db.relationship('RiesgoExperto', backref='riesgo', lazy=True)
+    
+
+class Control(db.Model):
+    __tablename__ = 'controles'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    nombre_control=db.Column(db.String(50), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # preventivo, detectivo, correctivo
+    clase = db.Column(db.Integer, nullable=False)  # manual=5, manual TI=10, automatico=15
+    efectividad = db.Column(db.Integer, nullable=False)  # 0 = inefectivo, 70 = efectivo
+    cubrimiento_causa = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    cubrimiento_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 10, 15
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+class AccionTratamiento(db.Model):
+    __tablename__ = 'acciones_tratamiento'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    at = db.Column(db.String(100), nullable=False)
+    nombre_at=db.Column(db.String(100), nullable=False)
+    categoria = db.Column(db.Integer, nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+class Mitigantes(db.Model):
+    __tablename__ = 'mitigantes'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_causa=db.Column(db.String(100), nullable=False)
+    mitigante = db.Column(db.String(100), nullable=False)
+    nombre_mitigante=db.Column(db.String(100), nullable=False)
+    categoria = db.Column(db.Integer, nullable=False)
+    puntos_causa = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    puntos_consecuencia = db.Column(db.Integer, nullable=False)  # 0, 50, 100
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+class RiesgoExperto(db.Model):
+    __tablename__ = 'riesgo_experto'
+    id = db.Column(db.Integer, primary_key=True)
+    probabilidad_residual = db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_personas=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_ambiente=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_recursos_economicos=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_reputacional=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_clientes=db.Column(db.Integer, nullable=False)  # 1-5
+    impacto_residual = db.Column(db.Integer, nullable=False)  # 1-5
+    justificacion = db.Column(db.String(255), nullable=False)
+    creador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    modificador_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    riesgo_id = db.Column(db.Integer, db.ForeignKey('risks.id'), nullable=False)
+
+
+en routes.py algunas rutas como:
+
+# Ruta para crear un nuevo riesgo
+@main.route('/crear_riesgo', methods=['GET', 'POST'])
+def crear_riesgo():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    form = RiskForm()
+    if form.validate_on_submit():
+        impacto_inherente = calcular_puntaje_inherente(
+            form.impacto_personas.data,
+            form.impacto_ambiente.data,
+            form.impacto_recursos_economicos.data,
+            form.impacto_reputacional.data,
+            form.impacto_clientes.data
+        )
+        nuevo_riesgo = Risk(
+            nombre=form.nombre.data,
+            codigo=form.codigo.data,
+            escenario=form.escenario.data,
+            probabilidad_inherente=form.probabilidad_inherente.data,
+            impacto_personas=form.impacto_personas.data,
+            impacto_ambiente=form.impacto_ambiente.data,
+            impacto_recursos_economicos=form.impacto_recursos_economicos.data,
+            impacto_reputacional=form.impacto_reputacional.data,
+            impacto_clientes=form.impacto_clientes.data,
+            impacto_inherente=impacto_inherente,
+            creador_id=session['user_id']  # Agregar el ID del usuario autenticado
+        )
+        db.session.add(nuevo_riesgo)
+        db.session.commit()
+        flash('Riesgo creado con éxito', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('crear_riesgo.html', form=form)
+
+# ruta para editar riesgos
+
+@main.route('/riesgo/<int:id>', methods=['GET', 'POST'])
+def valoracion_riesgo(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    riesgo = Risk.query.get_or_404(id)
+    form = RiskForm(obj=riesgo)
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            riesgo.nombre = form.nombre.data
+            riesgo.codigo = form.codigo.data
+            riesgo.escenario = form.escenario.data
+            riesgo.probabilidad_inherente = form.probabilidad_inherente.data
+            riesgo.impacto_personas = form.impacto_personas.data
+            riesgo.impacto_ambiente = form.impacto_ambiente.data
+            riesgo.impacto_recursos_economicos = form.impacto_recursos_economicos.data
+            riesgo.impacto_reputacional = form.impacto_reputacional.data
+            riesgo.impacto_clientes = form.impacto_clientes.data
+            riesgo.impacto_inherente = calcular_puntaje_inherente(
+                riesgo.impacto_personas,
+                riesgo.impacto_ambiente,
+                riesgo.impacto_recursos_economicos,
+                riesgo.impacto_reputacional,
+                riesgo.impacto_clientes
+            )
+            riesgo.modificador_id = session['user_id']  # Agregar el ID del usuario autenticado que modifica el riesgo
+
+            db.session.commit()
+            flash('Valoración del riesgo actualizada', 'success')
+            return redirect(url_for('main.index'))
+
+    return render_template('valoracion_riesgo.html', form=form, riesgo=riesgo)
+
+
+## Ruta para eliminar riesgos
+
+@main.route('/riesgo/<int:id>/eliminar', methods=['GET', 'POST'])
+def eliminar_riesgo(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+        
+    riesgo = Risk.query.get_or_404(id)
+    
+    # Eliminar los controles, acciones, mitigantes y criterios expertos asociados
+    for control in riesgo.controles:
+        db.session.delete(control)
+    for accion in riesgo.acciones_tratamiento:
+        db.session.delete(accion)
+    for mitigante in riesgo.mitigantes:
+        db.session.delete(mitigante)
+    for criterio in riesgo.criterios:
+        db.session.delete(criterio)
+        
+    db.session.delete(riesgo)
+    db.session.commit()
+    flash('Riesgo y sus elementos asociados eliminados con éxito', 'success')
+    return redirect(url_for('main.index'))
