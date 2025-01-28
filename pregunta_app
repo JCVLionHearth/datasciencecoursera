@@ -1,3 +1,150 @@
+Claro, para implementar las funcionalidades necesarias en el paso 3 (duplicar riesgos y eliminar solicitando contraseña), puedes seguir estas instrucciones:
+
+1. Habilitar la duplicación de riesgos
+
+En routes.py, define una nueva ruta que se encargue de duplicar un riesgo:
+
+@main.route('/riesgo/<int:id>/duplicar', methods=['POST'])
+def duplicar_riesgo(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    riesgo_original = Risk.query.get_or_404(id)
+
+    # Crear una copia del riesgo
+    riesgo_copiado = Risk(
+        codigo=f"{riesgo_original.codigo}_copy",
+        nombre=f"{riesgo_original.nombre} (Copia)",
+        escenario=riesgo_original.escenario,
+        probabilidad_inherente=riesgo_original.probabilidad_inherente,
+        impacto_personas=riesgo_original.impacto_personas,
+        impacto_ambiente=riesgo_original.impacto_ambiente,
+        impacto_recursos_economicos=riesgo_original.impacto_recursos_economicos,
+        impacto_reputacional=riesgo_original.impacto_reputacional,
+        impacto_clientes=riesgo_original.impacto_clientes,
+        impacto_inherente=riesgo_original.impacto_inherente,
+        creador_id=session['user_id']
+    )
+    db.session.add(riesgo_copiado)
+    db.session.flush()  # Necesario para asignar un ID al nuevo riesgo antes de duplicar las relaciones
+
+    # Duplicar controles asociados
+    for control in riesgo_original.controles:
+        control_copiado = Control(
+            nombre_causa=control.nombre_causa,
+            nombre_control=control.nombre_control,
+            tipo=control.tipo,
+            clase=control.clase,
+            efectividad=control.efectividad,
+            cubrimiento_causa=control.cubrimiento_causa,
+            cubrimiento_consecuencia=control.cubrimiento_consecuencia,
+            creador_id=session['user_id'],
+            riesgo_id=riesgo_copiado.id
+        )
+        db.session.add(control_copiado)
+
+    # Duplicar acciones de tratamiento
+    for accion in riesgo_original.acciones_tratamiento:
+        accion_copiada = AccionTratamiento(
+            nombre_causa=accion.nombre_causa,
+            at=accion.at,
+            nombre_at=accion.nombre_at,
+            categoria=accion.categoria,
+            puntos_causa=accion.puntos_causa,
+            puntos_consecuencia=accion.puntos_consecuencia,
+            creador_id=session['user_id'],
+            riesgo_id=riesgo_copiado.id
+        )
+        db.session.add(accion_copiada)
+
+    # Duplicar mitigantes asociados
+    for mitigante in riesgo_original.mitigantes:
+        mitigante_copiado = Mitigantes(
+            nombre_causa=mitigante.nombre_causa,
+            mitigante=mitigante.mitigante,
+            nombre_mitigante=mitigante.nombre_mitigante,
+            categoria=mitigante.categoria,
+            puntos_causa=mitigante.puntos_causa,
+            puntos_consecuencia=mitigante.puntos_consecuencia,
+            creador_id=session['user_id'],
+            riesgo_id=riesgo_copiado.id
+        )
+        db.session.add(mitigante_copiado)
+
+    # Duplicar criterios expertos asociados
+    for criterio in riesgo_original.criterios:
+        criterio_copiado = RiesgoExperto(
+            probabilidad_residual=criterio.probabilidad_residual,
+            impacto_personas=criterio.impacto_personas,
+            impacto_ambiente=criterio.impacto_ambiente,
+            impacto_recursos_economicos=criterio.impacto_recursos_economicos,
+            impacto_reputacional=criterio.impacto_reputacional,
+            impacto_clientes=criterio.impacto_clientes,
+            impacto_residual=criterio.impacto_residual,
+            justificacion=criterio.justificacion,
+            creador_id=session['user_id'],
+            riesgo_id=riesgo_copiado.id
+        )
+        db.session.add(criterio_copiado)
+
+    db.session.commit()
+    flash('Riesgo duplicado con éxito', 'success')
+    return redirect(url_for('main.index'))
+
+2. Eliminar riesgos solicitando contraseña
+
+En routes.py, ajusta la ruta de eliminación para verificar la contraseña:
+
+from werkzeug.security import check_password_hash
+
+@main.route('/riesgo/<int:id>/eliminar', methods=['POST'])
+def eliminar_riesgo(id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    
+    # Verificar contraseña
+    password = request.form.get('password')
+    user = User.query.get(session['user_id'])
+
+    if not check_password_hash(user.password, password):
+        flash('Contraseña incorrecta. No se eliminó el riesgo.', 'danger')
+        return redirect(url_for('main.index'))
+
+    riesgo = Risk.query.get_or_404(id)
+
+    # Eliminar los controles, acciones, mitigantes y criterios asociados
+    for control in riesgo.controles:
+        db.session.delete(control)
+    for accion in riesgo.acciones_tratamiento:
+        db.session.delete(accion)
+    for mitigante in riesgo.mitigantes:
+        db.session.delete(mitigante)
+    for criterio in riesgo.criterios:
+        db.session.delete(criterio)
+    
+    db.session.delete(riesgo)
+    db.session.commit()
+    flash('Riesgo y sus elementos asociados eliminados con éxito', 'success')
+    return redirect(url_for('main.index'))
+
+3. Actualizar el formulario en index.html
+
+Modifica el botón Eliminar para enviar la contraseña:
+
+<script>
+    document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+        var form = document.getElementById('deleteForm');
+        form.action = '/riesgo/' + document.getElementById('riesgoId').value + '/eliminar';
+        form.submit();
+    });
+</script>
+
+4. Verifica en la base de datos
+
+Asegúrate de que las contraseñas estén almacenadas como hashes utilizando werkzeug.security.generate_password_hash para evitar guardar contraseñas en texto plano.
+
+Con esto, podrás duplicar riesgos y eliminarlos tras confirmar la contraseña. ¿Te gustaría probarlo o ajustar algo más?
+
 actualmente tengo este index de listado de riesgos, quiero poder eliminar solictando la contraseña actual del usuario para mayor protección y quiero poder duplicar el riesgo con todo lo que incluye, para asi poder hacer comparaciones de escenarios y demás. pero estos dos botones no hacen nada.
 
 tengo mi index.html
