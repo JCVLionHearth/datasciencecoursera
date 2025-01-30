@@ -1,0 +1,30 @@
+quiero crear la siguiente coleccion en las propiedades de la aplicacion en powerapps en la propiedad OnStar, pero me sale errores, donde tengo mi error?
+
+ClearCollect(
+  TablaRiesgos;
+  {Probabilidad: 1; Consecuencia: 1; Clasificacion: "Muy Bajo"; Color: "#006600"};
+  {Probabilidad: 1; Consecuencia: 2; Clasificacion: "Muy Bajo"; Color: "#006600"};
+  {Probabilidad: 2; Consecuencia: 1; Clasificacion: "Muy Bajo"; Color: "#006600"};
+  {Probabilidad: 1; Consecuencia: 3; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 1; Consecuencia: 4; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 2; Consecuencia: 2; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 2; Consecuencia: 3; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 3; Consecuencia: 1; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 3; Consecuencia: 2; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 4; Consecuencia: 1; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 4; Consecuencia: 2; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 5; Consecuencia: 1; Clasificacion: "Bajo"; Color: "#FFFF99"};
+  {Probabilidad: 1; Consecuencia: 5; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 2; Consecuencia: 4; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 3; Consecuencia: 3; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 3; Consecuencia: 4; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 4; Consecuencia: 3; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 5; Consecuencia: 2; Clasificacion: "Medio"; Color: "#FFFF00"};
+  {Probabilidad: 2; Consecuencia: 5; Clasificacion: "Alto"; Color: "#FF9900"};
+  {Probabilidad: 3; Consecuencia: 5; Clasificacion: "Alto"; Color: "#FF9900"};
+  {Probabilidad: 4; Consecuencia: 4; Clasificacion: "Alto"; Color: "#FF9900"};
+  {Probabilidad: 5; Consecuencia: 3; Clasificacion: "Alto"; Color: "#FF9900"};
+  {Probabilidad: 5; Consecuencia: 4; Clasificacion: "Alto"; Color: "#FF9900"};
+  {Probabilidad: 4; Consecuencia: 5; Clasificacion: "Muy Alto"; Color: "#FF0000"};
+  {Probabilidad: 5; Consecuencia: 5; Clasificacion: "Muy Alto"; Color: "#FF0000"}
+)
