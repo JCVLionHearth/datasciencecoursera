@@ -1,0 +1,94 @@
+Aquí está la escala para clasificar las variables de esfuerzo en bajo (1), medio (2) y alto (3):
+
+1. Esfuerzo Técnico
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Conocimiento inicial de la problemática	Se entiende completamente	Se tiene un conocimiento parcial	Se desconoce o es muy nuevo
+Pregunta de negocio clara	Está claramente definida	Requiere ajustes o aclaraciones	No está bien definida o es ambigua
+Herramientas necesarias	Solo herramientas libres	Mixto (libres y con licencia)	Requiere herramientas licenciadas nuevas
+Desarrollo interno o externo	Se puede desarrollar internamente	Requiere apoyo ocasional de TI	Depende totalmente de TI o un proveedor externo
+Complejidad de integración	No requiere integración o es mínima	Integra con sistemas conocidos	Requiere integración compleja con múltiples sistemas
+Cantidad de datos involucrados	Dataset pequeño (< 100K registros)	Dataset mediano (100K - 10M registros)	Volumen masivo (> 10M registros)
+Número de datasets y correlaciones	1-2 datasets, sin correlaciones complejas	3-5 datasets, con algunas correlaciones	Más de 5 datasets con relaciones complejas
+Revisión y calidad de la información	Datos limpios y confiables	Requiere limpieza moderada	Datos con muchos errores o inconsistencias
+Tipo de entrega	Documento o análisis único	Tablero o rutina automatizada	Metodología completa o sistema integrado
+Periodicidad de ejecución	Única vez	Trimestral/Semestral	Mensual o más frecuente
+Nivel de automatización	Ejecución manual	Semi-automático con supervisión	Automatización completa con actualizaciones automáticas
+Tipo de análisis	ETL básico o consulta simple	Modelos analíticos estándar	Modelos avanzados con machine learning o inteligencia artificial
+
+2. Tiempo Estimado
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Tiempo de entendimiento	Menos de 2 días	Entre 3 y 5 días	Más de una semana
+Tiempo de acompañamiento	Poco o nulo	Acompañamiento ocasional	Requiere reuniones y validaciones constantes
+Tiempo de desarrollo	Menos de 1 semana	1-3 semanas	Más de 3 semanas
+Tiempo de validación, pruebas y ajustes	Validación rápida (< 3 días)	Validación media (1-2 semanas)	Validación larga (> 2 semanas)
+Tiempo de despliegue	No requiere despliegue o es inmediato	Requiere coordinación con TI o equipos externos	Despliegue complejo con múltiples aprobaciones
+
+3. Dependencias y Factores Externos
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Permisos o aprobaciones requeridas	No requiere aprobaciones	Requiere algunas aprobaciones	Requiere múltiples aprobaciones o acuerdos legales
+Necesidad de datos de otras áreas	Datos disponibles internamente	Requiere gestión con otras áreas	Difícil acceso a datos o acuerdos de confidencialidad complejos
+
+Este esquema permite asignar puntajes y visualizar claramente qué iniciativas requieren más esfuerzo. Puedes usarlo en una matriz de evaluación para priorizar actividades.
+
+Cuando tengas las variables de impacto, podemos hacer lo mismo para completar la priorización.
+
+Aquí está la escala para clasificar las variables de impacto en bajo (1), medio (2) y alto (3):
+
+1. Valor para la Dirección
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Tipo de mejora	Optimización menor o ajuste de proceso	Mejora significativa en eficiencia o automatización parcial	Soluciona un problema clave o automatización completa
+
+2. Automatización y Escalabilidad
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Reducción de tareas manuales	Reducción mínima (< 10%)	Reduce tareas en un 10-50%	Eliminación casi total (> 50%)
+Reducción de tiempos de ejecución	Menos de 10% de ahorro	10-50% de reducción	Más del 50% de reducción
+Aplicabilidad a otras áreas	No es replicable	Puede adaptarse a algunas áreas	Totalmente escalable a múltiples áreas
+
+3. Usuarios Beneficiarios
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Número de áreas o equipos beneficiados	1 equipo o usuario	Varias áreas dentro de la dirección	Impacto en múltiples direcciones o toda la compañía
+
+4. Cumplimiento Normativo
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Requerimiento normativo	No está relacionado con una norma	Mejora cumplimiento pero no es obligatorio	Cumple un requerimiento normativo obligatorio
+
+5. Tipo de Alcance
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Nivel de alcance	Aplica solo a una gerencia o equipo	Aplica a toda la dirección	Aplica a toda la compañía o varias vicepresidencias
+
+6. Definición del Alcance
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Impacto en objetivos estratégicos	No está alineado con objetivos estratégicos	Aporta indirectamente	Está alineado con un objetivo clave
+
+7. Mantenimiento en el Tiempo
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Facilidad de mantenimiento	Requiere mantenimiento constante	Mantenimiento ocasional	Bajo costo de mantenimiento y fácil actualización
+
+8. Costos
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Impacto en costos	Requiere inversión adicional sin ahorro	Requiere inversión, pero genera ahorros a largo plazo	Reducción inmediata de costos en licencias o procesos
+
+9. Contribución al Cumplimiento de los Objetivos del Área (TBG)
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Alineación con objetivos del área	No está alineado con objetivos del área	Alineación parcial con uno o más objetivos	Contribuye directamente a objetivos clave
+
+10. Otros Impactos y Beneficios
+
+Variable	Bajo (1)	Medio (2)	Alto (3)
+Desarrollo de competencias técnicas	Impacto en pocos usuarios	Desarrolla habilidades en varias áreas	Fomenta aprendizaje organizacional a gran escala
+Apropiación de conocimiento	Impacto limitado	Promueve conocimiento en algunos equipos	Fortalece la cultura analítica en toda la dirección
+Reducción de riesgos	No afecta la gestión de riesgos	Mitiga algunos riesgos operativos	Reduce significativamente riesgos críticos
+
+Este sistema te permitirá asignar puntajes de impacto de manera clara y objetiva. Ahora puedes combinarlo con la matriz de esfuerzo para obtener un mapa completo de priorización.
