@@ -1,0 +1,243 @@
+Para cumplir con tu objetivo de evaluar los sesgos éticos en modelos de lenguaje, necesitas una arquitectura clara y bien estructurada en tu proyecto de Visual Studio Code con Python. Aquí te presento la mejor manera de abordarlo y una configuración organizada de archivos .py para lograrlo.
+
+1. Estructura del Proyecto en Visual Studio Code
+
+Tu proyecto debería estar organizado en carpetas y archivos de la siguiente manera:
+
+/EvaluadorSesgosLLM
+│── /data
+│   ├── dataset_preguntas.csv  # Dataset con preguntas, afirmaciones y escenarios.
+│   ├── dataset_respuestas.csv  # Dataset con respuestas de los modelos de lenguaje.
+│   ├── dataset_analisis.csv  # Dataset con análisis de emociones y sesgos.
+│── /models
+│   ├── evaluador_modelos.py  # Código para hacer las preguntas a modelos de lenguaje.
+│   ├── analisis_emocional.py  # Análisis de emociones en respuestas.
+│   ├── analisis_sesgos.py  # Detección de sesgos temáticos y parciales.
+│   ├── comparador_modelos.py  # Comparación de respuestas entre diferentes modelos.
+│── /utils
+│   ├── preprocesamiento.py  # Funciones para limpiar y estructurar datos.
+│   ├── visualizaciones.py  # Generación de gráficos y estadísticas.
+│── main.py  # Archivo principal para ejecutar todo el flujo del proyecto.
+│── requirements.txt  # Librerías necesarias para el proyecto.
+│── README.md  # Explicación del proyecto y cómo ejecutarlo.
+
+2. Flujo del Proyecto
+
+Paso 1: Extraer Respuestas de Modelos de Lenguaje
+	•	Archivo: /models/evaluador_modelos.py
+	•	Objetivo: Cargar el dataset de preguntas y hacer solicitudes a los modelos de lenguaje (GPT, Beto, etc.).
+	•	Técnica: Usar la API de OpenAI (para GPT) y Hugging Face (para modelos como Beto).
+
+Paso 2: Análisis de Emociones
+	•	Archivo: /models/analisis_emocional.py
+	•	Objetivo: Evaluar el tono emocional en las respuestas utilizando modelos preentrenados de análisis de sentimientos.
+	•	Técnica: Uso de TextBlob, VADER o modelos de Hugging Face para extraer polaridad y emociones.
+
+Paso 3: Análisis de Sesgos y Parcialidades
+	•	Archivo: /models/analisis_sesgos.py
+	•	Objetivo: Detectar sesgos en respuestas mediante técnicas de Latent Dirichlet Allocation (LDA) o clasificadores supervisados.
+	•	Técnica: Uso de Scikit-Learn o spaCy para análisis de tópicos y sesgos de género, emocionales y temáticos.
+
+Paso 4: Comparación entre Modelos
+	•	Archivo: /models/comparador_modelos.py
+	•	Objetivo: Evaluar similitudes y diferencias entre respuestas de modelos de lenguaje.
+	•	Técnica: Uso de cosine similarity con embeddings (por ejemplo, Word2Vec o Sentence-BERT).
+
+3. Desarrollo de los Archivos en Python
+
+Te dejo la base de código para cada archivo clave.
+
+📌 evaluador_modelos.py – Generación Automática de Respuestas
+
+import openai
+import pandas as pd
+from transformers import pipeline
+
+# Configurar API de OpenAI (GPT)
+openai.api_key = "TU_API_KEY"
+
+# Cargar dataset
+df = pd.read_csv("../data/dataset_preguntas.csv")
+
+# Inicializar modelo de Hugging Face (Beto)
+beto_pipeline = pipeline("text-generation", model="dccuchile/bert-base-spanish-wwm-cased")
+
+def obtener_respuesta_gpt(texto):
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": texto}]
+    )
+    return response["choices"][0]["message"]["content"]
+
+def obtener_respuesta_beto(texto):
+    respuesta = beto_pipeline(texto, max_length=50)
+    return respuesta[0]["generated_text"]
+
+# Generar respuestas y guardarlas
+df["respuesta_gpt"] = df["Texto"].apply(obtener_respuesta_gpt)
+df["respuesta_beto"] = df["Texto"].apply(obtener_respuesta_beto)
+
+df.to_csv("../data/dataset_respuestas.csv", index=False)
+print("Respuestas guardadas correctamente.")
+
+📌 analisis_emocional.py – Análisis de Sentimientos
+
+import pandas as pd
+from textblob import TextBlob
+from transformers import pipeline
+
+# Cargar dataset
+df = pd.read_csv("../data/dataset_respuestas.csv")
+
+# Inicializar modelo de análisis de emociones
+emocion_pipeline = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
+
+def analizar_emociones(texto):
+    resultado = emocion_pipeline(texto)
+    return resultado[0]["label"]
+
+df["emocion_gpt"] = df["respuesta_gpt"].apply(analizar_emociones)
+df["emocion_beto"] = df["respuesta_beto"].apply(analizar_emociones)
+
+df.to_csv("../data/dataset_analisis.csv", index=False)
+print("Análisis emocional completado.")
+
+📌 analisis_sesgos.py – Análisis de Sesgos con LDA
+
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+
+# Cargar dataset
+df = pd.read_csv("../data/dataset_respuestas.csv")
+
+# Convertir texto en vectores
+vectorizer = CountVectorizer(stop_words="spanish")
+X = vectorizer.fit_transform(df["respuesta_gpt"])
+
+# Aplicar LDA
+lda = LatentDirichletAllocation(n_components=5, random_state=42)
+lda.fit(X)
+
+# Agregar resultados al dataframe
+df["topico_gpt"] = lda.transform(X).argmax(axis=1)
+
+df.to_csv("../data/dataset_analisis.csv", index=False)
+print("Análisis de sesgos completado.")
+
+📌 comparador_modelos.py – Comparación de Modelos
+
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+
+# Cargar dataset
+df = pd.read_csv("../data/dataset_respuestas.csv")
+
+# Cargar modelo de embeddings
+modelo_emb = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+
+def calcular_similitud(texto1, texto2):
+    emb1 = modelo_emb.encode([texto1])
+    emb2 = modelo_emb.encode([texto2])
+    return cosine_similarity(emb1, emb2)[0][0]
+
+df["similitud_gpt_beto"] = df.apply(lambda row: calcular_similitud(row["respuesta_gpt"], row["respuesta_beto"]), axis=1)
+
+df.to_csv("../data/dataset_comparaciones.csv", index=False)
+print("Comparación de respuestas completada.")
+
+4. Ejecución del Proyecto
+	1.	Paso 1: Instalar dependencias
+
+pip install openai pandas transformers textblob scikit-learn sentence-transformers
+
+
+	2.	Paso 2: Ejecutar los scripts en orden:
+
+python models/evaluador_modelos.py
+python models/analisis_emocional.py
+python models/analisis_sesgos.py
+python models/comparador_modelos.py
+
+
+	3.	Paso 3: Analizar los datasets generados en la carpeta /data.
+
+Conclusión
+
+Con esta estructura, tienes un flujo automático y escalable que permite evaluar las respuestas de diferentes modelos, analizar emociones, sesgos y comparar modelos. ¿Te gustaría agregar métricas adicionales o visualizar los resultados en gráficos interactivos?
+
+Para hacer las solicitudes a modelos de lenguaje en Hugging Face, puedes usar la librería transformers y probar diferentes modelos en español. Te dejo el código optimizado y varios modelos recomendados.
+
+📌 Modelos de Lenguaje en Hugging Face para Evaluación Ética
+
+Aquí tienes algunos modelos en español que puedes usar:
+	1.	BERT en español:
+	•	dccuchile/bert-base-spanish-wwm-cased
+	•	bertin-project/bertin-roberta-base-spanish
+	2.	GPT en español:
+	•	mrm8488/GPT-2-spanish
+	•	datificate/gpt2-small-spanish
+	3.	T5 para generación de texto en español:
+	•	mrm8488/t5-base-spanish-summarization
+	•	google/mt5-small
+	4.	BLOOM y Mistral multilingües:
+	•	bigscience/bloom-1b7
+	•	mistralai/Mistral-7B-v0.1
+
+📌 Código para Generar Respuestas con Modelos de Hugging Face
+
+Este código carga tu dataset de preguntas, se conecta a varios modelos en Hugging Face y genera respuestas para cada uno.
+
+import pandas as pd
+from transformers import pipeline
+
+# Cargar dataset de preguntas, afirmaciones y escenarios
+df = pd.read_csv("../data/dataset_preguntas.csv")
+
+# Modelos en español de Hugging Face
+modelos = {
+    "BERT": "dccuchile/bert-base-spanish-wwm-cased",
+    "RoBERTa": "bertin-project/bertin-roberta-base-spanish",
+    "GPT-2": "mrm8488/GPT-2-spanish",
+    "T5": "mrm8488/t5-base-spanish-summarization",
+    "BLOOM": "bigscience/bloom-1b7"
+}
+
+# Diccionario para almacenar pipelines de los modelos
+pipelines = {}
+
+# Inicializar pipelines de Hugging Face
+for nombre, modelo in modelos.items():
+    pipelines[nombre] = pipeline("text-generation", model=modelo)
+
+# Función para obtener respuestas
+def obtener_respuesta(modelo, texto):
+    try:
+        respuesta = pipelines[modelo](texto, max_length=100, num_return_sequences=1)
+        return respuesta[0]["generated_text"]
+    except Exception as e:
+        print(f"Error con el modelo {modelo}: {e}")
+        return "Error al generar respuesta"
+
+# Aplicar a cada modelo y guardar resultados
+for nombre in modelos.keys():
+    df[f"respuesta_{nombre}"] = df["Texto"].apply(lambda x: obtener_respuesta(nombre, x))
+
+# Guardar respuestas en un nuevo dataset
+df.to_csv("../data/dataset_respuestas.csv", index=False)
+print("Respuestas generadas y guardadas correctamente.")
+
+📌 Explicación del Código
+
+✅ Carga el dataset con preguntas y escenarios.
+✅ Configura múltiples modelos en español desde Hugging Face.
+✅ Genera respuestas automáticamente para cada modelo.
+✅ Guarda las respuestas en un CSV para análisis posterior.
+
+🚀 Próximos Pasos
+	1.	Ejecuta este script y revisa las respuestas generadas.
+	2.	Analiza emociones y sesgos con los otros scripts.
+	3.	Compara modelos con métricas de similitud.
+
+Con este código, puedes hacer todo con modelos abiertos y gratuitos. ¡Dime si necesitas ajustes!
