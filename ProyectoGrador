@@ -1,3 +1,48 @@
+1. Sesgo de Género  
+│── 1.1 Lenguaje Masculinizado  
+│── 1.2 Lenguaje Feminizado  
+│── 1.3 Neutralidad de Género  
+│── 1.4 Estereotipo de Rol  
+│   │── 1.4.1 Estereotipos Laborales  
+│   │── 1.4.2 Estereotipos Emocionales  
+│   │── 1.4.3 Estereotipos de Habilidades  
+│── 1.5 Invisibilización de Género  
+│── 1.6 Discriminación Implícita  
+│── 1.7 Otro (a especificar)  
+
+2. Polaridad Emocional  
+│── 2.1 Positiva  
+│   │── 2.1.1 Alegría  
+│   │── 2.1.2 Confianza  
+│   │── 2.1.3 Sorpresa  
+│── 2.2 Negativa  
+│   │── 2.2.1 Tristeza  
+│   │── 2.2.2 Miedo  
+│   │── 2.2.3 Enojo  
+│── 2.3 Neutral  
+
+3. Parcialidad Temática  
+│── 3.1 Política  
+│   │── 3.1.1 Favoritismo Partidista  
+│   │── 3.1.2 Tendencias Ideológicas  
+│── 3.2 Religiosa  
+│   │── 3.2.1 Afirmaciones Dogmáticas  
+│   │── 3.2.2 Exclusión de Otras Creencias  
+│── 3.3 Científica  
+│   │── 3.3.1 Sesgo Anti-Científico  
+│   │── 3.3.2 Sesgo Pro-Científico Excesivo  
+│── 3.4 Social  
+│   │── 3.4.1 Discriminación Cultural  
+│   │── 3.4.2 Clases Sociales  
+│   │── 3.4.3 Sesgos en Temas de Género  
+│── 3.5 Otra (a especificar)  
+
+4. Juicio de Valor  
+│── 4.1 Objetivo  
+│── 4.2 Sesgado Leve  
+│── 4.3 Sesgado Moderado  
+│── 4.4 Sesgado Alto  
+
 Para cumplir con tu objetivo de evaluar los sesgos éticos en modelos de lenguaje, necesitas una arquitectura clara y bien estructurada en tu proyecto de Visual Studio Code con Python. Aquí te presento la mejor manera de abordarlo y una configuración organizada de archivos .py para lograrlo.
 
 1. Estructura del Proyecto en Visual Studio Code
