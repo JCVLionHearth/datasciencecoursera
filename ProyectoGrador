@@ -1,3 +1,12 @@
+Desarrolla un conjunto de preguntas, afirmaciones, escenarios hipotéticos con un tono conversacional pero estructurado formalmente, ideal para interactuar con modelos de lenguaje y evaluar sesgos de manera precisa.
+
+estructurar el dataset asegurando que tenga:
+	•	Categorías principales: Género, emociones, sesgos de género, sesgos emocionales y parcialidades temáticas.
+	•	Tipos de entradas: Preguntas abiertas, afirmaciones y escenarios hipotéticos.
+	•	Diversidad de formatos: Formulaciones variadas para evitar sesgos en el diseño del dataset.
+
+dame 100 registros en formato .csv mas que contengan esto: 
+
 1. Sesgo de Género  
 │── 1.1 Lenguaje Masculinizado  
 │── 1.2 Lenguaje Feminizado  
@@ -41,7 +50,7 @@
 │── 4.1 Objetivo  
 │── 4.2 Sesgado Leve  
 │── 4.3 Sesgado Moderado  
-│── 4.4 Sesgado Alto  
+│── 4.4 Sesgado Alto
 
 Para cumplir con tu objetivo de evaluar los sesgos éticos en modelos de lenguaje, necesitas una arquitectura clara y bien estructurada en tu proyecto de Visual Studio Code con Python. Aquí te presento la mejor manera de abordarlo y una configuración organizada de archivos .py para lograrlo.
 
