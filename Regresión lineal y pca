@@ -132,3 +132,101 @@ print("R²:", r2)
 	•	También podemos usar Regularización (Ridge o Lasso) para mejorar la regresión.
 
 Este flujo te permitirá aplicar PCA correctamente antes de un modelo de regresión lineal. ¿Quieres que hagamos un análisis con tus propios datos?
+
+La regularización en regresión lineal se usa para evitar el sobreajuste cuando hay colinealidad entre las variables o muchas dimensiones. Hay dos métodos principales:
+	•	Ridge Regression (L2): Penaliza la suma de los coeficientes al cuadrado para reducir la varianza del modelo.
+	•	Lasso Regression (L1): Penaliza la suma del valor absoluto de los coeficientes, lo que tiende a hacer que algunos sean exactamente 0 (selección de variables).
+
+Dado que ya aplicaste el modelo de regresión lineal con y sin PCA, ahora agregaremos regularización a ambos casos.
+
+1. Aplicar Regularización Ridge y Lasso
+
+En Scikit-Learn, las implementaciones están en Ridge y Lasso dentro de sklearn.linear_model.
+
+Sin PCA: Regresión Ridge y Lasso
+
+from sklearn.linear_model import Ridge, Lasso
+
+# Definir valores de alpha (parámetro de regularización)
+alpha_value = 1.0  # Puedes ajustarlo
+
+# Ridge Regression
+ridge = Ridge(alpha=alpha_value)
+ridge.fit(X_train, y_train)
+y_pred_ridge = ridge.predict(X_test)
+
+# Lasso Regression
+lasso = Lasso(alpha=alpha_value)
+lasso.fit(X_train, y_train)
+y_pred_lasso = lasso.predict(X_test)
+
+# Evaluación
+print("Ridge R²:", r2_score(y_test, y_pred_ridge))
+print("Lasso R²:", r2_score(y_test, y_pred_lasso))
+
+	•	Un alpha bajo (~0.1) da un modelo más flexible.
+	•	Un alpha alto (~10) fuerza más penalización y simplifica el modelo.
+
+Con PCA: Regresión Ridge y Lasso
+
+Si ya aplicaste PCA, puedes hacer lo mismo con las componentes principales:
+
+# Ridge Regression con PCA
+ridge_pca = Ridge(alpha=alpha_value)
+ridge_pca.fit(X_train_pca, y_train)
+y_pred_ridge_pca = ridge_pca.predict(X_test_pca)
+
+# Lasso Regression con PCA
+lasso_pca = Lasso(alpha=alpha_value)
+lasso_pca.fit(X_train_pca, y_train)
+y_pred_lasso_pca = lasso_pca.predict(X_test_pca)
+
+# Evaluación
+print("Ridge con PCA R²:", r2_score(y_test, y_pred_ridge_pca))
+print("Lasso con PCA R²:", r2_score(y_test, y_pred_lasso_pca))
+
+2. ¿Cómo elegir el mejor alpha?
+
+Podemos usar validación cruzada con GridSearchCV para encontrar el mejor alpha:
+
+from sklearn.model_selection import GridSearchCV
+
+# Definir valores de alpha a probar
+alphas = np.logspace(-3, 3, 10)  # De 0.001 a 1000
+
+# GridSearch para Ridge
+ridge_cv = GridSearchCV(Ridge(), param_grid={'alpha': alphas}, cv=5)
+ridge_cv.fit(X_train, y_train)
+
+# GridSearch para Lasso
+lasso_cv = GridSearchCV(Lasso(), param_grid={'alpha': alphas}, cv=5)
+lasso_cv.fit(X_train, y_train)
+
+# Mejor alpha encontrado
+print("Mejor alpha Ridge:", ridge_cv.best_params_)
+print("Mejor alpha Lasso:", lasso_cv.best_params_)
+
+Haz lo mismo con X_train_pca si usas PCA.
+
+3. Interpretar los Coeficientes
+
+Podemos analizar cómo Ridge y Lasso afectan los coeficientes:
+
+print("Coeficientes Ridge:", ridge.coef_)
+print("Coeficientes Lasso:", lasso.coef_)
+
+	•	En Lasso, algunos coeficientes pueden volverse 0, lo que significa que el modelo eliminó esas variables.
+	•	En Ridge, los coeficientes se reducen pero no se vuelven 0.
+
+4. Comparación Final
+	1.	Evalúa R² en cada modelo para ver cuál predice mejor.
+	2.	Si Lasso elimina muchas variables, revisa si hace sentido reducir la dimensionalidad.
+	3.	Si PCA con Ridge/Lasso mejora el modelo, úsalo para simplificar la cantidad de datos de entrada.
+
+Resumen
+	•	Regresión Ridge (L2): Reduce coeficientes pero no los hace 0. Útil si todas las variables aportan algo.
+	•	Regresión Lasso (L1): Reduce coeficientes y puede hacer que algunos sean 0, eliminando variables irrelevantes.
+	•	PCA + Regularización: Puede mejorar el rendimiento al reducir la multicolinealidad.
+	•	Ajustar Alpha: Usa GridSearchCV para encontrar el mejor valor.
+
+Con esto puedes comparar los modelos con y sin PCA, y decidir cuál es el mejor para tu problema. ¿Quieres hacer una comparación con tus datos y ver los resultados?
