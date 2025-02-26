@@ -1,3 +1,651 @@
+Hice la siguiente metodologia para la creación de una RAM (Risk Assessment MAtrix), pero al parecer esta muy general y parecer ser mas una revisión bibliografica. la metodologia debe cumplir con lo siguiente:
+1. la metodología debería decir cómo llegar a las definiciones de impacto y probabilidad, sin dar un resultado especifico de los valores.
+2. se debe especificar la escala de impacto apropiada para el tipo de riesgo.
+3. No debe ser generico, ya debe ser una metodología clara y especifica.
+4. hay que concentrarse en la etapa de valoración, no es una metodología para cuantificar riesgos, es una metodología para construir la colorimetría, el mapa de calor.
+5. ese mapa de calor tiene que tener categorías, cuales y como llegar a cada una y cómo llegar a definir las escalas.
+6. lo mismo para probabilidad
+7. si yo fuera hoy a hacer el mapa de calor de mi compañia, qué tengo que hacer?, este es el instructivo que se debe crear.
+8. La metodología o instructivo debe permitir replicar la metodologia a cualquier tipo de riesgo
+8. Te estoy pasando lo que habia hecho en latex, pero lo necesito en texto normal, para hacer el instructivo en word.
+
+\notocsection{Introducción}
+
+\notocsubsection{Propósito y Alcance}
+La gestión efectiva de riesgos requiere una metodología sistemática y objetiva para evaluar tanto la probabilidad de ocurrencia como el impacto potencial de eventos adversos. La Matriz de Riesgo RAM  (Risk Assessment Matrix) es una herramienta esencial en la gestión de riesgos, proporcionando un marco estructurado para esta evaluación y permitiendo la priorización y gestión eficiente de riesgos organizacionales. Este documento describe una metodología para desarrollar y aplicar la RAM, adecuada para entornos organizacionales donde se requiere una evaluación objetiva y cuantitativa de riesgos. La metodología incorpora análisis estadístico y técnicas de simulación para lograr una gestión de riesgos sistemática y eficaz, permitiendo identificar, evaluar y priorizar riesgos, así como desarrollar estrategias para mitigarlos.
+
+\notocsubsection{Fundamentos de la evaluación de riesgos}
+
+\begin{itemize}
+    \item Riesgo $(R)$: La posibilidad de que ocurra un evento que afecte negativamente los objetivos de la compañía.
+    \item Probabilidad $(P)$: La posibilidad de que ocurra un evento ($0 \leq P \leq 1$).
+    \item Impacto $(I)$: La severidad de las consecuencias si el evento ocurre.
+\end{itemize}
+
+El riesgo $(R)$ es, en su forma más simple, el producto de la probabilidad de ocurrencia $(P)$ y el impacto potencial $(I)$:
+
+\begin{equation}
+R = P \times I
+\end{equation}
+
+Para eventos con diversas consecuencias y probabilidades, el riesgo se evalúa en términos de la expectativa de las consecuencias, una práctica común en finanzas y seguros para facilitar la comparación de riesgos \cite{Ale2015}.
+
+
+\notocsection{Pasos para el Desarrollo de la Matriz RAM}
+
+\notocsubsection{Identificación de Riesgos}
+
+Para identificar riesgos de manera sistemática, se recomienda:
+
+\begin{itemize}
+    \item Identificar los riesgos estratégicos y empresariales relevantes: financieros, catastróficos, ambientales, de personas, entre otros.
+    \item Establecer los objetivos del análisis: evaluar riesgos con un enfoque cuantitativo y cualitativo, integrando perspectivas temporales y de consecuencias.
+\end{itemize}
+
+
+\notocsubsection{Clasificación de los Riesgos}
+
+\begin{itemize}
+  \item \textbf{Riesgos Cuantitativos:} Aquellos que pueden medirse numéricamente (ejemplo:, pérdidas económicas, emisiones ambientales, número de accidentes).
+  \item \textbf{Riesgos Cualitativos:} Aquellos que requieren un enfoque descriptivo (ejemplo:, reputación, impacto en la moral del equipo).
+  \item  Relacionar cada riesgo con categorías predefinidas según su naturaleza.
+\end{itemize}
+
+\notocsubsection{Desarrollo de Métricas de Evaluación}
+
+Las métricas combinan análisis cuantitativo y cualitativo:
+
+\begin{enumerate}
+\item \textbf{Para riesgos cuantitativos:}
+  \begin{itemize}
+   \item Modelos de valor en riesgo (VaR) para medir la exposición financiera.
+   \item Simulaciones Monte Carlo para evaluar distribuciones de resultados posibles.
+   \item Indicadores clave: pérdida esperada (\(E[L]\)), desviación estándar, y sesgo.
+  \end{itemize}
+
+\item \textbf{Para riesgos cualitativos:}
+  \begin{itemize}
+   \item Análisis multicriterio (\( \text{AHP, Analytic Hierarchy Process} \))\footnote{Método que selecciona alternativas en función de una serie de criterios o variables, normalmente jerarquizados, los cuales suelen entrar en conflicto. [https://victoryepes.blogs.upv.es/2018/11/27/proceso-analitico-jerarquico-ahp/]} para ponderar impactos.
+   \item Escalamiento subjetivo ajustado con métodos Delphi\footnote{Técnica estructurada de comunicación que se utiliza para obtener un consenso entre un grupo de expertos sobre un tema específico. Fue desarrollado inicialmente como un método de pronóstico sistemático e interactivo. [https://www.ingenioempresa.com/metodo-delphi/]} para validar rangos.
+  \end{itemize}
+\end{enumerate}
+
+\notocsubsection{Metodología para Determinar Impacto y Probabilidad}
+
+\subsubsection{Análisis de Datos Históricos}
+Para determinar la probabilidad de un evento, se puede utilizar el análisis de frecuencias históricas. La probabilidad empírica de un evento $E$ se calcula como:
+
+\[ P(E) = \frac{n_E}{N} \]
+
+donde:
+\begin{itemize}
+    \item $n_E$: Número de ocurrencias del evento.
+    \item $N$: Número total de períodos observados.
+\end{itemize}
+
+\subsubsection{Categorización de Probabilidades}
+
+De acuerdo con \cite{deloitte2012} La probabilidad representa la posibilidad de que un acontecimiento ocurra. La probabilidad puede expresarse en términos cualitativos (frecuente o con certeza, probable, posible, improbable, raro), como porcentaje de probabilidad o como frecuencia.\\
+
+Cuando se utilizan valores numéricos, ya sea un porcentaje o una frecuencia, debe especificarse el periodo de tiempo pertinente, como la frecuencia anual o la probabilidad más relativa a lo largo de la vida del proyecto o activo. Como se ilustra a continuación:
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lllp{8cm}@{}}
+\toprule
+Calificación & Categoría & Rango de Probabilidad & Descripción \\
+\midrule
+1 & Raro & $P < 0.10$ & Evento excepcional: Representa eventos altamente improbables. Una vez en 100 años o menos.  \\
+2 & Improbable & $0.10 \leq P < 0.35$ & Poco frecuente. Una vez en 50 años hasta una vez en 100 años. \\
+3 & Posible & $0.35 \leq P < 0.65$ & Ocurrencia moderada: Eventos posibles. Una vez en 25 años hasta una vez en 50 años \\
+4 & Probable & $0.65 \leq P < 0.90$ & Alta frecuencia. Una vez en 2 años hasta una vez en 25 años \\
+5 & Con certeza & $P \geq 0.90$ & Prácticamente seguro: Eventos que ocurren en más del 90\% de los casos. Hasta una vez en 2 años o más \\
+\bottomrule
+\end{tabular}
+\caption{Categorías de Probabilidad}
+\label{tab:probabilidad}
+\end{table}
+
+
+\subsubsection{Categorización de Impactos}
+Los impactos se clasifican según la siguiente escala:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{8cm}l@{}}
+\toprule
+Categoría & Descripción & Criterio Cuantitativo \\
+\midrule
+Insignificante & El impacto no representa un problema para la organización. & $I < I_1$ \\
+Menor & El impacto es mínimo. & $I_1 \leq I < I_2$ \\
+Moderado & Puede causar una pérdida momentánea. & $I_2 \leq I < I_3$ \\
+Mayor & Genera retrasos importantes. & $I_3 \leq I < I_4$ \\
+Catastrófico & Puede detener la operación de la empresa. & $I \geq I_4$ \\
+\bottomrule
+\end{tabular}
+\caption{Categorías de Impacto}
+\label{tab:impacto}
+\end{table}
+
+Para los umbrales de impacto, se recomienda usar percentiles basados en datos históricos, por ejemplo:
+
+\begin{itemize}
+    \item $I_1$ (Insignificante-Menor): Percentil 25.
+    \item $I_2$ (Menor-Moderado): Percentil 50.
+    \item $I_3$ (Moderado-Mayor): Percentil 75.
+    \item $I_4$ (Mayor-Catastrófico): Percentil 90.
+\end{itemize}
+
+\notocsubsection{Definición de Umbrales}
+
+\subsubsection{Método de Determinación de Umbrales}
+Los umbrales se establecen utilizando el método de percentiles sobre datos históricos:
+
+\[ U_k = F^{-1}(p_k) \]
+
+donde:
+\begin{itemize}
+    \item $U_k$: Umbral para el nivel $k$.
+    \item $F^{-1}$: Función de distribución inversa.
+    \item $p_k$: Percentil objetivo para el nivel $k$.
+\end{itemize}
+
+
+\notocsection{Ejemplos Definición de Umbrales de Impacto por Categoría}
+
+\notocsubsection{Impacto Financiero}
+El impacto financiero se mide en términos de pérdidas económicas directas o indirectas. Los umbrales deben considerar los ingresos anuales de la compañía y el presupuesto asignado para contingencias \cite{deloitte2012}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}llp{5cm}@{}}
+\toprule
+\textbf{Nivel de Impacto} & \textbf{Criterio Financiero Absoluto} & \textbf{Criterio Financiero Relativo} \\
+\midrule
+Muy bajo & \( P \leq \$100,000 \) & Menos del 0.1\% de los ingresos anuales. \\
+Bajo & \( \$100,000 < P \leq \$1,000,000 \) & Entre 0.1\% y 0.5\% de los ingresos anuales. \\
+Moderado & \( \$1,000,000 < P \leq \$5,000,000 \) & Entre 0.5\% y 2\% de los ingresos anuales. \\
+Alto & \( \$5,000,000 < P \leq \$20,000,000 \) & Entre 2\% y 5\% de los ingresos anuales. \\
+Catastrófico & \( P > \$20,000,000 \) & Más del 5\% de los ingresos anuales o pérdidas críticas. \\
+\bottomrule
+\end{tabular}
+\caption{Categorías de Impacto Financiero}
+\label{tab:impacto financiero}
+\end{table}
+
+\begin{itemize}
+    \item Estos valores deben ajustarse según la capacidad financiera y los umbrales definidos.
+    \item Usar escenarios de valor en riesgo (VaR) para estimar umbrales financieros extremos.
+\end{itemize}
+
+\notocsubsection{Impacto Ambiental}
+El impacto ambiental se evalúa según la magnitud del daño y los costos de remediación. Catástrofes ambientales provocadas por el hombre por mala gestión ambiental y daños a la propiedad que deriven en sanciones (inundaciones, tormentas, contaminación radiactiva, derrame de petróleo, etc.) \cite{consejo2023}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{6cm}p{5cm}@{}}
+\toprule
+\textbf{Nivel de Impacto} & \textbf{Criterios Ambientales Cuantitativos} & \textbf{Criterios Cualitativos} \\ 
+\midrule
+Muy bajo & Derrame \(\leq 10\) litros. & Daño ambiental recuperable en horas, sin intervención. \\ 
+Bajo & Derrame \(> 10\) y \(\leq 100\) litros. & Daño localizado, remediación \(\leq 1\) semana. \\ 
+Moderado & Derrame \(> 100\) y \(\leq 1,000\) litros o afectación \(\leq 1\) hectárea. & Daño remediable en 1-3 meses; multa moderada. \\
+Alto & Derrame \(> 1,000\) y \(\leq 10,000\) litros o afectación \(> 1\) hectárea y \(\leq 10\) hectáreas. & Daño severo, remediación prolongada (\(>6\) meses), sanciones graves. \\ 
+Catastrófico & Derrame \(> 10,000\) litros o afectación \(> 10\) hectáreas. & Daño irreparable o con recuperación \(>2\) años; impacto global. \\ 
+\bottomrule
+\end{tabular}
+\caption{Categorías de Impacto Ambiental}
+\label{tab:impacto ambiental}
+\end{table}
+
+\begin{itemize}
+    \item Utilizar un modelo de dispersión logarítmica para predecir el alcance del daño de un derrame.
+    \item Incorporar simulaciones Monte Carlo para estimar escenarios de derrames en distintas condiciones climáticas y geográficas.
+\end{itemize}
+
+\notocsubsection{Impacto en Seguridad y Accidentes}
+Se mide por la cantidad de personas afectadas y la gravedad de las lesiones, conforme a normativas de seguridad laboral.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{6cm}p{5cm}@{}}
+\toprule
+\textbf{Nivel de Impacto} & \textbf{Criterios de Accidentes} & \textbf{Criterios Cualitativos} \\ 
+\midrule
+Muy bajo & 1 incidente menor sin días perdidos. & No afecta la operación ni genera sanciones. \\
+Bajo & 1-3 incidentes menores o 1 lesión leve con 1-2 días perdidos. & Afecta localmente sin interrupción significativa. \\
+Moderado & 1 incidente grave o hasta 10 lesiones leves con días perdidos. & Interrupción parcial de operaciones. \\ 
+Alto & 1 fatalidad o \(>10\) incidentes graves. & Sanciones severas y daño significativo. \\
+Catastrófico & \(>1\) fatalidad o evento masivo (explosión, derrumbe). & Paralización total; impacto global. \\
+\bottomrule
+\end{tabular}
+\caption{Categorías en Seguridad y Accidentes}
+\label{tab:impacto seguridad}
+\end{table}
+
+\begin{itemize}
+    \item Evaluar estadísticas de frecuencia y severidad de incidentes usando índices como el TRIR (Total Recordable Incident Rate)\footnote{Mide la tasa de lesiones y enfermedades relacionadas con el trabajo, según las pautas de informes de OSHA. Las tasas de incidencia representan la cantidad de lesiones y enfermedades por cada 100 trabajadores a tiempo completo. El cálculo de la tasa de incidentes es: (N/EH) x 200 000, donde N = cantidad de lesiones y enfermedades; EH = total de horas trabajadas por todos los empleados durante el año calendario; y 200 000 = base para 100 trabajadores a tiempo completo equivalentes (que trabajan 40 horas por semana, 50 semanas por año). https://www.osha.gov/recordkeeping/entry-faq}.
+    \item Ajustar los niveles según la tolerancia al riesgo de la empresa y las condiciones operativas.
+\end{itemize}
+
+\notocsubsection{Impacto Reputacional}
+El impacto reputacional considera la percepción de las partes interesadas, clientes y el público en general.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{6cm}p{5cm}@{}}
+\toprule
+\textbf{Nivel de Impacto} & \textbf{Criterios Cuantitativos (Encuestas/Índices)} & \textbf{Criterios Cualitativos} \\
+\midrule
+Muy bajo & Variación \(\leq 1\%\) en índices de satisfacción. & Sin repercusión mediática ni pérdida de confianza. \\ 
+Bajo & Variación \(> 1\%\) y \(\leq 5\%\). & Repercusión mínima en medios locales. \\ 
+Moderado & Variación \(> 5\%\) y \(\leq 15\%\). & Cobertura mediática nacional negativa; pérdida moderada de confianza. \\ 
+Alto & Variación \(> 15\%\) y \(\leq 30\%\). & Cobertura internacional; boicots parciales. \\ 
+Catastrófico & Variación \(> 30\%\). & Daño global a la reputación; boicots masivos. \\ 
+\bottomrule
+\end{tabular}
+\caption{Categorías Impacto Reputacional}
+\label{tab:impacto reputacional}
+\end{table}
+
+\begin{itemize}
+    \item Realizar encuestas periódicas y calcular índices de Net Promoter Score (NPS) o Customer Satisfaction Index (CSI).
+    \item Usar métodos estadísticos para correlacionar la percepción con eventos pasados.
+\end{itemize}
+
+\notocsubsection{Impacto en la Continuidad Operacional}
+
+Se refiere al grado de interrupción de las operaciones de la compañía.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{6cm}p{5cm}@{}}
+\toprule
+\textbf{Nivel de Impacto} & \textbf{Duración de la Interrupción} & \textbf{Criterios Cualitativos} \\
+\midrule
+Muy bajo & Interrupción \(\leq 1\) día. & Operaciones normales al siguiente turno. \\
+Bajo & Interrupción \(> 1\) día y \(\leq 1\) semana. & Impacto limitado a un área o proceso. \\
+Moderado & Interrupción \(> 1\) semana y \(\leq 1\) mes. & Afectación parcial de la operación. \\ 
+Alto & Interrupción \(> 1\) mes y \(\leq 6\) meses. & Impacto significativo en la producción total. \\ 
+Catastrófico & Interrupción \(> 6\) meses. & Paralización total; riesgo de insolvencia. \\ 
+\bottomrule
+\end{tabular}
+\caption{Categorías Impacto Operacional}
+\label{tab:impacto operacional}
+\end{table}
+
+\begin{itemize}
+    \item Integrar métricas de tiempo promedio para recuperación. % (MTTR).
+    \item Usar modelos de simulación de cadena de suministro para prever interrupciones.
+\end{itemize}
+
+%%% DEFINICION DE UMBRALES DE PROBABILIDAD
+
+\notocsection{Ejemplo Definición de Umbrales para Probabilidades}
+
+Los umbrales de probabilidad establecen las categorías de frecuencia con las que es esperable que ocurra un evento. Estos umbrales son fundamentales en la evaluación de riesgos para priorizar recursos y establecer estrategias de mitigación. Se desarrollan con base en principios actuariales, modelos estadísticos y datos históricos.
+
+\notocsubsection{Escala de Probabilidad}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lp{3cm}p{3cm}p{5cm}@{}}
+\toprule
+\textbf{Nivel de Probabilidad} & \textbf{Definición Cuantitativa (Estadística)} & \textbf{Interpretación Temporal} & \textbf{Ejemplo Práctico} \\
+\midrule
+Raro & \( P \leq 0.01 \) & \(\leq 1\) vez en 100 años & Terremoto \(>8.0\) en escala de Richter. \\
+Poco Probable & \( 0.01 < P \leq 0.05 \) & 1 vez cada 20-100 años & Derrame de petróleo en alta mar \(>10,000\) litros. \\
+Moderado & \( 0.05 < P \leq 0.2 \) & 1 vez cada 5-20 años & Daño ambiental moderado en una operación. \\
+Probable & \( 0.2 < P \leq 0.5 \) & 1 vez cada 2-5 años & Interrupción en la cadena de suministro. \\
+Casi Seguro & \( P > 0.5 \) & Más de 1 vez al año & Pérdida financiera leve recurrente. \\
+\bottomrule
+\end{tabular}
+\caption{Escala de Probabilidad}
+\label{tab:escala de probabilidad}
+\end{table}
+
+\notocsubsection{Métodos Estadísticos para Definir Umbrales}
+Los niveles de probabilidad se establecen con base en modelos cuantitativos. Aquí se presentan los enfoques clave para definirlos:
+
+\subsubsection{a) Basado en Datos Históricos}
+\begin{itemize}
+    \item \textbf{Descripción:} Análisis de series temporales de eventos pasados para calcular frecuencias absolutas y relativas.
+    \item \textbf{Técnica:}  
+    \[
+    P(E) = \frac{\text{Número de eventos en un periodo específico}}{\text{Total de observaciones del periodo}}
+    \]
+    \item \textbf{Ejemplo:} Si en los últimos 50 años se reportaron 5 derrames significativos, la probabilidad es:
+    \[
+    P(E) = \frac{5}{50} = 0.1 \, (10\%)
+    \]
+\end{itemize}
+
+\subsubsection{b) Distribuciones Probabilísticas}
+\begin{itemize}
+    \item \textbf{Objetivo:} Ajustar los datos a una distribución matemática para extrapolar probabilidades futuras.
+    \item \textbf{Distribuciones Comunes:}
+    \begin{itemize}
+        \item \textbf{Poisson:} Para eventos discretos (ejemplo:, accidentes laborales).  
+        \[
+        P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}
+        \]
+        Donde \( \lambda \) es la tasa de ocurrencia promedio por unidad de tiempo.
+        \item \textbf{Gumbel (valores extremos):} Para eventos raros (ejemplo:, desastres naturales).  
+        Función de distribución acumulativa (CDF):  
+        \[
+        F(x) = e^{-e^{-(x-\mu)/\beta}}
+        \]
+        Donde \( \mu \) es la ubicación y \( \beta \) la escala.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{c) Simulación Monte Carlo}
+\begin{itemize}
+    \item \textbf{Uso:} Evaluar probabilidades a partir de múltiples escenarios hipotéticos basados en distribuciones de entrada.  
+    \item \textbf{Procedimiento:}
+    \begin{enumerate}
+        \item Definir la distribución de entrada para un evento.
+        \item Simular miles de escenarios aleatorios.
+        \item Calcular la frecuencia relativa de ocurrencia para estimar \( P(E) \).
+    \end{enumerate}
+\end{itemize}
+
+\notocsubsection{Aplicación de Umbrales por Categoría de Riesgo}
+\subsubsection{a) Financiero}
+\begin{itemize}
+    \item \textbf{Fuente:} Análisis de series temporales de pérdidas económicas.  
+    \item \textbf{Umbrales de Probabilidad:}  
+    \begin{itemize}
+        \item Raro: Pérdida \(> 10\%\) de EBITDA en eventos de 50 años.  
+        \item Moderado: Pérdida entre 2\%-5\% de EBITDA en eventos de 5-20 años.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{b) Ambiental}
+\begin{itemize}
+    \item \textbf{Fuente:} Registro histórico de sanciones y desastres ambientales.  
+    \item \textbf{Umbrales de Probabilidad:}  
+    \begin{itemize}
+        \item Poco Probable: Derrames menores (\(>100\) litros) cada 20 años.  
+        \item Probable: Emisiones fuera de normativa (\(>1\) tonelada CO2) recurrentes.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{c) Seguridad}
+\begin{itemize}
+    \item \textbf{Fuente:} Indicadores TRIR (Tasa Total de Incidentes Registrables) y LTIR (Lesiones con Pérdida de Tiempo).  
+    \item \textbf{Umbrales de Probabilidad:}  
+    \begin{itemize}
+        \item Raro: Fatalidades múltiples (frecuencia histórica \(<1\) en 50 años).  
+        \item Moderado: Incidentes con días perdidos (frecuencia anual promedio).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{d) Reputacional}
+\begin{itemize}
+    \item \textbf{Fuente:} Encuestas, análisis de redes sociales y medios.  
+    \item \textbf{Umbrales de Probabilidad:}  
+    \begin{itemize}
+        \item Poco Probable: Crisis global (frecuencia histórica \(<1\) en 20 años).  
+        \item Probable: Pérdida local de confianza (1-2 incidentes por año).
+    \end{itemize}
+\end{itemize}
+
+
+%%%FIN DE UMBRALES PROBABILIDAD
+
+
+\notocsubsection{Calibración mediante Simulación Monte Carlo}
+La calibración de umbrales utiliza simulación Monte Carlo para generar escenarios y validar la clasificación:
+
+\begin{enumerate}
+    \item Generación de $n$ escenarios aleatorios.
+    \item Cálculo del riesgo para cada escenario: $R_i = P_i \times I_i$.
+    \item Clasificación según umbrales propuestos.
+    \item Ajuste iterativo hasta alcanzar las probabilidades objetivo.
+\end{enumerate}
+
+\notocsubsection{Definición de Escalas}
+
+\begin{itemize}
+    \item Escalas Lineales: Adecuadas para contextos donde las categorías de probabilidad o consecuencia se distribuyen de manera uniforme, facilitando una lectura intuitiva y una correlación directa con valores ordinales. Este enfoque es útil en evaluaciones de proyectos donde la probabilidad es medida en porcentaje.\\
+    
+    \begin{itemize}
+    \item \textbf{Uso:} Para eventos comunes con probabilidades entre \( 0.1 \) y \( 1.0 \).  
+    \item \textbf{Ventaja:} Más intuitivo y directamente interpretable.  
+    \item \textbf{Aplicación:} Riesgos operativos y recurrentes (ejemplo:, interrupciones menores).
+\end{itemize}
+
+    \item Escalas Logarítmicas: Utilizadas en escenarios de alta variabilidad, como la seguridad y la prevención de desastres, donde la probabilidad o consecuencia puede abarcar varios órdenes de magnitud. La escala logarítmica es particularmente útil en situaciones en las que la probabilidad se expresa como frecuencia esperada (eventos por unidad de tiempo) o la consecuencia en términos de gravedad incremental \cite{Levine01022012}.\\
+    
+    \begin{itemize}
+    \item \textbf{Uso:} Para eventos con rango de probabilidad muy amplio (p. ej., \(10^{-6}\) a \(10^{-1}\)).  
+    \item \textbf{Ventaja:} Permite comprimir rangos grandes, haciendo visibles los eventos extremos.  
+    \[
+    P_{log} = \log(1 + P)
+    \]
+    \item \textbf{Aplicación:} Riesgos financieros extremos y catastróficos (ejemplo:, default bancario, derrames masivos).
+\end{itemize}
+    
+\end{itemize}
+
+\notocsubsection{Asignación de Valores}
+
+\begin{itemize}
+    \item Probabilidad: Se selecciona una escala lineal si los valores de probabilidad son cercanos y se busca simplicidad en la lectura. Si las probabilidades varían en varios órdenes de magnitud, se opta por una escala logarítmica.
+    \item Impacto: La escala lineal es útil para impactos cuantificables con una relación uniforme entre categorías. La escala logarítmica es recomendable en casos de consecuencias de distinta naturaleza (p. ej., desde lesiones leves hasta muertes), donde cada incremento representa un aumento significativo de gravedad.
+\end{itemize}
+
+\notocsubsection{Consistencia y Coloración de la Matriz}
+
+Para asegurar la coherencia entre la matriz de riesgo y la medida cuantitativa subyacente:
+
+\begin{enumerate}
+    \item Consistencia Débil: Se garantiza que los riesgos en celdas de categoría roja sean siempre mayores que aquellos en celdas verdes.
+    \item Intermediación: El trayecto entre cualquier celda verde y roja debe atravesar celdas amarillas, asegurando una transición de riesgo coherente.
+    \item Coloración Consistente: Las celdas con niveles de riesgo aproximadamente equivalentes deben mantener el mismo color, lo que facilita la comprensión visual del nivel de riesgo.
+\end{enumerate}
+
+\notocsection{Evaluación de Riesgos}
+
+\notocsubsection{Riesgos Cuantitativos}
+Para riesgos cuantitativos, el nivel de riesgo se determina mediante:
+
+\[ NR = \begin{cases} 
+1 & \text{si } R < U_1 \\
+2 & \text{si } U_1 \leq R < U_2 \\
+3 & \text{si } U_2 \leq R < U_3 \\
+4 & \text{si } U_3 \leq R < U_4 \\
+5 & \text{si } R \geq U_4
+\end{cases} \]
+
+\notocsubsection{Riesgos Cualitativos}
+Para riesgos cualitativos, se utiliza una matriz de conversión:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}ccc@{}}
+\toprule
+Descripción Cualitativa & Valor Numérico & Nivel de Riesgo \\
+\midrule
+Muy Bajo & 1 & $NR_1$ \\
+Bajo & 2 & $NR_2$ \\
+Medio & 3 & $NR_3$ \\
+Alto & 4 & $NR_4$ \\
+Muy Alto & 5 & $NR_5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\notocsection{Uso y Diseño de Diagramas de Consecuencia-Probabilidad (PCD)}
+
+Los Diagramas de Consecuencia-Probabilidad (PCD) permiten representar gráficamente los riesgos como puntos $(p, c)$, donde \(p\) es la probabilidad o frecuencia y \(c\) es la consecuencia de un evento. Estos diagramas se dividen en dos categorías principales: el PCD de tipo “Post it” o “mapa de calor” para clasificaciones simples, y el PCD “Inteligente” o “Groningen” para análisis detallados, incluyendo acumulaciones de frecuencia y aversión al riesgo \cite{Ale2015}. Esta distinción permite que los PCD sean efectivos para decisiones grupales y detalladas en la gestión de riesgos organizacionales.
+
+\cite{DUIJM201521} sugiere que la matriz de riesgo puede beneficiarse de escalas continuas para una evaluación más precisa, especialmente en contextos de alto riesgo donde las categorías discretas pueden limitar la precisión del análisis. Al combinar escalas continuas y acumulativas, el diagrama FN (Frecuencia vs. Número) se convierte en una herramienta útil para visualizar los niveles de riesgo permitidos, como el área bajo la curva, proporcionando una medida cuantitativa de la exposición al riesgo \cite{DUIJM201521}.
+
+\notocsubsection{Construcción de la Matriz RAM}
+
+\notocsubsection{Estructura Básica}
+La matriz RAM se construye como una tabla de doble entrada:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Impacto & \multicolumn{5}{c}{Probabilidad} \\
+\cmidrule(l){2-6}
+ & Raro & Improbable & Posible & Probable & Con certeza \\
+\midrule
+Catastrófico & & & & & \\
+Mayor & & & & & \\
+Moderado & & & & & \\
+Menor & & & & & \\
+Insignificante  & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cada celda de la matriz representa una combinación de probabilidad e impacto, reflejando un nivel de riesgo específico. Este esquema facilita la priorización de los riesgos en función de sus valores en la RAM.
+
+\notocsubsection{Definición de Zonas de Riesgo}
+Las zonas de riesgo se definen mediante curvas de iso-riesgo:
+
+\[ Z(P,I) = \begin{cases} 
+\text{Muy Alto} & \text{si } P \times I \geq U_4 \\
+\text{Alto} & \text{si } U_3 \leq P \times I < U_4 \\
+\text{Medio} & \text{si } U_2 \leq P \times I < U_3 \\
+\text{Bajo} & \text{si } U_1 \leq P \times I < U_2 \\
+\text{Muy Bajo} & \text{si } P \times I < U_1
+\end{cases} \]
+
+\notocsubsection{Cálculo de Puntajes de Riesgo}
+
+La metodología emplea puntajes numéricos para representar el riesgo en cada celda de la matriz, considerando la escala de las categorías:
+
+\begin{enumerate}
+    \item Escala Lineal (Multiplicativa): Si las categorías están en una escala lineal, el puntaje de riesgo se calcula multiplicando los valores ordinales de probabilidad e impacto. Esto genera una matriz donde el riesgo es proporcional a la pérdida esperada en una escala lineal.
+
+    Supongamos que tenemos las siguientes categorías:
+    
+    \begin{itemize}
+    \item \textbf{Probabilidad}: Baja (1), Media (2), Alta (3)
+    \item \textbf{Impacto}: Bajo (1), Medio (2), Alto (3)
+    \end{itemize}
+
+    La matriz de riesgo se vería así:
+
+    \[
+    \begin{array}{c|ccc}
+    \text{Probabilidad} \backslash \text{Impacto} & \text{Bajo (1)} & \text{Medio (2)} & \text{Alto (3)} \\
+    \hline
+    \text{Alta (3)} & 3 & 6 & 9 \\
+    \text{Media (2)} & 2 & 4 & 6 \\
+    \text{Baja (1)} & 1 & 2 & 3 \\
+    \end{array}
+    \]
+
+En este caso, el puntaje de riesgo es proporcional a la pérdida esperada en una escala lineal. Por ejemplo, un riesgo con probabilidad alta (3) y impacto medio (2) tendría un puntaje de riesgo de \(6\) (3 * 2).
+
+En una escala lineal, los valores se incrementan de manera constante. Esto significa que la distancia entre dos puntos consecutivos es siempre la misma, sin importar en qué parte de la escala se encuentre \cite{cruzito-2023} . Por ejemplo, en una recta numérica, la distancia entre 1 y 2 es la misma que entre 100 y 101.
+
+Cuando se aplica a la evaluación de riesgos, multiplicar los valores ordinales de probabilidad e impacto refleja una relación directa y proporcional entre estos dos factores. Si ambos factores aumentan, el riesgo total también aumenta proporcionalmente. Esto es útil cuando se quiere reflejar una relación directa entre la probabilidad de un evento y su impacto.
+    
+    \item Escala Logarítmica (Multiplicativa): Para escalas logarítmicas, se emplea la multiplicación de los valores subyacentes de probabilidad y consecuencia.
+
+    Supongamos que tenemos las siguientes categorías:
+
+    \begin{itemize}
+        \item \textbf{Probabilidad}: 0.1, 1, 10
+        \item \textbf{Consecuencia}: 1, 10, 100
+    \end{itemize}
+
+La matriz de riesgo se vería así:
+
+    \[
+    \begin{array}{c|ccc}
+    \text{Probabilidad} \backslash \text{Consecuencia} & \text{1} & \text{10} & \text{100} \\
+    \hline
+    \text{10} & 10 & 100 & 1000 \\
+    \text{1} & 1 & 10 & 100 \\
+    \text{0.1} & 0.1 & 1 & 10 \\
+    \end{array}
+    \]
+
+En este caso, el puntaje de riesgo refleja cambios exponenciales. Por ejemplo, un riesgo con probabilidad 10 y consecuencia 10 tendría un puntaje de riesgo de \(100\) (10 * 10).
+
+En una escala logarítmica, los valores se incrementan de manera exponencial. Esto significa que cada incremento en la escala representa un cambio multiplicativo en el valor subyacente \cite{jimenez-2020}. Por ejemplo, en una escala logarítmica base 10, pasar de 1 a 2 representa un aumento de 10 veces, y de 2 a 3 representa un aumento de 100 veces.
+
+Cuando se aplica a la evaluación de riesgos, multiplicar los valores subyacentes de probabilidad y consecuencia en una escala logarítmica permite representar los riesgos de manera que los incrementos reflejen cambios exponenciales. Esto es útil para identificar patrones de riesgo que crecen de manera no lineal y para representar isoriesgos en bandas diagonales, donde los riesgos de diferentes combinaciones de probabilidad y consecuencia pueden ser comparables.
+    
+\end{enumerate}
+
+
+\notocsubsection{Evaluación de Riesgos con la Matriz}
+
+\begin{enumerate}
+    \item Asignación de Colores y Decisiones de Control: Los colores en la matriz representan niveles de riesgo asociados a categorías de riesgo específicas. La matriz se diseñará para que el color refleje un riesgo percibido por las partes interesadas, sin intentar igualarlo a una medida cuantitativa externa.
+    \item Validación de Coherencia: Antes de la implementación de la matriz, se valida que el riesgo sea una función monótona creciente en relación a la probabilidad y la consecuencia. Esto significa que al incrementar cualquier categoría, el riesgo también debe aumentar.
+\end{enumerate}
+
+\notocsubsection{Consideraciones Adicionales}
+
+\begin{itemize}
+    \item Representación de Dimensiones Adicionales: Para riesgos complejos que no pueden capturarse en una matriz bidimensional, se pueden incluir métricas adicionales, como manejabilidad o criticidad, mediante gráficos o reportes suplementarios.
+    \item Revisión Periódica: La matriz debe revisarse regularmente para garantizar que sigue alineada con la percepción de riesgo de las partes interesadas y que se adapta a cambios en el contexto organizacional o sectorial.
+\end{itemize}
+
+\subsubsection{Evaluación de Riesgos Cualitativos}
+Para los riesgos cualitativos, como el riesgo reputacional o ambiental, se propone una metodología basada en la percepción de expertos. Se emplearán encuestas y herramientas de juicio experto para evaluar estos riesgos, con el fin de asignarlos adecuadamente en la RAM.
+
+La puntuación cualitativa se basa en la asignación de valores ordinales en una escala de Muy Bajo a Muy Alto, permitiendo su integración en la matriz en las categorías predefinidas.
+
+\notocsection{Mitigación de Riesgos y Estrategias de Control}
+
+\notocsubsection{Estrategias de Mitigación}
+La mitigación de riesgos debe enfocarse en reducir la probabilidad o el impacto de los riesgos identificados. A continuación, se detallan estrategias comunes de mitigación:
+
+\begin{itemize}
+    \item \textbf{Evitación:} Modificar procesos o actividades para eliminar el riesgo.
+    \item \textbf{Reducción:} Implementar controles para reducir la probabilidad o impacto.
+    \item \textbf{Transferencia:} Compartir o transferir el riesgo a un tercero, como mediante seguros.
+    \item \textbf{Aceptación:} Asumir el riesgo cuando se considera que el costo de mitigación supera el beneficio.
+\end{itemize}
+
+\notocsubsection{Evaluación de Efectividad de Controles}
+
+Es esencial evaluar la efectividad de los controles implementados para cada riesgo. Esto se realiza mediante una revisión continua que identifique:
+
+\begin{enumerate}
+    \item Si los controles están funcionando como se esperaba.
+    \item La reducción de la probabilidad e impacto lograda mediante los controles.
+    \item Necesidades de ajuste o mejora de los controles en respuesta a cambios en el entorno de riesgo.
+\end{enumerate}
+
+
+\notocsection{Implementación y Buenas Prácticas}
+
+\notocsubsection{Proceso de Implementación}
+\begin{enumerate}
+    \item Recopilación y validación de datos históricos
+    \item Determinación de umbrales iniciales
+    \item Calibración mediante simulación
+    \item Validación con expertos del dominio
+    \item Documentación y capacitación
+\end{enumerate}
+
+\notocsubsection{Mantenimiento y Actualización}
+\begin{itemize}
+    \item Revisión periódica de umbrales
+    \item Actualización con nuevos datos
+    \item Ajuste según cambios en el contexto organizacional
+    \item Documentación de modificaciones
+\end{itemize}
+
+
+
 Aquí tienes un esquema metodológico para la construcción de la matriz RAM, explicando paso a paso cómo estructurar y aplicar esta herramienta para la evaluación de riesgos en una compañía petrolera:
 
 ---
