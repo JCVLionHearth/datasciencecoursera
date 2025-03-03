@@ -1,3 +1,19 @@
+
+¡Claro! Aquí tienes la información convertida en una tabla en formato Markdown:
+
+```markdown
+| Impacto/Probabilidad | Raro | Poco Probable | Moderado | Probable | Casi Seguro |
+|----------------------|------|---------------|----------|----------|-------------|
+| Evento poco probable (<1% de ocurrencia en un período de referencia) | Evento inusual pero posible (1%-5% de ocurrencia) | Evento que ocurre periódicamente (5%-20%) | Evento recurrente en plazos cortos (20%-50%) | Evento que ocurre frecuentemente (>50%) |
+| **Catastrófico** | Pérdidas críticas, incumplimientos regulatorios severos o daños irreversibles: Puede detener la operación de la empresa. | MEDIO | ALTO | ALTO | MUY ALTO | MUY ALTO |
+| **Alto** | Consecuencias graves que afectan significativamente: Genera retrasos importantes. | BAJO | MEDIO | MEDIO | ALTO | ALTO |
+| **Moderado** | Impacto con repercusión relevante pero contenible: Puede causar una pérdida momentánea. | BAJO | MEDIO | MEDIO | MEDIO | ALTO |
+| **Bajo** | Afectación menor, pero manejable internamente: El impacto es mínimo. | MUY BAJO | BAJO | BAJO | BAJO | MEDIO |
+| **Muy Bajo** | Impacto insignificante, sin afectación real: El impacto no representa un problema para la organización. | MUY BAJO | MUY BAJO | BAJO | BAJO | BAJO |
+```
+
+Espero que esto te sea útil. ¿Hay algo más en lo que pueda ayudarte?
+
 # Metodología para la Construcción del Mapa de Calor en una Matriz RAM
 
 ## 1. Introducción
