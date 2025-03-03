@@ -1,3 +1,91 @@
+Voy a estructurar la metodología de forma que la matriz de riesgo 6x6 sea aplicable a cualquier tipo de riesgo: financiero, HSE (personas, seguridad y medio ambiente), reputacional, operativo, tecnológico, ético, etc.
+
+Este ajuste incluirá:
+	1.	Escala de Impacto (1 a 6) con descripciones genéricas y adaptables a distintos tipos de riesgo.
+	2.	Escala de Probabilidad (1 a 6) con descripciones adecuadas para cualquier riesgo.
+	3.	Definición de colores en la matriz, explicando la razón técnica para cada nivel de riesgo.
+	4.	Justificación del uso de escalas logarítmicas o lineales según la naturaleza del riesgo.
+
+Voy a preparar el documento con estos ajustes y te lo paso en breve.
+
+METODOLOGÍA PARA LA CONSTRUCCIÓN DE MATRICES DE RIESGO 6x6
+
+1. Introducción
+
+Este documento describe la metodología para desarrollar una matriz de riesgo 6x6, adaptable a distintos tipos de riesgo:
+	•	Financiero (riesgo de mercado, crédito, liquidez, etc.).
+	•	Personas y Seguridad (HSE) (accidentes laborales, salud ocupacional).
+	•	Reputacional (afectación de la imagen corporativa).
+	•	Operativo (fallas en procesos, sistemas o infraestructura).
+	•	Tecnológico (ciberseguridad, interrupciones IT).
+	•	Ético y Cumplimiento (fraude, corrupción, sesgos en IA).
+
+La metodología permitirá definir impacto, probabilidad y colores, con criterios técnicos basados en estándares de la industria.
+
+2. Definición de la Escala de Impacto (1 a 6)
+
+El impacto mide la severidad de las consecuencias de un evento de riesgo. Se debe adaptar a cada tipo de riesgo, pero se mantiene la estructura de seis niveles para garantizar coherencia en la evaluación.
+
+Nivel	Descripción Genérica	Ejemplo Financiero	Ejemplo HSE (Personas/Seguridad)	Ejemplo Reputacional
+1. Insignificante	Impacto menor, sin efectos relevantes.	Pérdida menor al 0.1% de ingresos.	Incidente sin lesiones ni interrupción.	Queja aislada sin repercusión.
+2. Bajo	Afectación leve, recuperable sin impacto significativo.	Pérdida del 0.1% al 1% de ingresos.	Lesión leve (primeros auxilios).	Comentarios negativos sin viralización.
+3. Moderado	Impacto relevante, pero manejable con acciones correctivas.	Pérdida del 1% al 5% de ingresos.	Incapacidad temporal.	Noticia negativa en medios locales.
+4. Alto	Consecuencias severas que afectan operaciones.	Pérdida del 5% al 10% de ingresos.	Incapacidad permanente o daño ambiental grave.	Noticia en medios nacionales, afectación a clientes clave.
+5. Muy Alto	Impacto crítico que amenaza la estabilidad.	Pérdida del 10% al 20% de ingresos.	Múltiples heridos graves o evacuación de planta.	Crisis reputacional con daño a la confianza pública.
+6. Catastrófico	Consecuencias extremas, difícilmente reversibles.	Pérdida superior al 20% de ingresos.	Muerte de empleados o daño ambiental irreversible.	Pérdida de licencia para operar o quiebra.
+
+3. Definición de la Escala de Probabilidad (1 a 6)
+
+La probabilidad indica la frecuencia esperada de ocurrencia de un evento. Puede basarse en datos históricos, modelación estadística o juicio experto.
+
+Nivel	Descripción	Frecuencia Aproximada	Ejemplo Financiero	Ejemplo HSE (Personas/Seguridad)
+1. Raro	Evento casi imposible. Solo ocurre en condiciones extremas.	<0.1% en un año (una vez cada 50 años).	Crisis financiera global inesperada.	Accidente en planta con múltiples fallas simultáneas.
+2. Poco Probable	Puede ocurrir en circunstancias excepcionales.	0.1% - 1% anual (cada 10-50 años).	Fraude interno de alto impacto.	Lesión leve en un área de bajo riesgo.
+3. Ocasional	Puede suceder, pero no es común.	1% - 5% anual (cada 5-10 años).	Ciberataque exitoso sin filtración de datos críticos.	Accidente laboral en una zona operativa.
+4. Moderado	Evento recurrente en el tiempo.	5% - 20% anual (cada 1-5 años).	Pérdida por volatilidad del mercado en activos clave.	Incidente con incapacidad temporal.
+5. Probable	Ocurre con frecuencia en la industria.	20% - 50% anual (cada 1-2 años).	Fallo en control de riesgos financieros.	Accidente laboral grave con consecuencias importantes.
+6. Casi Seguro	Ocurrirá con certeza si no se toman medidas.	>50% anual (cada año o más).	Incumplimiento regulatorio en un área crítica.	Fatalidad en una actividad sin controles adecuados.
+
+4. Definición de los Colores en la Matriz de Riesgo
+
+Los colores se asignan en función del nivel de riesgo, definido como:
+
+	Riesgo = Impacto × Probabilidad
+
+Existen dos enfoques para la asignación de colores:
+	1.	Escala Logarítmica (Diagonal): Se usa cuando los riesgos de bajo impacto son aceptables, pero los de alto impacto deben priorizarse incluso si son improbables (ejemplo: fatalidades en seguridad).
+	2.	Escala Lineal (Escalonada): Se usa cuando el riesgo aumenta de manera proporcional con impacto y probabilidad (ejemplo: riesgos financieros o de cumplimiento).
+
+Impacto / Probabilidad	Raro (1)	Poco Probable (2)	Ocasional (3)	Moderado (4)	Probable (5)	Casi Seguro (6)
+Catastrófico (6)	Medio	Alto	Alto	Muy Alto	Muy Alto	Crítico
+Muy Alto (5)	Bajo	Medio	Medio	Alto	Muy Alto	Muy Alto
+Alto (4)	Bajo	Bajo	Medio	Medio	Alto	Muy Alto
+Moderado (3)	Bajo	Bajo	Medio	Medio	Medio	Alto
+Bajo (2)	Muy Bajo	Bajo	Bajo	Medio	Medio	Medio
+Muy Bajo (1)	Muy Bajo	Muy Bajo	Bajo	Bajo	Bajo	Medio
+
+Justificación de los colores
+	•	Verde (Muy Bajo/Bajo): Riesgos aceptables que no requieren mitigación activa.
+	•	Amarillo (Medio): Riesgos moderados que requieren monitoreo o controles adicionales.
+	•	Naranja (Alto/Muy Alto): Riesgos significativos que requieren planes de acción inmediatos.
+	•	Rojo (Crítico): Riesgos inaceptables que deben mitigarse o eliminarse urgentemente.
+
+📌 ¿Cuándo usar un enfoque logarítmico?
+	•	Cuando los eventos raros pero catastróficos son prioritarios (HSE, ciberseguridad, desastres naturales).
+	•	Cuando el riesgo no es lineal y pequeñas variaciones pueden causar grandes daños.
+
+📌 ¿Cuándo usar un enfoque lineal?
+	•	Cuando el riesgo crece proporcionalmente con impacto y probabilidad (financiero, cumplimiento).
+	•	Cuando se requiere una evaluación gradual y menos conservadora.
+
+5. Conclusión
+
+✅ La metodología permite construir matrices de riesgo adaptables a cualquier tipo de riesgo.
+✅ La escala 6x6 mejora la diferenciación y la toma de decisiones.
+✅ Los colores pueden asignarse según escalas logarítmicas o lineales, dependiendo del tipo de riesgo.
+
+¿Qué opinas? ¿Quieres ajustar algo más para que encaje con la implementación en tu empresa?
+
 
 ¡Claro! Aquí tienes la información convertida en una tabla en formato Markdown:
 
