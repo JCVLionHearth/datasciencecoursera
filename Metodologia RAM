@@ -1,3 +1,52 @@
+La matriz de riesgo que te di en el cuadro (mapa de calor) sigue una escala mixta, con tendencias más cercanas a una escala lineal escalonada.
+
+¿Por qué se considera más lineal?
+	•	Aumenta de manera proporcional y gradual a medida que la probabilidad e impacto crecen.
+	•	No prioriza excesivamente los eventos de bajo riesgo pero alto impacto (como sí lo haría una escala logarítmica).
+	•	La progresión de colores sigue un patrón predecible sin grandes saltos en la diagonal.
+
+Sin embargo, si quisiéramos hacer una escala logarítmica (diagonal), deberíamos asignar colores de manera más conservadora, enfatizando que un evento con impacto catastrófico, aunque poco probable, sigue siendo un riesgo inaceptable.
+
+Matriz de Riesgo con Escala Logarítmica (Diagonal Conservadora)
+
+Aquí los colores cambian más agresivamente en la diagonal, dando mayor peso a eventos con impacto alto, aunque raros.
+
+Impacto / Probabilidad	Raro (1)	Poco Probable (2)	Ocasional (3)	Moderado (4)	Probable (5)	Casi Seguro (6)
+Catastrófico (6)	Alto	Muy Alto	Muy Alto	Crítico	Crítico	Crítico
+Muy Alto (5)	Medio	Alto	Muy Alto	Muy Alto	Crítico	Crítico
+Alto (4)	Bajo	Medio	Alto	Muy Alto	Muy Alto	Crítico
+Moderado (3)	Bajo	Bajo	Medio	Alto	Muy Alto	Muy Alto
+Bajo (2)	Muy Bajo	Bajo	Bajo	Medio	Alto	Muy Alto
+Muy Bajo (1)	Muy Bajo	Muy Bajo	Bajo	Bajo	Medio	Alto
+
+Diferencias clave con la escala lineal
+	1.	Se enfatiza más el impacto alto:
+	•	En la matriz logarítmica, los eventos catastróficos o muy altos nunca son verdes o amarillos, sin importar su probabilidad.
+	•	En cambio, en una escala lineal, un impacto catastrófico con probabilidad baja podría ser amarillo o naranja.
+	2.	Se da más peso a riesgos críticos aunque sean poco probables:
+	•	Un evento “raro” pero con impacto catastrófico se clasifica al menos como Alto o Muy Alto.
+	•	En la escala lineal, este mismo evento podría quedar solo en Medio o Alto.
+	3.	La diagonal marca la diferencia:
+	•	En la escala logarítmica, la diagonal desde (1,1) hasta (6,6) marca la transición de bajo a crítico mucho más rápido.
+	•	En la escala lineal, el crecimiento del riesgo es más gradual.
+
+¿Cuándo usar cada tipo de matriz?
+
+Usar escala lineal cuando…
+
+✅ Se evalúan riesgos financieros, cumplimiento, operacionales donde el impacto crece progresivamente con la probabilidad.
+✅ Se quiere un análisis balanceado que no sobre-reaccione a eventos de baja probabilidad.
+✅ No hay eventos de riesgo con impactos catastróficos que requieran un tratamiento conservador.
+
+Usar escala logarítmica cuando…
+
+🚨 Se evalúan riesgos de seguridad, medio ambiente, ciberseguridad, desastres naturales donde un solo evento puede ser devastador.
+🚨 Se requiere priorizar eventos de alto impacto aunque sean improbables, asegurando que se tomen medidas preventivas.
+🚨 La empresa quiere ser más conservadora en la gestión del riesgo, evitando pasar por alto eventos críticos.
+
+¿Qué enfoque crees que se ajusta mejor a tu empresa? ¿Quieres que adapte la matriz final con colores según la escala que elijan?
+######
+
 La decisión entre usar una matriz 5x5 o una 6x6 depende de qué tan detallada y granular quieres que sea la evaluación del riesgo.
 
 1. Comparación entre Matriz 5x5 y 6x6
