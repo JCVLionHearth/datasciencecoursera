@@ -1,3 +1,33 @@
+Diagrama de Flujo para la Construcción de la Escala de Impacto
+
+Lógica del flujo:
+	1.	¿Se dispone de datos históricos suficientes?
+	•	Sí → Analizar los datos para identificar rangos de impacto (mínimo, promedio, máximo).
+	•	No → Consultar fuentes externas (industria, reguladores, casos análogos).
+	2.	¿Los impactos siguen una distribución predecible?
+	•	Sí → Definir umbrales de impacto con una escala lineal.
+	•	No → Evaluar si hay eventos extremos que justifican una escala logarítmica.
+	3.	¿Existen métricas cuantitativas establecidas en la industria?
+	•	Sí → Adoptarlas y adaptarlas según el contexto del negocio.
+	•	No → Usar criterios cualitativos basados en juicio experto.
+	4.	Clasificar los niveles de impacto en función de las variables críticas (financieras, operacionales, reputacionales, ambientales).
+
+⸻
+
+Diagrama de Flujo para la Construcción de la Escala de Probabilidad
+
+Lógica del flujo:
+	1.	¿Se cuenta con datos históricos suficientes sobre la frecuencia de eventos?
+	•	Sí → Calcular la tasa de ocurrencia y ajustar los rangos de probabilidad.
+	•	No → Usar modelos actuariales, distribuciones estadísticas o datos de referencia.
+	2.	¿Los eventos siguen una distribución homogénea o hay alta variabilidad?
+	•	Homogénea → Usar escala lineal.
+	•	Alta variabilidad → Usar escala logarítmica.
+	3.	Si no hay datos, se puede obtener información de expertos?
+	•	Sí → Aplicar métodos de estimación cualitativa (Delphi, analogías, matrices de comparación).
+	•	No → Se debe documentar la incertidumbre y realizar pruebas de sensibilidad en los modelos de riesgo.
+	4.	Establecer la escala de probabilidad con niveles claros de ocurrencia en el tiempo.
+
 Aquí tienes el diagrama de flujo para la definición de la escala de impacto. Ahora generaré el diagrama correspondiente a la escala de probabilidad. Dame un momento.
 
 Aquí tienes la versión revisada y ampliada del apartado 4, incorporando el mismo nivel de profundidad que en la sección de impacto, incluyendo qué hacer en ausencia de datos, decisiones clave y buenas prácticas.
