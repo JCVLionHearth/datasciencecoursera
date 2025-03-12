@@ -1,3 +1,105 @@
+Aquí tienes la versión revisada y ampliada del apartado 4, incorporando el mismo nivel de profundidad que en la sección de impacto, incluyendo qué hacer en ausencia de datos, decisiones clave y buenas prácticas.
+
+⸻
+
+4. Definición de la Escala de Probabilidad
+
+La probabilidad de un riesgo se define como la frecuencia esperada con la que un evento puede ocurrir en un horizonte de tiempo determinado. Para construir la escala de probabilidad, es necesario establecer un marco metodológico que permita definir los niveles de ocurrencia de manera objetiva y consistente.
+
+La definición de la escala debe considerar dos enfoques principales:
+	1.	Basado en datos históricos: Cuando se cuenta con información previa sobre la ocurrencia de eventos.
+	2.	Basado en juicio experto: En ausencia de datos suficientes, se deben aplicar técnicas de estimación cualitativa respaldadas por consenso de expertos.
+
+El proceso metodológico para definir la escala de probabilidad debe garantizar claridad, replicabilidad y coherencia con la escala de impacto previamente definida.
+
+⸻
+
+4.1. Métodos para Determinar la Probabilidad de Ocurrencia
+
+Para definir las escalas de probabilidad, se deben emplear los siguientes enfoques en función de la disponibilidad de datos:
+
+4.1.1. Determinación Basada en Datos Históricos
+
+Cuando se dispone de registros de eventos pasados, la probabilidad de ocurrencia puede estimarse a partir de la frecuencia observada. Las principales metodologías incluyen:
+	•	Frecuencia histórica: Se analizan registros de incidentes previos para calcular la tasa de ocurrencia por unidad de tiempo.
+	•	Modelos actuariales de frecuencia: Se utilizan distribuciones estadísticas para modelar la ocurrencia de eventos en el tiempo. Las principales distribuciones incluyen:
+	•	Distribución de Poisson: Para eventos que ocurren aleatoriamente con una tasa de ocurrencia constante.
+P(X=k) = \frac{\lambda^k e^{-\lambda}}{k!}
+Donde \lambda es la tasa media de ocurrencia en un período determinado.
+	•	Distribución Binomial: Para eventos con una probabilidad fija de ocurrencia en intentos independientes.
+	•	Distribución de Weibull: Para eventos donde la tasa de ocurrencia cambia con el tiempo (aceleración o envejecimiento de fallos).
+	•	Intervalos de confianza: Se establecen umbrales probabilísticos con base en técnicas estadísticas para definir los rangos de cada nivel de probabilidad.
+
+4.1.2. Estimación en Ausencia de Datos Históricos
+
+Cuando no existen datos históricos suficientes, se deben aplicar métodos cualitativos y de consenso para estimar la probabilidad. Las mejores prácticas incluyen:
+	•	Juicio de expertos:
+	•	Se utilizan técnicas como el método Delphi, donde expertos revisan y ajustan sus estimaciones en varias rondas hasta lograr consenso.
+	•	Se emplean matrices de comparación para estimar la probabilidad relativa de ocurrencia de distintos eventos.
+	•	Analogía con eventos similares: Se comparan eventos de riesgo con escenarios de otras industrias o regiones para extrapolar estimaciones de probabilidad.
+	•	Escalas subjetivas estructuradas: Se definen rangos de probabilidad en términos cualitativos, basados en la experiencia y percepción de riesgos en el sector.
+
+En casos donde se carezca de datos suficientes, se recomienda documentar las hipótesis y supuestos utilizados en la estimación.
+
+⸻
+
+4.2. Selección de Escalas para Probabilidad
+
+La elección de la escala adecuada para representar la probabilidad depende de la variabilidad y distribución de la frecuencia de los eventos de riesgo:
+	•	Escalas lineales: Apropiadas cuando los eventos ocurren con frecuencias relativamente homogéneas y la diferencia entre cada nivel es similar.
+	•	Escalas logarítmicas: Indicadas cuando la distribución de eventos presenta grandes diferencias entre los niveles de probabilidad, como en el caso de eventos raros de alto impacto.
+
+La selección debe considerar el tipo de riesgo y la disponibilidad de datos:
+	•	Si los datos muestran una dispersión baja o un comportamiento predecible, se recomienda una escala lineal.
+	•	Si la frecuencia de eventos sigue una distribución exponencial o de colas largas, se debe emplear una escala logarítmica.
+
+Cuando se definen niveles de probabilidad en función de percentiles de distribuciones empíricas, la escala puede adaptarse a la forma de la distribución observada, garantizando que los límites reflejen la realidad del negocio.
+
+⸻
+
+4.3. Definición de Niveles de Probabilidad
+
+Se recomienda una escala ordinal de seis niveles, alineada con la granularidad establecida en la escala de impacto:
+	1.	Raro:
+	•	Evento altamente improbable. Ocurre solo en circunstancias extremas.
+	•	Probabilidad: < 0.1\% (una vez cada 50 años o más).
+	•	Ejemplo: Crisis financiera global inesperada, explosión catastrófica por múltiples fallos simultáneos.
+	2.	Poco Probable:
+	•	Puede ocurrir en circunstancias excepcionales, pero es poco frecuente.
+	•	Probabilidad: 0.1\% - 1\% (una vez cada 10 a 50 años).
+	•	Ejemplo: Fraude interno de alto impacto, fallo masivo en sistemas críticos.
+	3.	Ocasional:
+	•	Puede suceder, pero no es común; evento inusual pero posible.
+	•	Probabilidad: 1\% - 5\% (una vez cada 5 a 10 años).
+	•	Ejemplo: Ciberataque exitoso sin filtración de datos críticos, incidente ambiental con impacto menor.
+	4.	Moderado:
+	•	Evento que ocurre periódicamente, recurrente en el tiempo.
+	•	Probabilidad: 5\% - 20\% (una vez cada 2 a 5 años).
+	•	Ejemplo: Pérdida financiera por volatilidad de mercado, incidente con incapacidad temporal.
+	5.	Probable:
+	•	Evento recurrente en plazos cortos, con ocurrencia frecuente en la industria.
+	•	Probabilidad: 20\% - 50\% (una vez cada 1 a 2 años).
+	•	Ejemplo: Fallo en control de riesgos financieros, accidente laboral con consecuencias importantes.
+	6.	Casi Seguro:
+	•	Evento que ocurre frecuentemente, casi con certeza si no se toman medidas.
+	•	Probabilidad: > 50\% (más de una vez al año).
+	•	Ejemplo: Incumplimiento regulatorio recurrente, incidentes menores en operaciones diarias.
+
+Cada área de negocio puede ajustar los límites según su contexto y los datos disponibles.
+
+⸻
+
+4.4. Relación entre la Escala de Probabilidad y la de Impacto
+
+Para garantizar consistencia metodológica, la escala de probabilidad debe estar alineada con la de impacto. Se recomienda:
+	•	Usar la misma granularidad en ambas escalas para evitar sesgos en la evaluación del riesgo.
+	•	Aplicar distribuciones de referencia para comparar la frecuencia esperada con la severidad del impacto y verificar si los umbrales de clasificación reflejan la realidad del negocio.
+	•	Si se emplean escalas logarítmicas para impacto, evaluar la conveniencia de hacer lo mismo en probabilidad para representar eventos de colas largas con mayor precisión.
+
+⸻
+
+Este enfoque metodológico garantiza que la escala de probabilidad sea precisa, transparente y aplicable en diferentes contextos de análisis de riesgo.
+#####
 gracias, en la secció 4 se realiza el mismo detalle, para la definición de escala de probabilidad, realiza el mismo analisis anterior pero que guarde relacion con el punto asociado a escala de impacto, incluye que hacer cuando no hay datos, las decisiones que se deben tomar y las buenas practicas.
 	4. Definición de la Escala de Probabilidad
 
