@@ -1,3 +1,115 @@
+hablando con mi jefe, el me pregunta acerca de la difinición de escalas, ya que se se hace un analisis por distribución de probabibilidad y usando percentiles, aqui implicitamente estaria definiendo la escala (o el rango entre niveles de impacto), sin embargo el menciona que lo de las escalas (lineales y logaritmicas) es necesario incluirlo, pero tambien deberia ser descrito cuando no se tenga datos y que esto debería estar quizas de primeras (evalualo) ya que esto debe ser una metodología, una receta de que se debe hacer para crear mi escala de impacto con datos y sin datos y no haya lugar a ambiguedades, dudas u otras cosas. ayudame a desarrollar con mayor profundidad y claridad lo que busco, lo siguente es el apartado de la definición de: Definición de la Escala de Impacto (numeral 3 en mi documento)
+
+3. Definición de la Escala de Impacto
+
+El impacto de un riesgo se mide en función de sus consecuencias en una o varias dimensiones, es decir, el impacto mide la severidad de las consecuencias de un evento de riesgo. 
+
+Para definir la escala de impacto, se debe identificar la dimensión y con esto adaptar la escala al tipo de riesgo.
+
+	 3.1. Identificación de Dimensiones de Impacto
+
+Cada área de negocio debe identificar las dimensiones relevantes  para su evaluación de riesgos. 
+
+Algunos ejemplos incluyen:
+	Económico o Financiero: Pérdidas financieras o sobrecostos, pérdidas económicas en relación con EBITDA o ingresos.
+	Ambiental: Daños ecológicos medidos en volumen de contaminantes o efectos adversos en el entorno.
+	Operacional: Impacto en la continuidad del negocio, incluyendo disrupciones en procesos internos o clave.
+	Reputacional: Pérdida de confianza de los stakeholders o afectación a la imagen de la organización.
+	Seguridad y Salud: Consecuencias en términos de lesiones o fatalidades.
+	Regulatorio: Incumplimiento de normativas, resultando en multas o sanciones.
+	Tecnológico (ciberseguridad, interrupciones IT, etc.).
+	Ético y Cumplimiento (fraude, corrupción, sesgos en IA, etc.).
+
+Cada dimensión debe contar con criterios objetivos de medición definidos por cada área, basados en su perfil de riesgo.
+
+	 3.2. Definición de Niveles de Impacto
+
+Se recomienda utilizar una escala ordinal de seis niveles, ya que permite diferenciar mejor los impactos catastróficos en sectores de alto riesgo y además si los riesgos tienen una distribución con eventos de baja probabilidad y alto impacto (colas largas).
+
+1. Muy Bajo: Impacto insignificante, sin afectación real.
+2. Bajo: Afectación menor, pero manejable internamente.
+3. Moderado: Impacto con repercusión relevante pero contenible.
+4. Alto: Consecuencias graves que afectan significativamente.
+5. Muy Alto: Impacto crítico que amenaza la estabilidad.
+6. Catastrófico: Consecuencias extremas, difícilmente reversibles.
+
+La definición específica de cada nivel dependerá de cada área, del tipo de riesgo y del sector de la operación.
+
+Por otro lado, la cuantificación de los niveles de impacto requiere la definición de umbrales adecuados mediante técnicas estadísticas y actuariales. Para poder definir los umbrales de clasificación que limita cada nivel de impacto, se recomienda el método de uso de percentiles históricos:
+
+	Se recopilan datos históricos de incidentes y pérdidas.
+	Se calculan percentiles (p.ej., P20, P50, P80, P95) para segmentar los niveles de impacto.
+	Se asignan rangos de impacto de acuerdo con estos percentiles.
+	Análisis de distribuciones de pérdidas
+
+La modelación de las distribuciones de las pérdidas se indica en el siguiente punto:
+
+	3.2.1. Modelación de la Distribución de Pérdidas
+
+Cuando se dispone de datos históricos de pérdidas (eventos materializados asociados al riesgo), se debe modelar su distribución para definir umbrales de impacto. El procedimiento es el siguiente:
+
+	Recolectar datos históricos de eventos de pérdida (ejemplo: pérdidas financieras en USD, incidentes ambientales con costos de remediación, etc.).
+	Ajustar diferentes distribuciones a los datos observados: Se deben evaluar distribuciones como:
+	Normal: Para datos simétricos con valores de pérdida relativamente homogéneos.
+	Lognormal: Para pérdidas con cola derecha (eventos raros de alto impacto).
+	Pareto: Para distribuciones con eventos extremos frecuentes.
+	Weibull: Para eventos con tasas de ocurrencia crecientes o decrecientes.
+
+	Determinar la mejor distribución mediante pruebas de bondad de ajuste como:
+	Kolmogorov-Smirnov
+	Chi-cuadrado
+	Criterio de Información de Akaike (AIC)
+
+	Calcular los percentiles clave de la distribución para definir umbrales de impacto.
+
+Si la variable X representa la pérdida y se ajusta a una distribución F(X), los umbrales de impacto pueden definirse por:
+
+P_i=F^(-1) (q_i)
+
+Donde:
+
+P_i es el umbral para el nivel 𝑖 de impacto y q_i son percentiles predefinidos (p.ej., 20%, 50%, 80%, 95%).
+
+	3.2.2. Cálculo del Valor en Riesgo (VaR) para la Definición de Impacto
+
+El Valor en Riesgo (VaR) es una métrica útil para definir umbrales de impacto en términos probabilísticos, recomendables para escenarios catastróficos. 
+
+Se calcula como:
+
+〖VaR〗_α=F^(-1) (α)
+
+Donde:
+
+𝛼 es el nivel de confianza (p.ej., 95% o 99%).
+F^(-1) (α) es el percentil correspondiente de la distribución de pérdidas.
+
+Si el área  quiere definir un umbral de impacto crítico, puede establecerlo en función del VaR al 99%, es decir, la pérdida máxima esperada con un 99% de confianza.
+
+En caso de que se cuente con simulaciones Monte Carlo para modelar pérdidas futuras, el VaR se puede estimar sobre la distribución simulada.
+
+	3.2.3. Juicio de expertos
+
+	Se usa en ausencia de datos históricos.
+	Se definen rangos con base en la experiencia de especialistas internos y externos.
+	Se pueden combinar técnicas como el Método Delphi o ponderación por consenso.
+
+	 3.3. Selección de Escalas para Impacto
+
+Una escala de impacto en una Matriz de Evaluación de Riesgos (RAM) es un sistema que asigna valores a diferentes niveles de impacto de un riesgo, permitiendo su cuantificación y comparación. Estas escalas son esenciales para evaluar y comunicar la severidad de los riesgos de manera estructurada y consistente.
+
+La selección de la escala correcta para medir el impacto depende de la dispersión de los datos:
+
+	Escalas lineales: Se utilizan cuando la variabilidad entre niveles de impacto es homogénea, es decir, para datos con baja dispersión y diferencias proporcionales entre niveles.
+	Escalas logarítmicas: Son adecuadas cuando los impactos varían exponencialmente, como en el caso de pérdidas económicas donde las diferencias entre eventos extremos son significativas. Se recomiendan para datos con alta dispersión o eventos extremos con valores significativamente mayores.
+
+En entornos financieros y de riesgos catastróficos, es preferible usar escalas logarítmicas. Para riesgos operativos con variaciones más uniformes, se recomienda una escala lineal.
+Si la relación entre percentiles muestra un comportamiento exponencial, se debe utilizar una escala logarítmica para evitar sesgos en la colorimetría del mapa de calor.
+
+
+####
+
+
+
 La matriz de riesgo que te di en el cuadro (mapa de calor) sigue una escala mixta, con tendencias más cercanas a una escala lineal escalonada.
 
 ¿Por qué se considera más lineal?
