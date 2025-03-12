@@ -1,3 +1,58 @@
+from graphviz import Digraph
+
+# Diagrama de Flujo para la Escala de Impacto
+impact_flow = Digraph('Impacto', format='png')
+impact_flow.attr(size='10')
+
+# Nodos principales
+impact_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+impact_flow.node('D1', '¿Tienes datos históricos?', shape='diamond')
+impact_flow.node('D2', '¿Los datos son suficientes?', shape='diamond')
+impact_flow.node('M1', 'Modelar distribución de pérdidas', shape='rectangle')
+impact_flow.node('M2', 'Definir percentiles y umbrales', shape='rectangle')
+impact_flow.node('J1', 'Aplicar juicio de expertos', shape='rectangle')
+impact_flow.node('End', 'Escala de Impacto Definida', shape='oval', style='filled', fillcolor='lightgray')
+
+# Conexiones
+impact_flow.edge('Start', 'D1')
+impact_flow.edge('D1', 'D2', label='Sí')
+impact_flow.edge('D1', 'J1', label='No')
+impact_flow.edge('D2', 'M1', label='Sí')
+impact_flow.edge('D2', 'J1', label='No')
+impact_flow.edge('M1', 'M2')
+impact_flow.edge('M2', 'End')
+impact_flow.edge('J1', 'End')
+
+# Renderizar el diagrama
+impact_flow.render('Impacto_Flujo', view=True)
+
+
+# Diagrama de Flujo para la Escala de Probabilidad
+prob_flow = Digraph('Probabilidad', format='png')
+prob_flow.attr(size='10')
+
+# Nodos principales
+prob_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+prob_flow.node('D1', '¿Tienes registros históricos?', shape='diamond')
+prob_flow.node('D2', '¿Se pueden modelar frecuencias?', shape='diamond')
+prob_flow.node('M1', 'Ajustar distribuciones (Poisson, Binomial, etc.)', shape='rectangle')
+prob_flow.node('M2', 'Definir probabilidades según percentiles', shape='rectangle')
+prob_flow.node('J1', 'Usar juicio de expertos o método Delphi', shape='rectangle')
+prob_flow.node('End', 'Escala de Probabilidad Definida', shape='oval', style='filled', fillcolor='lightgray')
+
+# Conexiones
+prob_flow.edge('Start', 'D1')
+prob_flow.edge('D1', 'D2', label='Sí')
+prob_flow.edge('D1', 'J1', label='No')
+prob_flow.edge('D2', 'M1', label='Sí')
+prob_flow.edge('D2', 'J1', label='No')
+prob_flow.edge('M1', 'M2')
+prob_flow.edge('M2', 'End')
+prob_flow.edge('J1', 'End')
+
+# Renderizar el diagrama
+prob_flow.render('Probabilidad_Flujo', view=True)
+
 Diagrama de Flujo para la Construcción de la Escala de Impacto
 
 Lógica del flujo:
