@@ -1,0 +1,88 @@
+Justificación para la Definición de una Escala de Impacto y Probabilidad de Cinco Niveles
+
+La selección de una escala de impacto y probabilidad es un aspecto fundamental en la evaluación de riesgos, ya que permite establecer un marco claro y consistente para la valoración de eventos adversos. En este contexto, se ha optado por definir una matriz de riesgo de 5x5, es decir, cinco niveles de impacto y cinco niveles de probabilidad, debido a los siguientes factores:
+	1.	Equilibrio entre simplicidad y precisión
+	•	Una escala de cinco niveles proporciona suficiente granularidad para diferenciar entre niveles de riesgo sin generar complejidad innecesaria.
+	•	Permite que los usuarios puedan interpretar fácilmente las categorías y tomar decisiones sin ambigüedad.
+	2.	Consistencia con estándares internacionales
+	•	Diversos marcos de referencia para gestión de riesgos, como ISO 31000, COSO ERM y la metodología de gestión de riesgos operacionales de Basilea II, emplean estructuras similares de cinco niveles.
+	•	Facilita la alineación con prácticas globales y su integración con modelos de análisis de riesgos ya existentes.
+	3.	Flexibilidad para distintos tipos de riesgos
+	•	La escala permite evaluar riesgos financieros, operacionales, estratégicos, ambientales y de cumplimiento con una misma estructura.
+	•	Se pueden establecer criterios cuantitativos y cualitativos para cada nivel de impacto y probabilidad, adaptándolos según el tipo de riesgo.
+	4.	Facilidad de comunicación y toma de decisiones
+	•	Una escala de cinco niveles equilibra la necesidad de detalle con la claridad, evitando la sobrecomplicación en la presentación de resultados.
+	•	Permite una clasificación eficiente de los riesgos en matrices de calor, facilitando su priorización y tratamiento.
+
+⸻
+
+Niveles de Impacto
+
+Los niveles de impacto representan la magnitud de las consecuencias que tendría un evento si se llegara a materializar. A continuación, se detallan los cinco niveles de impacto con ejemplos:
+	1.	Muy Bajo
+	•	Consecuencias mínimas o despreciables en la operación, finanzas o reputación.
+	•	No genera interrupciones significativas en los procesos.
+	•	Ejemplo: Un error menor en un informe interno sin repercusiones externas.
+	2.	Bajo
+	•	Impacto leve en la operación, finanzas o reputación, pero manejable sin mayores esfuerzos.
+	•	No afecta significativamente la continuidad del negocio.
+	•	Ejemplo: Un retraso leve en la entrega de un producto sin afectar contratos.
+	3.	Moderado
+	•	Afectación perceptible en la operación, costos adicionales o impactos en la reputación.
+	•	Requiere intervención para mitigar las consecuencias.
+	•	Ejemplo: Un incidente de seguridad de la información sin filtración de datos críticos.
+	4.	Alto
+	•	Consecuencias severas en la operación, pérdidas económicas considerables o daño a la reputación.
+	•	Puede requerir cambios estratégicos para su manejo.
+	•	Ejemplo: Un incumplimiento normativo con sanciones financieras.
+	5.	Catastrófico
+	•	Impacto crítico que pone en riesgo la continuidad del negocio.
+	•	Genera pérdidas financieras masivas, daño reputacional irreversible o impactos ambientales severos.
+	•	Ejemplo: Un desastre natural que destruye infraestructura clave.
+
+⸻
+
+Niveles de Probabilidad
+
+La probabilidad mide la frecuencia con la que un evento de riesgo podría ocurrir dentro de un período de tiempo determinado. Se han definido cinco niveles de probabilidad con criterios específicos:
+	1.	Raro
+	•	Evento casi imposible. Solo ocurre en condiciones extremas.
+	•	Probabilidad: Menos del 0.1% en un período de referencia (una vez cada 50 años o más).
+	•	Ejemplo: Crisis financiera global inesperada.
+	2.	Poco Probable
+	•	Puede ocurrir en circunstancias excepcionales.
+	•	Probabilidad: Entre 0.1% y 1% en un período de referencia (cada 10-50 años).
+	•	Ejemplo: Fraude interno de alto impacto en una empresa con controles estrictos.
+	3.	Ocasional
+	•	Puede suceder, pero no es común; es un evento inusual pero posible.
+	•	Probabilidad: Entre 1% y 5% (cada 5-10 años).
+	•	Ejemplo: Ciberataque exitoso sin filtración de datos críticos.
+	4.	Moderado
+	•	Evento que ocurre periódicamente, recurrente en el tiempo.
+	•	Probabilidad: Entre 5% y 20% (cada 2-5 años).
+	•	Ejemplo: Pérdida por volatilidad del mercado en activos clave.
+	5.	Casi Seguro
+	•	Evento que ocurre frecuentemente, ocurrirá con certeza si no se toman medidas.
+	•	Probabilidad: Mayor al 50% (cada año o menos).
+	•	Ejemplo: Incumplimiento regulatorio en un área crítica sin controles adecuados.
+
+⸻
+
+Uso Opcional de una Escala de 6x6 en Casos Excepcionales
+
+Si bien la escala de 5x5 es adecuada en la mayoría de los contextos, existen situaciones donde se puede justificar el uso de una escala de 6x6 o mayor. Esto se recomienda en los siguientes casos:
+	1.	Riesgos catastróficos o de baja probabilidad y alto impacto
+	•	Algunos eventos extremos, como terremotos, explosiones en plantas industriales o crisis económicas sistémicas, requieren una mayor diferenciación en sus niveles de impacto o probabilidad.
+	•	Un sexto nivel puede ayudar a capturar con mayor precisión riesgos fuera de los valores convencionales.
+	2.	Sectores altamente regulados o con alta sensibilidad al riesgo
+	•	En industrias como la nuclear, la aviación, la farmacéutica y el sector financiero, la evaluación del riesgo demanda mayor precisión debido a normativas estrictas.
+	•	Un nivel adicional puede ser útil para reflejar escenarios extremos con consecuencias significativas.
+	3.	Organizaciones con tolerancia al riesgo muy específica
+	•	Empresas con una estrategia de gestión de riesgos más detallada pueden necesitar un mayor grado de diferenciación en sus matrices de riesgo.
+	•	Un enfoque 6x6 podría ser útil cuando los responsables de riesgo requieren mayor personalización en sus análisis.
+
+⸻
+
+Conclusión
+
+La escala de 5x5 es una solución estándar, efectiva y ampliamente utilizada en la gestión de riesgos debido a su equilibrio entre detalle y simplicidad. Sin embargo, en casos donde la naturaleza del riesgo lo exija, se puede considerar el uso de una escala 6x6, particularmente para eventos extremos o industrias con alta sensibilidad al riesgo. La decisión de utilizar una escala ampliada debe estar fundamentada en la criticidad de los riesgos y la necesidad de un mayor grado de diferenciación para la toma de decisiones.
