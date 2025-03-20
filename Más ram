@@ -1,88 +1,177 @@
-Justificación para la Definición de una Escala de Impacto y Probabilidad de Cinco Niveles
+a partir de este información construí un diagrama de flujo usando python:
 
-La selección de una escala de impacto y probabilidad es un aspecto fundamental en la evaluación de riesgos, ya que permite establecer un marco claro y consistente para la valoración de eventos adversos. En este contexto, se ha optado por definir una matriz de riesgo de 5x5, es decir, cinco niveles de impacto y cinco niveles de probabilidad, debido a los siguientes factores:
-	1.	Equilibrio entre simplicidad y precisión
-	•	Una escala de cinco niveles proporciona suficiente granularidad para diferenciar entre niveles de riesgo sin generar complejidad innecesaria.
-	•	Permite que los usuarios puedan interpretar fácilmente las categorías y tomar decisiones sin ambigüedad.
-	2.	Consistencia con estándares internacionales
-	•	Diversos marcos de referencia para gestión de riesgos, como ISO 31000, COSO ERM y la metodología de gestión de riesgos operacionales de Basilea II, emplean estructuras similares de cinco niveles.
-	•	Facilita la alineación con prácticas globales y su integración con modelos de análisis de riesgos ya existentes.
-	3.	Flexibilidad para distintos tipos de riesgos
-	•	La escala permite evaluar riesgos financieros, operacionales, estratégicos, ambientales y de cumplimiento con una misma estructura.
-	•	Se pueden establecer criterios cuantitativos y cualitativos para cada nivel de impacto y probabilidad, adaptándolos según el tipo de riesgo.
-	4.	Facilidad de comunicación y toma de decisiones
-	•	Una escala de cinco niveles equilibra la necesidad de detalle con la claridad, evitando la sobrecomplicación en la presentación de resultados.
-	•	Permite una clasificación eficiente de los riesgos en matrices de calor, facilitando su priorización y tratamiento.
+	Definición de la Escala de Impacto
 
-⸻
+El impacto de un riesgo se mide en función de sus consecuencias en una o varias dimensiones clave. Definir la escala de impacto permite cuantificar la severidad de los eventos de riesgo de manera consistente y comparable en toda la organización.
 
-Niveles de Impacto
+La metodología para definir la escala de impacto debe seguir alguno de los siguientes dos enfoques, dependiendo de la disponibilidad de datos:
 
-Los niveles de impacto representan la magnitud de las consecuencias que tendría un evento si se llegara a materializar. A continuación, se detallan los cinco niveles de impacto con ejemplos:
-	1.	Muy Bajo
-	•	Consecuencias mínimas o despreciables en la operación, finanzas o reputación.
-	•	No genera interrupciones significativas en los procesos.
-	•	Ejemplo: Un error menor en un informe interno sin repercusiones externas.
-	2.	Bajo
-	•	Impacto leve en la operación, finanzas o reputación, pero manejable sin mayores esfuerzos.
-	•	No afecta significativamente la continuidad del negocio.
-	•	Ejemplo: Un retraso leve en la entrega de un producto sin afectar contratos.
-	3.	Moderado
-	•	Afectación perceptible en la operación, costos adicionales o impactos en la reputación.
-	•	Requiere intervención para mitigar las consecuencias.
-	•	Ejemplo: Un incidente de seguridad de la información sin filtración de datos críticos.
-	4.	Alto
-	•	Consecuencias severas en la operación, pérdidas económicas considerables o daño a la reputación.
-	•	Puede requerir cambios estratégicos para su manejo.
-	•	Ejemplo: Un incumplimiento normativo con sanciones financieras.
-	5.	Catastrófico
-	•	Impacto crítico que pone en riesgo la continuidad del negocio.
-	•	Genera pérdidas financieras masivas, daño reputacional irreversible o impactos ambientales severos.
-	•	Ejemplo: Un desastre natural que destruye infraestructura clave.
+	Enfoque basado en datos: Se utiliza cuando se cuenta con información histórica de eventos de riesgo.
+	Enfoque basado en juicio experto: Se aplica cuando no hay datos suficientes y se requiere una evaluación cualitativa.
 
-⸻
+	 Enfoque basado en datos
 
-Niveles de Probabilidad
+Cuando se dispone de datos históricos sobre pérdidas o incidentes, se recomienda definir los umbrales de impacto utilizando técnicas estadísticas y actuariales, asegurando una segmentación objetiva.
 
-La probabilidad mide la frecuencia con la que un evento de riesgo podría ocurrir dentro de un período de tiempo determinado. Se han definido cinco niveles de probabilidad con criterios específicos:
-	1.	Raro
-	•	Evento casi imposible. Solo ocurre en condiciones extremas.
-	•	Probabilidad: Menos del 0.1% en un período de referencia (una vez cada 50 años o más).
-	•	Ejemplo: Crisis financiera global inesperada.
-	2.	Poco Probable
-	•	Puede ocurrir en circunstancias excepcionales.
-	•	Probabilidad: Entre 0.1% y 1% en un período de referencia (cada 10-50 años).
-	•	Ejemplo: Fraude interno de alto impacto en una empresa con controles estrictos.
-	3.	Ocasional
-	•	Puede suceder, pero no es común; es un evento inusual pero posible.
-	•	Probabilidad: Entre 1% y 5% (cada 5-10 años).
-	•	Ejemplo: Ciberataque exitoso sin filtración de datos críticos.
-	4.	Moderado
-	•	Evento que ocurre periódicamente, recurrente en el tiempo.
-	•	Probabilidad: Entre 5% y 20% (cada 2-5 años).
-	•	Ejemplo: Pérdida por volatilidad del mercado en activos clave.
-	5.	Casi Seguro
-	•	Evento que ocurre frecuentemente, ocurrirá con certeza si no se toman medidas.
-	•	Probabilidad: Mayor al 50% (cada año o menos).
-	•	Ejemplo: Incumplimiento regulatorio en un área crítica sin controles adecuados.
+	Modelación de la Distribución de Pérdidas
 
-⸻
+Cuando se dispone de datos históricos de pérdidas (eventos materializados asociados al riesgo), se debe modelar su distribución para definir umbrales de impacto. El procedimiento es el siguiente:
 
-Uso Opcional de una Escala de 6x6 en Casos Excepcionales
+	Recolectar datos históricos de eventos de pérdida (ejemplo: pérdidas financieras en USD, incidentes ambientales con costos de remediación, etc.).
+	Ajustar diferentes distribuciones a los datos observados: Se deben evaluar distribuciones como:
+	Normal: Para datos simétricos con valores de pérdida relativamente homogéneos.
+	Lognormal: Para pérdidas con cola derecha (eventos raros de alto impacto).
+	Pareto: Para distribuciones con eventos extremos frecuentes.
+	Weibull: Para eventos con tasas de ocurrencia crecientes o decrecientes.
 
-Si bien la escala de 5x5 es adecuada en la mayoría de los contextos, existen situaciones donde se puede justificar el uso de una escala de 6x6 o mayor. Esto se recomienda en los siguientes casos:
-	1.	Riesgos catastróficos o de baja probabilidad y alto impacto
-	•	Algunos eventos extremos, como terremotos, explosiones en plantas industriales o crisis económicas sistémicas, requieren una mayor diferenciación en sus niveles de impacto o probabilidad.
-	•	Un sexto nivel puede ayudar a capturar con mayor precisión riesgos fuera de los valores convencionales.
-	2.	Sectores altamente regulados o con alta sensibilidad al riesgo
-	•	En industrias como la nuclear, la aviación, la farmacéutica y el sector financiero, la evaluación del riesgo demanda mayor precisión debido a normativas estrictas.
-	•	Un nivel adicional puede ser útil para reflejar escenarios extremos con consecuencias significativas.
-	3.	Organizaciones con tolerancia al riesgo muy específica
-	•	Empresas con una estrategia de gestión de riesgos más detallada pueden necesitar un mayor grado de diferenciación en sus matrices de riesgo.
-	•	Un enfoque 6x6 podría ser útil cuando los responsables de riesgo requieren mayor personalización en sus análisis.
+	Determinar la mejor distribución mediante pruebas de bondad de ajuste como:
+	Kolmogorov-Smirnov
+	Chi-cuadrado
+	Criterio de Información de Akaike (AIC)
 
-⸻
+	Calcular los percentiles clave de la distribución para definir umbrales de impacto.
 
-Conclusión
+Si la variable X representa la pérdida y se ajusta a una distribución F(X), los umbrales de impacto pueden definirse por:
 
-La escala de 5x5 es una solución estándar, efectiva y ampliamente utilizada en la gestión de riesgos debido a su equilibrio entre detalle y simplicidad. Sin embargo, en casos donde la naturaleza del riesgo lo exija, se puede considerar el uso de una escala 6x6, particularmente para eventos extremos o industrias con alta sensibilidad al riesgo. La decisión de utilizar una escala ampliada debe estar fundamentada en la criticidad de los riesgos y la necesidad de un mayor grado de diferenciación para la toma de decisiones.
+P_i=F^(-1) (q_i)
+
+Donde:
+
+P_i es el umbral para el nivel 𝑖 de impacto y q_i son percentiles predefinidos (p.ej., 20%, 50%, 80%, 95%).
+
+	Uso del Valor en Riesgo (VaR) para Riesgos Extremos
+
+En el caso que se tengan riesgos extremos, se puede usar la técnica del Valor en Riesgo (VaR), la cual es una métrica útil para definir umbrales de impacto en términos probabilísticos, recomendables para escenarios catastróficos. 
+
+Se calcula como:
+
+〖VaR〗_α=F^(-1) (α)
+
+Donde:
+
+𝛼 es el nivel de confianza (p.ej., 95% o 99%).
+F^(-1) (α) es el percentil correspondiente de la distribución de pérdidas.
+
+Si el área de negocio quiere definir un umbral de impacto crítico, puede establecerlo en función del VaR al 99%, es decir, la pérdida máxima esperada con un 99% de confianza.
+
+En caso de que se cuente con simulaciones (Monte Carlo, Bootstrap, etc.) para modelar pérdidas futuras, el VaR se puede estimar sobre la distribución simulada.
+
+ 
+	 Enfoque Basado en Juicio Experto
+
+Cuando no se dispone de datos históricos, los umbrales de impacto deben definirse mediante metodologías cualitativas estructuradas para minimizar sesgos:
+
+	Método Delphi: Se consulta a expertos en rondas iterativas para alcanzar consenso.
+	Ponderación por consenso: Se asignan valores de impacto con base en experiencias previas y mejores prácticas del sector.
+	Análisis de escenarios: Se identifican eventos hipotéticos y su impacto estimado.
+
+En estos casos, las definiciones deben ser documentadas y revisadas periódicamente para incorporar datos conforme se generen.
+
+
+	 Selección de Escalas para Impacto
+
+Una vez definidos los umbrales de impacto, se debe seleccionar el tipo de escala más adecuado. 
+
+Una escala de impacto en una Matriz de Evaluación de Riesgos (RAM) es un sistema que asigna valores a diferentes niveles de impacto de un riesgo, permitiendo su cuantificación y comparación. Estas escalas son esenciales para evaluar y comunicar la severidad de los riesgos de manera estructurada y consistente.
+
+La selección de la escala correcta para medir el impacto depende de la dispersión de los datos:
+
+	Escalas lineales: Se utilizan cuando la variabilidad entre niveles de impacto es homogénea, es decir, para datos con baja dispersión y diferencias proporcionales entre niveles.
+	Escalas logarítmicas: Son adecuadas cuando los impactos varían exponencialmente, como en el caso de pérdidas económicas donde las diferencias entre eventos extremos son significativas. Se recomiendan para datos con alta dispersión o eventos extremos con valores significativamente mayores.
+
+En entornos financieros y de riesgos catastróficos, por ejemplo, es preferible usar escalas logarítmicas. Para riesgos operativos con variaciones más uniformes, se recomienda una escala lineal.
+Si la relación entre percentiles muestra un comportamiento exponencial, se debe utilizar una escala logarítmica para evitar sesgos en la colorimetría del mapa de calor.
+
+Para decidir qué escala utilizar, se recomienda:
+	Analizar la relación entre percentiles y evaluar si el crecimiento es proporcional o exponencial.
+	2.	Aplicar escalas logarítmicas en eventos de “cola larga” con impactos extremos.
+	3.	Mantener escalas lineales en riesgos con dispersión uniforme.
+
+	 Definición de Niveles de Impacto
+
+La selección de una escala de impacto y probabilidad es un aspecto fundamental en la evaluación de riesgos, ya que permite establecer un marco claro y consistente para la valoración de eventos adversos. En este contexto, se recomienda utilizar una matriz de riesgo de 5x5, es decir, cinco niveles de impacto y cinco niveles de probabilidad.
+
+Para una escala de cinco niveles de impacto, su descripción sería la siguiente:
+
+1. Insignificante: Impacto insignificante, sin afectación real.
+2. Menor: Afectación menor, pero manejable internamente.
+3. Moderado: Impacto con repercusión relevante pero contenible.
+4. Mayor: Consecuencias graves que afectan significativamente.
+5. Catastrófico: Impacto crítico que amenaza la estabilidad.
+
+La definición específica de cada nivel dependerá de cada área de negocio, del tipo de riesgo y del sector de la operación.
+
+Si bien la escala de 5x5 es adecuada en la mayoría de los contextos, existen situaciones donde se puede justificar el uso de una escala de 6x6 o incluso mayor, esto si los riesgos tienen una distribución con eventos de baja probabilidad y alto impacto (colas largas), se recomienda el uso de seis niveles de impacto cuando hay riesgos catastróficos o de baja probabilidad y alto impacto o Áreas de negocio con alta sensibilidad al riesgo
+
+En este caso, los niveles de impacto serían los siguientes:
+
+1. Insignificante: Impacto insignificante, sin afectación real.
+2. Menor: Afectación menor, pero manejable internamente.
+3. Moderado: Impacto con repercusión relevante pero contenible.
+4. Alto: Consecuencias graves que afectan significativamente.
+5. Muy alto: Impacto crítico que amenaza la estabilidad.
+6. Catastrófico: Consecuencias extremas, difícilmente reversibles.
+
+
+	 Identificación de Dimensiones de Impacto
+
+Cada área de negocio debe identificar las dimensiones relevantes para su evaluación de riesgos, las cuales deben guardar relación con el apalancamiento de sus objetivos y del apetito de riesgo definido. 
+
+Algunos ejemplos de dimensiones de impacto son:
+
+	Económico o Financiero: Pérdidas financieras o sobrecostos, pérdidas económicas en relación con EBITDA o ingresos.
+	Ambiental: Daños ecológicos medidos en volumen de contaminantes o efectos adversos en el entorno.
+	Operacional: Impacto en la continuidad del negocio, incluyendo disrupciones en procesos internos o clave.
+	Reputacional: Pérdida de confianza de los stakeholders o afectación a la imagen de la organización.
+	Seguridad y Salud: Consecuencias en términos de lesiones o fatalidades.
+	Regulatorio: Incumplimiento de normativas, resultando en multas o sanciones.
+	Tecnológico (ciberseguridad, interrupciones IT, etc.).
+
+Cada dimensión debe contar con criterios objetivos de medición definidos por cada área de negocio, basados en su perfil de riesgo.
+
+este es el código
+
+from graphviz import Digraph
+from IPython.display import Image, display
+
+# Diagrama de Flujo para la Escala de Impacto
+impact_flow = Digraph('Impacto', format='png')
+impact_flow.attr(size='10')
+
+# Nodos principales con colores
+impact_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+impact_flow.node('D1', '¿Hay datos históricos?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('D2', '¿Los datos son suficientes?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('D3', '¿Los impactos siguen una distribución predecible?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('M0', 'Consultar fuentes externas', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M1', 'Definir umbrales de impacto con una escala lineal', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M2', 'Evaluar si hay eventos extremos que justifican una escala logarítmica', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M3', 'Modelar distribución de pérdidas', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M4', 'Definir percentiles y umbrales', shape='rectangle', style='filled', fillcolor='lightyellow')
+impact_flow.node('M5', 'Definir umbrales', shape='rectangle', style='filled', fillcolor='lightyellow')
+impact_flow.node('J1', 'Aplicar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('J2', 'Documentar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightcoral')
+impact_flow.node('End', 'Escala de Impacto Definida', shape='oval', style='filled', fillcolor='lightgray')
+
+# Conexiones con colores
+impact_flow.edge('Start', 'D1', color='black')
+impact_flow.edge('D1', 'D2', label='Sí', color='blue')
+impact_flow.edge('D1', 'M0', label='No', color='red')
+impact_flow.edge('M0', 'D2', label='Sí', color='blue')
+impact_flow.edge('D2', 'M3', label='Sí', color='blue')
+impact_flow.edge('M3', 'D3', label='Sí', color='blue')
+impact_flow.edge('D3', 'M1', label='Sí', color='blue')
+impact_flow.edge('D3', 'M2', label='No', color='red')
+impact_flow.edge('D2', 'J1', label='No', color='red')
+impact_flow.edge('J1', 'J2', color='black')
+impact_flow.edge('J2', 'M5', color='black')
+impact_flow.edge('M1', 'M4', color='black')
+impact_flow.edge('M2', 'M4', color='black')
+impact_flow.edge('M4', 'End', color='black')
+impact_flow.edge('M5', 'End', color='black')
+
+# Renderizar el diagrama
+impact_flow.render('Impacto_Flujo', view=True)
+display(Image(filename='Impacto_Flujo.png'))
+
+Pero no está reflejando todo el proceso o caracteristicas que quiero que tenga, debe inluir todo y ser claro en el procedimiento mostrado. Ayudame a que esto se cumpla, mejora el código.
