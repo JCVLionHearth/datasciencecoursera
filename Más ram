@@ -1,3 +1,89 @@
+from graphviz import Digraph
+from IPython.display import Image, display
+
+# Crear diagrama de flujo
+impact_flow = Digraph('Impacto', format='png')
+impact_flow.attr(size='12')
+
+# Nodos principales
+impact_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+
+# Pregunta inicial: Disponibilidad de datos históricos
+impact_flow.node('D1', '¿Hay datos históricos sobre pérdidas?', shape='diamond', style='filled', fillcolor='lightblue')
+
+# Si no hay datos, aplicar juicio experto
+impact_flow.node('J1', 'Aplicar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('J2', 'Seleccionar método de juicio experto:\n- Delphi\n- Ponderación\n- Análisis de escenarios', shape='rectangle', style='filled', fillcolor='lightyellow')
+impact_flow.node('J3', 'Documentar juicio experto\npara futuras revisiones', shape='rectangle', style='filled', fillcolor='lightcoral')
+
+# Si hay datos, verificar si son suficientes
+impact_flow.node('D2', '¿Los datos son suficientes\ny representativos?', shape='diamond', style='filled', fillcolor='lightblue')
+
+# Si los datos no son suficientes, complementar con fuentes externas
+impact_flow.node('M0', 'Consultar fuentes externas\no bases de datos del sector', shape='rectangle', style='filled', fillcolor='lightgreen')
+
+# Si los datos son suficientes, modelar distribución de pérdidas
+impact_flow.node('M1', 'Recolectar y analizar datos históricos\nde pérdidas', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M2', 'Ajustar diferentes distribuciones estadísticas:\n- Normal\n- Lognormal\n- Pareto\n- Weibull', shape='rectangle', style='filled', fillcolor='lightgreen')
+impact_flow.node('M3', 'Determinar la mejor distribución\n(Pruebas de bondad de ajuste):\n- Kolmogorov-Smirnov\n- Chi-cuadrado\n- AIC', shape='rectangle', style='filled', fillcolor='lightyellow')
+
+# Definición de umbrales
+impact_flow.node('D3', '¿La distribución es predecible?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('M4', 'Definir percentiles clave\npara umbrales de impacto', shape='rectangle', style='filled', fillcolor='lightyellow')
+
+# Evaluación de eventos extremos
+impact_flow.node('D4', '¿Hay eventos extremos (cola larga)?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('M5', 'Aplicar metodología de\nValor en Riesgo (VaR)', shape='rectangle', style='filled', fillcolor='lightgreen')
+
+# Selección de escala
+impact_flow.node('D5', '¿La dispersión de los datos es uniforme?', shape='diamond', style='filled', fillcolor='lightblue')
+impact_flow.node('S1', 'Usar escala lineal', shape='rectangle', style='filled', fillcolor='lightyellow')
+impact_flow.node('S2', 'Usar escala logarítmica\n(eventos de alto impacto)', shape='rectangle', style='filled', fillcolor='lightyellow')
+
+# Niveles de impacto
+impact_flow.node('N1', 'Definir niveles de impacto (5x5 o 6x6)', shape='rectangle', style='filled', fillcolor='lightgreen')
+
+# Dimensiones de impacto
+impact_flow.node('DIM', 'Definir dimensiones de impacto:\n- Financiero\n- Ambiental\n- Operacional\n- Reputacional\n- Seguridad\n- Regulatorio\n- Tecnológico', shape='rectangle', style='filled', fillcolor='lightyellow')
+
+# Fin del proceso
+impact_flow.node('End', 'Escala de Impacto Definida', shape='oval', style='filled', fillcolor='lightgray')
+
+# Conexiones principales
+impact_flow.edge('Start', 'D1', color='black')
+impact_flow.edge('D1', 'D2', label='Sí', color='blue')
+impact_flow.edge('D1', 'J1', label='No', color='red')
+impact_flow.edge('J1', 'J2', color='black')
+impact_flow.edge('J2', 'J3', color='black')
+impact_flow.edge('J3', 'N1', color='black')
+
+impact_flow.edge('D2', 'M1', label='Sí', color='blue')
+impact_flow.edge('D2', 'M0', label='No', color='red')
+impact_flow.edge('M0', 'M1', label='Datos obtenidos', color='blue')
+impact_flow.edge('M1', 'M2', color='black')
+impact_flow.edge('M2', 'M3', color='black')
+impact_flow.edge('M3', 'D3', color='black')
+
+impact_flow.edge('D3', 'M4', label='Sí', color='blue')
+impact_flow.edge('D3', 'D4', label='No', color='red')
+impact_flow.edge('D4', 'M5', label='Sí', color='red')
+impact_flow.edge('D4', 'M4', label='No', color='blue')
+impact_flow.edge('M5', 'M4', color='black')
+
+impact_flow.edge('M4', 'D5', color='black')
+impact_flow.edge('D5', 'S1', label='Sí', color='blue')
+impact_flow.edge('D5', 'S2', label='No', color='red')
+
+impact_flow.edge('S1', 'N1', color='black')
+impact_flow.edge('S2', 'N1', color='black')
+
+impact_flow.edge('N1', 'DIM', color='black')
+impact_flow.edge('DIM', 'End', color='black')
+
+# Renderizar el diagrama
+impact_flow.render('Impacto_Flujo', view=True)
+display(Image(filename='Impacto_Flujo.png'))
+
 a partir de este información construí un diagrama de flujo usando python:
 
 	Definición de la Escala de Impacto
