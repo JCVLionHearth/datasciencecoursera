@@ -1,263 +1,158 @@
-from graphviz import Digraph
-from IPython.display import Image, display
+Haz lo mismo con esta información y ajusta el codigo:
 
-# Crear diagrama de flujo
-impact_flow = Digraph('Impacto', format='png')
-impact_flow.attr(size='12')
+	Definición de la Escala de Probabilidad
 
-# Nodos principales
-impact_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+La probabilidad se define en términos de frecuencia esperada, del evento de riesgo, con la que puede ocurrir en un horizonte de tiempo determinado. Para construir la escala de probabilidad, es necesario establecer un marco metodológico que permita definir los niveles de ocurrencia de manera objetiva y consistente.
 
-# Pregunta inicial: Disponibilidad de datos históricos
-impact_flow.node('D1', '¿Hay datos históricos sobre pérdidas?', shape='diamond', style='filled', fillcolor='lightblue')
+La definición de la escala debe considerar dos enfoques principales:
 
-# Si no hay datos, aplicar juicio experto
-impact_flow.node('J1', 'Aplicar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('J2', 'Seleccionar método de juicio experto:\n- Delphi\n- Ponderación\n- Análisis de escenarios', shape='rectangle', style='filled', fillcolor='lightyellow')
-impact_flow.node('J3', 'Documentar juicio experto\npara futuras revisiones', shape='rectangle', style='filled', fillcolor='lightcoral')
+	Basado en datos históricos: Cuando se cuenta con información previa sobre la ocurrencia de eventos.
+	Basado en juicio experto: En ausencia de datos suficientes, se deben aplicar técnicas de estimación cualitativa respaldadas por consenso de expertos.
 
-# Si hay datos, verificar si son suficientes
-impact_flow.node('D2', '¿Los datos son suficientes\ny representativos?', shape='diamond', style='filled', fillcolor='lightblue')
+El proceso metodológico para definir la escala de probabilidad debe garantizar claridad, replicabilidad y coherencia con la escala de impacto previamente definida.
 
-# Si los datos no son suficientes, complementar con fuentes externas
-impact_flow.node('M0', 'Consultar fuentes externas\no bases de datos del sector', shape='rectangle', style='filled', fillcolor='lightgreen')
+	 Métodos para Determinar la Probabilidad de Ocurrencia
 
-# Si los datos son suficientes, modelar distribución de pérdidas
-impact_flow.node('M1', 'Recolectar y analizar datos históricos\nde pérdidas', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M2', 'Ajustar diferentes distribuciones estadísticas:\n- Normal\n- Lognormal\n- Pareto\n- Weibull', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M3', 'Determinar la mejor distribución\n(Pruebas de bondad de ajuste):\n- Kolmogorov-Smirnov\n- Chi-cuadrado\n- AIC', shape='rectangle', style='filled', fillcolor='lightyellow')
+Para definir las escalas de probabilidad se pueden utilizar los siguientes enfoques en función de la disponibilidad de datos:
 
-# Definición de umbrales
-impact_flow.node('D3', '¿La distribución es predecible?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('M4', 'Definir percentiles clave\npara umbrales de impacto', shape='rectangle', style='filled', fillcolor='lightyellow')
+	Determinación Basada en Datos Históricos
 
-# Evaluación de eventos extremos
-impact_flow.node('D4', '¿Hay eventos extremos (cola larga)?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('M5', 'Aplicar metodología de\nValor en Riesgo (VaR)', shape='rectangle', style='filled', fillcolor='lightgreen')
+Cuando se dispone de registros de eventos pasados, la probabilidad de ocurrencia puede estimarse a partir de la frecuencia observada. Las principales metodologías incluyen:
 
-# Selección de escala
-impact_flow.node('D5', '¿La dispersión de los datos es uniforme?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('S1', 'Usar escala lineal', shape='rectangle', style='filled', fillcolor='lightyellow')
-impact_flow.node('S2', 'Usar escala logarítmica\n(eventos de alto impacto)', shape='rectangle', style='filled', fillcolor='lightyellow')
+	Frecuencia histórica de eventos: Se analizan registros de incidentes previos para calcular la tasa de ocurrencia por unidad de tiempo.
+	Modelos actuariales de frecuencia: Se utilizan distribuciones estadísticas para modelar la ocurrencia de eventos en el tiempo. Las principales distribuciones incluyen:
 
-# Niveles de impacto
-impact_flow.node('N1', 'Definir niveles de impacto (5x5 o 6x6)', shape='rectangle', style='filled', fillcolor='lightgreen')
 
-# Dimensiones de impacto
-impact_flow.node('DIM', 'Definir dimensiones de impacto:\n- Financiero\n- Ambiental\n- Operacional\n- Reputacional\n- Seguridad\n- Regulatorio\n- Tecnológico', shape='rectangle', style='filled', fillcolor='lightyellow')
+	Distribución de Poisson se usa si los eventos ocurren de manera aleatoria en el tiempo, con una tasa de ocurrencia constante:
 
-# Fin del proceso
-impact_flow.node('End', 'Escala de Impacto Definida', shape='oval', style='filled', fillcolor='lightgray')
+P(X=k)=(λ^k e^(-λ))/k!
 
-# Conexiones principales
-impact_flow.edge('Start', 'D1', color='black')
-impact_flow.edge('D1', 'D2', label='Sí', color='blue')
-impact_flow.edge('D1', 'J1', label='No', color='red')
-impact_flow.edge('J1', 'J2', color='black')
-impact_flow.edge('J2', 'J3', color='black')
-impact_flow.edge('J3', 'N1', color='black')
+Donde 𝜆 es la tasa promedio de ocurrencia del evento.
 
-impact_flow.edge('D2', 'M1', label='Sí', color='blue')
-impact_flow.edge('D2', 'M0', label='No', color='red')
-impact_flow.edge('M0', 'M1', label='Datos obtenidos', color='blue')
-impact_flow.edge('M1', 'M2', color='black')
-impact_flow.edge('M2', 'M3', color='black')
-impact_flow.edge('M3', 'D3', color='black')
+	Distribución Binomial si los eventos tienen probabilidad fija de ocurrencia en intentos independientes.
 
-impact_flow.edge('D3', 'M4', label='Sí', color='blue')
-impact_flow.edge('D3', 'D4', label='No', color='red')
-impact_flow.edge('D4', 'M5', label='Sí', color='red')
-impact_flow.edge('D4', 'M4', label='No', color='blue')
-impact_flow.edge('M5', 'M4', color='black')
+	Intervalos de confianza: Se establecen umbrales probabilísticos con base en técnicas estadísticas para definir los rangos de cada nivel de probabilidad.
 
-impact_flow.edge('M4', 'D5', color='black')
-impact_flow.edge('D5', 'S1', label='Sí', color='blue')
-impact_flow.edge('D5', 'S2', label='No', color='red')
+	Estimación en Ausencia de Datos Históricos
 
-impact_flow.edge('S1', 'N1', color='black')
-impact_flow.edge('S2', 'N1', color='black')
+Cuando no existen datos históricos suficientes, se deben aplicar métodos cualitativos y de consenso para estimar la probabilidad. Las mejores prácticas incluyen:
 
-impact_flow.edge('N1', 'DIM', color='black')
-impact_flow.edge('DIM', 'End', color='black')
+	Juicio de expertos: Se utilizan técnicas como el método Delphi, donde expertos revisan y ajustan sus estimaciones en varias rondas hasta lograr consenso.
+	Se emplean matrices de comparación para estimar la probabilidad relativa de ocurrencia de distintos eventos.
+	Analogía con eventos similares: Se comparan eventos de riesgo con escenarios de otras industrias o regiones para extrapolar estimaciones de probabilidad.
+	Escalas subjetivas estructuradas: Se definen rangos de probabilidad en términos cualitativos, basados en la experiencia y percepción de riesgos en el sector.
 
-# Renderizar el diagrama
-impact_flow.render('Impacto_Flujo', view=True)
-display(Image(filename='Impacto_Flujo.png'))
+En casos donde se carezca de datos suficientes, se recomienda documentar las hipótesis y supuestos utilizados en la estimación.
 
-a partir de este información construí un diagrama de flujo usando python:
+	 Selección de Escalas para Probabilidad
 
-	Definición de la Escala de Impacto
+La elección de la escala adecuada para representar la probabilidad depende de la variabilidad y distribución de la frecuencia de los eventos de riesgo:
 
-El impacto de un riesgo se mide en función de sus consecuencias en una o varias dimensiones clave. Definir la escala de impacto permite cuantificar la severidad de los eventos de riesgo de manera consistente y comparable en toda la organización.
+	Escalas lineales: Apropiadas cuando los eventos ocurren con frecuencias relativamente homogéneas y la diferencia entre cada nivel es similar.
+	Escalas logarítmicas: Indicadas cuando la distribución de eventos presenta grandes diferencias entre los niveles de probabilidad, como en el caso de eventos raros de alto impacto.
 
-La metodología para definir la escala de impacto debe seguir alguno de los siguientes dos enfoques, dependiendo de la disponibilidad de datos:
+La selección debe considerar el tipo de riesgo y la disponibilidad de datos:
+	Si los datos muestran una dispersión baja o un comportamiento predecible, se recomienda una escala lineal.
+	Si la frecuencia de eventos sigue una distribución exponencial o de colas largas, se debe emplear una escala logarítmica.
 
-	Enfoque basado en datos: Se utiliza cuando se cuenta con información histórica de eventos de riesgo.
-	Enfoque basado en juicio experto: Se aplica cuando no hay datos suficientes y se requiere una evaluación cualitativa.
+Cuando se definen niveles de probabilidad en función de percentiles de distribuciones empíricas, la escala puede adaptarse a la forma de la distribución observada, garantizando que los límites reflejen la realidad del área de negocio.
 
-	 Enfoque basado en datos
+	 Definición de Niveles de Probabilidad
 
-Cuando se dispone de datos históricos sobre pérdidas o incidentes, se recomienda definir los umbrales de impacto utilizando técnicas estadísticas y actuariales, asegurando una segmentación objetiva.
+Se recomienda la definición de cinco niveles de probabilidad con los siguientes criterios:
 
-	Modelación de la Distribución de Pérdidas
+	Raro: 
+Puede ocurrir en circunstancias excepcionales. 
+Probabilidad: <1% de probabilidad de ocurrencia en un periodo de referencia. Una vez cada 10 años o más
+Ejemplos: Crisis financiera global inesperada, accidente en planta con múltiples fallas simultáneas, explosiones, fraude interno de alto impacto, lesión leve en un área de bajo riesgo, etc.
+	Ocasional: 
+Puede suceder, pero no es común, es un evento inusual pero posible.
+Probabilidad: 1%-5% de probabilidad de ocurrencia. Una vez cada 5-10 años.
+Ejemplos: Ciberataque exitoso sin filtración de datos críticos, accidente laboral en una zona operativa, etc.
+	Moderado: 
+Evento que ocurre periódicamente, recurrente en el tiempo.
+Probabilidad: 5%-20% de probabilidad de ocurrencia. Una vez cada 2-5 años.
+Ejemplos: Pérdida por volatilidad del mercado en activos clave, incidente con incapacidad temporal, etc.
+	Probable: 
+Evento recurrente en plazos cortos, ocurre con frecuencia en la industria.
+Probabilidad: 20%-50% de probabilidad de ocurrencia. Una vez cada 1-2 años.
+Ejemplos: Fallo en control de riesgos financieros, accidente laboral grave con consecuencias importantes.
+	Casi Seguro: 
+Evento que ocurre frecuentemente, ocurrirá con certeza si no se toman medidas.
+Probabilidad: >50% de probabilidad de ocurrencia. más de una vez al año.
+Ejemplos: Incumplimiento regulatorio recurrente, incidentes menores en operaciones diarias.
 
-Cuando se dispone de datos históricos de pérdidas (eventos materializados asociados al riesgo), se debe modelar su distribución para definir umbrales de impacto. El procedimiento es el siguiente:
+Para el caso que se considere una matriz 6x6 con seis niveles de probabilidad, los criterios que se recomiendan son los siguientes:
 
-	Recolectar datos históricos de eventos de pérdida (ejemplo: pérdidas financieras en USD, incidentes ambientales con costos de remediación, etc.).
-	Ajustar diferentes distribuciones a los datos observados: Se deben evaluar distribuciones como:
-	Normal: Para datos simétricos con valores de pérdida relativamente homogéneos.
-	Lognormal: Para pérdidas con cola derecha (eventos raros de alto impacto).
-	Pareto: Para distribuciones con eventos extremos frecuentes.
-	Weibull: Para eventos con tasas de ocurrencia crecientes o decrecientes.
-
-	Determinar la mejor distribución mediante pruebas de bondad de ajuste como:
-	Kolmogorov-Smirnov
-	Chi-cuadrado
-	Criterio de Información de Akaike (AIC)
-
-	Calcular los percentiles clave de la distribución para definir umbrales de impacto.
-
-Si la variable X representa la pérdida y se ajusta a una distribución F(X), los umbrales de impacto pueden definirse por:
-
-P_i=F^(-1) (q_i)
-
-Donde:
-
-P_i es el umbral para el nivel 𝑖 de impacto y q_i son percentiles predefinidos (p.ej., 20%, 50%, 80%, 95%).
-
-	Uso del Valor en Riesgo (VaR) para Riesgos Extremos
-
-En el caso que se tengan riesgos extremos, se puede usar la técnica del Valor en Riesgo (VaR), la cual es una métrica útil para definir umbrales de impacto en términos probabilísticos, recomendables para escenarios catastróficos. 
-
-Se calcula como:
-
-〖VaR〗_α=F^(-1) (α)
-
-Donde:
-
-𝛼 es el nivel de confianza (p.ej., 95% o 99%).
-F^(-1) (α) es el percentil correspondiente de la distribución de pérdidas.
-
-Si el área de negocio quiere definir un umbral de impacto crítico, puede establecerlo en función del VaR al 99%, es decir, la pérdida máxima esperada con un 99% de confianza.
-
-En caso de que se cuente con simulaciones (Monte Carlo, Bootstrap, etc.) para modelar pérdidas futuras, el VaR se puede estimar sobre la distribución simulada.
-
- 
-	 Enfoque Basado en Juicio Experto
-
-Cuando no se dispone de datos históricos, los umbrales de impacto deben definirse mediante metodologías cualitativas estructuradas para minimizar sesgos:
-
-	Método Delphi: Se consulta a expertos en rondas iterativas para alcanzar consenso.
-	Ponderación por consenso: Se asignan valores de impacto con base en experiencias previas y mejores prácticas del sector.
-	Análisis de escenarios: Se identifican eventos hipotéticos y su impacto estimado.
-
-En estos casos, las definiciones deben ser documentadas y revisadas periódicamente para incorporar datos conforme se generen.
-
-
-	 Selección de Escalas para Impacto
-
-Una vez definidos los umbrales de impacto, se debe seleccionar el tipo de escala más adecuado. 
-
-Una escala de impacto en una Matriz de Evaluación de Riesgos (RAM) es un sistema que asigna valores a diferentes niveles de impacto de un riesgo, permitiendo su cuantificación y comparación. Estas escalas son esenciales para evaluar y comunicar la severidad de los riesgos de manera estructurada y consistente.
-
-La selección de la escala correcta para medir el impacto depende de la dispersión de los datos:
-
-	Escalas lineales: Se utilizan cuando la variabilidad entre niveles de impacto es homogénea, es decir, para datos con baja dispersión y diferencias proporcionales entre niveles.
-	Escalas logarítmicas: Son adecuadas cuando los impactos varían exponencialmente, como en el caso de pérdidas económicas donde las diferencias entre eventos extremos son significativas. Se recomiendan para datos con alta dispersión o eventos extremos con valores significativamente mayores.
-
-En entornos financieros y de riesgos catastróficos, por ejemplo, es preferible usar escalas logarítmicas. Para riesgos operativos con variaciones más uniformes, se recomienda una escala lineal.
-Si la relación entre percentiles muestra un comportamiento exponencial, se debe utilizar una escala logarítmica para evitar sesgos en la colorimetría del mapa de calor.
-
-Para decidir qué escala utilizar, se recomienda:
-	Analizar la relación entre percentiles y evaluar si el crecimiento es proporcional o exponencial.
-	2.	Aplicar escalas logarítmicas en eventos de “cola larga” con impactos extremos.
-	3.	Mantener escalas lineales en riesgos con dispersión uniforme.
-
-	 Definición de Niveles de Impacto
-
-La selección de una escala de impacto y probabilidad es un aspecto fundamental en la evaluación de riesgos, ya que permite establecer un marco claro y consistente para la valoración de eventos adversos. En este contexto, se recomienda utilizar una matriz de riesgo de 5x5, es decir, cinco niveles de impacto y cinco niveles de probabilidad.
-
-Para una escala de cinco niveles de impacto, su descripción sería la siguiente:
-
-1. Insignificante: Impacto insignificante, sin afectación real.
-2. Menor: Afectación menor, pero manejable internamente.
-3. Moderado: Impacto con repercusión relevante pero contenible.
-4. Mayor: Consecuencias graves que afectan significativamente.
-5. Catastrófico: Impacto crítico que amenaza la estabilidad.
-
-La definición específica de cada nivel dependerá de cada área de negocio, del tipo de riesgo y del sector de la operación.
-
-Si bien la escala de 5x5 es adecuada en la mayoría de los contextos, existen situaciones donde se puede justificar el uso de una escala de 6x6 o incluso mayor, esto si los riesgos tienen una distribución con eventos de baja probabilidad y alto impacto (colas largas), se recomienda el uso de seis niveles de impacto cuando hay riesgos catastróficos o de baja probabilidad y alto impacto o Áreas de negocio con alta sensibilidad al riesgo
-
-En este caso, los niveles de impacto serían los siguientes:
-
-1. Insignificante: Impacto insignificante, sin afectación real.
-2. Menor: Afectación menor, pero manejable internamente.
-3. Moderado: Impacto con repercusión relevante pero contenible.
-4. Alto: Consecuencias graves que afectan significativamente.
-5. Muy alto: Impacto crítico que amenaza la estabilidad.
-6. Catastrófico: Consecuencias extremas, difícilmente reversibles.
-
-
-	 Identificación de Dimensiones de Impacto
-
-Cada área de negocio debe identificar las dimensiones relevantes para su evaluación de riesgos, las cuales deben guardar relación con el apalancamiento de sus objetivos y del apetito de riesgo definido. 
-
-Algunos ejemplos de dimensiones de impacto son:
-
-	Económico o Financiero: Pérdidas financieras o sobrecostos, pérdidas económicas en relación con EBITDA o ingresos.
-	Ambiental: Daños ecológicos medidos en volumen de contaminantes o efectos adversos en el entorno.
-	Operacional: Impacto en la continuidad del negocio, incluyendo disrupciones en procesos internos o clave.
-	Reputacional: Pérdida de confianza de los stakeholders o afectación a la imagen de la organización.
-	Seguridad y Salud: Consecuencias en términos de lesiones o fatalidades.
-	Regulatorio: Incumplimiento de normativas, resultando en multas o sanciones.
-	Tecnológico (ciberseguridad, interrupciones IT, etc.).
-
-Cada dimensión debe contar con criterios objetivos de medición definidos por cada área de negocio, basados en su perfil de riesgo.
-
-este es el código
+	Raro: 
+Evento casi imposible. Solo ocurre en condiciones extremas. 
+Probabilidad: 0.1% de probabilidad de ocurrencia en un periodo de referencia. Una vez cada 50 años o más.
+Ejemplos: Crisis financiera global inesperada, accidente en planta con múltiples fallas simultáneas, explosiones, etc.
+	Poco Probable: 
+Puede ocurrir en circunstancias excepcionales. 
+Probabilidad: 0.1%-1% de probabilidad de ocurrencia en un período de referencia. Una vez cada 10-50 años.
+Ejemplos: Fraude interno de alto impacto, lesión leve en un área de bajo riesgo, etc.
+	Ocasional: 
+Puede suceder, pero no es común, es un evento inusual pero posible.
+Probabilidad: 1%-5% de probabilidad de ocurrencia. Una vez cada 5-10 años.
+Ejemplos: Ciberataque exitoso sin filtración de datos críticos, accidente laboral en una zona operativa, etc.
+	Moderado: 
+Evento que ocurre periódicamente, recurrente en el tiempo.
+Probabilidad: 5%-20% de probabilidad de ocurrencia. Una vez cada 2-5 años.
+Ejemplos: Pérdida por volatilidad del mercado en activos clave, incidente con incapacidad temporal, etc.
+	Probable: 
+Evento recurrente en plazos cortos, ocurre con frecuencia en la industria.
+Probabilidad: 20%-50% de probabilidad de ocurrencia. Una vez cada 1-2 años.
+Ejemplos: Fallo en control de riesgos financieros, accidente laboral grave con consecuencias importantes.
+	Casi Seguro: 
+Evento que ocurre frecuentemente, ocurrirá con certeza si no se toman medidas.
+Probabilidad: >50% de probabilidad de ocurrencia. más de una vez al año.
+Ejemplos: Incumplimiento regulatorio recurrente, incidentes menores en operaciones diarias.
+
+
+Cada área de negocio puede ajustar los límites según su contexto, datos disponibles y modelaciones de pérdidas realizadas, descritas en puntos anteriores.
+
+Código:
 
 from graphviz import Digraph
 from IPython.display import Image, display
 
-# Diagrama de Flujo para la Escala de Impacto
-impact_flow = Digraph('Impacto', format='png')
-impact_flow.attr(size='10')
+# Diagrama de Flujo para la Construcción de la Escala de Probabilidad
+probability_flow = Digraph('Probabilidad', format='png')
+probability_flow.attr(size='10')
 
 # Nodos principales con colores
-impact_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
-impact_flow.node('D1', '¿Hay datos históricos?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('D2', '¿Los datos son suficientes?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('D3', '¿Los impactos siguen una distribución predecible?', shape='diamond', style='filled', fillcolor='lightblue')
-impact_flow.node('M0', 'Consultar fuentes externas', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M1', 'Definir umbrales de impacto con una escala lineal', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M2', 'Evaluar si hay eventos extremos que justifican una escala logarítmica', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M3', 'Modelar distribución de pérdidas', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('M4', 'Definir percentiles y umbrales', shape='rectangle', style='filled', fillcolor='lightyellow')
-impact_flow.node('M5', 'Definir umbrales', shape='rectangle', style='filled', fillcolor='lightyellow')
-impact_flow.node('J1', 'Aplicar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightgreen')
-impact_flow.node('J2', 'Documentar juicio de expertos', shape='rectangle', style='filled', fillcolor='lightcoral')
-impact_flow.node('End', 'Escala de Impacto Definida', shape='oval', style='filled', fillcolor='lightgray')
+probability_flow.node('Start', 'Inicio', shape='oval', style='filled', fillcolor='lightgray')
+probability_flow.node('D1', '¿Se cuenta con datos históricos suficientes sobre la frecuencia de eventos?', shape='diamond', style='filled', fillcolor='lightblue')
+probability_flow.node('D2', '¿Los eventos siguen una distribución homogénea o hay alta variabilidad?', shape='diamond', style='filled', fillcolor='lightblue')
+probability_flow.node('D3', 'Si no hay datos, se puede obtener información de expertos?', shape='diamond', style='filled', fillcolor='lightblue')
+probability_flow.node('D4', '¿Cuál es la variabilidad de los eventos?', shape='diamond', style='filled', fillcolor='lightblue')
+probability_flow.node('M0', 'Usar modelos actuariales, distribuciones estadísticas o datos de referencia', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('M1', 'Calcular la tasa de ocurrencia y ajustar los rangos de probabilidad', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('M2', 'Usar escala lineal', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('M3', 'Usar escala logarítmica', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('M4', 'Aplicar métodos de estimación cualitativa (Delphi, analogías, matrices de comparación)', shape='rectangle', style='filled', fillcolor='lightgreen')
+#probability_flow.node('J1', 'Documentar la incertidumbre y realizar pruebas de sensibilidad en los modelos de riesgo', shape='rectangle', style='filled', fillcolor='lightcoral')
+probability_flow.node('J2', 'Aplicar juicio de expertos y documentar incertidumbre', shape='rectangle', style='filled', fillcolor='lightcoral')
+probability_flow.node('End', 'Establecer la escala de probabilidad con niveles claros de ocurrencia en el tiempo.', shape='oval', style='filled', fillcolor='lightgray')
 
 # Conexiones con colores
-impact_flow.edge('Start', 'D1', color='black')
-impact_flow.edge('D1', 'D2', label='Sí', color='blue')
-impact_flow.edge('D1', 'M0', label='No', color='red')
-impact_flow.edge('M0', 'D2', label='Sí', color='blue')
-impact_flow.edge('D2', 'M3', label='Sí', color='blue')
-impact_flow.edge('M3', 'D3', label='Sí', color='blue')
-impact_flow.edge('D3', 'M1', label='Sí', color='blue')
-impact_flow.edge('D3', 'M2', label='No', color='red')
-impact_flow.edge('D2', 'J1', label='No', color='red')
-impact_flow.edge('J1', 'J2', color='black')
-impact_flow.edge('J2', 'M5', color='black')
-impact_flow.edge('M1', 'M4', color='black')
-impact_flow.edge('M2', 'M4', color='black')
-impact_flow.edge('M4', 'End', color='black')
-impact_flow.edge('M5', 'End', color='black')
+probability_flow.edge('Start', 'D1', color='black')
+probability_flow.edge('D1', 'M1', label='Sí', color='blue')
+probability_flow.edge('D1', 'M0', label='No', color='red')
+probability_flow.edge('M0', 'D2', label='Sí', color='blue')
+probability_flow.edge('M1', 'D2', label='', color='black')
+probability_flow.edge('D2', 'D4', label='', color='black')
+probability_flow.edge('D4', 'M2', label='Homogénea', color='blue')
+probability_flow.edge('D4', 'M3', label='Alta variabilidad', color='red')
+probability_flow.edge('M2', 'End', color='black')
+probability_flow.edge('M3', 'End', color='black')
+probability_flow.edge('D2', 'D3', label='', color='black')
+probability_flow.edge('D3', 'M4', label='Sí', color='blue')
+probability_flow.edge('D3', 'J2', label='No', color='red')
+probability_flow.edge('M4', 'End', color='black')
+probability_flow.edge('J2', 'End', color='black')
 
 # Renderizar el diagrama
-impact_flow.render('Impacto_Flujo', view=True)
-display(Image(filename='Impacto_Flujo.png'))
-
-Pero no está reflejando todo el proceso o caracteristicas que quiero que tenga, debe inluir todo y ser claro en el procedimiento mostrado. Ayudame a que esto se cumpla, mejora el código.
+probability_flow.render('Probabilidad_Flujo_Actualizado', view=True)
+display(Image(filename='Probabilidad_Flujo_Actualizado.png'))
