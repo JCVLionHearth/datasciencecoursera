@@ -1,3 +1,56 @@
+from graphviz import Digraph
+from IPython.display import Image, display
+
+# Crear el diagrama de flujo para la escala de probabilidad
+probability_flow = Digraph('Escala_Probabilidad', format='png')
+probability_flow.attr(size='10')
+
+# Nodos principales con colores
+probability_flow.node('Start', 'Inicio: Definir la escala de probabilidad', shape='oval', style='filled', fillcolor='lightgray')
+
+# Primera decisión: Disponibilidad de datos históricos
+probability_flow.node('D1', '¿Se cuenta con datos históricos suficientes?', shape='diamond', style='filled', fillcolor='lightblue')
+
+# Si hay datos históricos, calcular frecuencia y evaluar distribución
+probability_flow.node('M1', 'Analizar registros históricos y calcular tasa de ocurrencia', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('D2', '¿Los eventos muestran una frecuencia homogénea?', shape='diamond', style='filled', fillcolor='lightblue')
+
+# Selección de escala según la variabilidad
+probability_flow.node('M2', 'Usar escala lineal', shape='rectangle', style='filled', fillcolor='lightgreen')
+probability_flow.node('M3', 'Usar escala logarítmica', shape='rectangle', style='filled', fillcolor='lightgreen')
+
+# Si no hay datos, recurrir a juicio experto
+probability_flow.node('D3', '¿Se puede obtener estimaciones de expertos?', shape='diamond', style='filled', fillcolor='lightblue')
+probability_flow.node('M4', 'Aplicar métodos cualitativos (Delphi, analogías, matrices de comparación)', shape='rectangle', style='filled', fillcolor='lightgreen')
+
+# En caso de incertidumbre, documentar hipótesis
+probability_flow.node('J2', 'Documentar incertidumbre y realizar pruebas de sensibilidad', shape='rectangle', style='filled', fillcolor='lightcoral')
+
+# Nodo final
+probability_flow.node('End', 'Definir niveles de probabilidad con criterios claros', shape='oval', style='filled', fillcolor='lightgray')
+
+# Conexiones con colores para respuestas
+probability_flow.edge('Start', 'D1', color='black')
+probability_flow.edge('D1', 'M1', label='Sí', color='blue')
+probability_flow.edge('M1', 'D2', color='black')
+probability_flow.edge('D2', 'M2', label='Frecuencia homogénea', color='blue')
+probability_flow.edge('D2', 'M3', label='Alta variabilidad', color='red')
+
+# Si no hay datos históricos, evaluar juicio experto
+probability_flow.edge('D1', 'D3', label='No', color='red')
+probability_flow.edge('D3', 'M4', label='Sí', color='blue')
+probability_flow.edge('D3', 'J2', label='No', color='red')
+
+# Cierre del flujo
+probability_flow.edge('M2', 'End', color='black')
+probability_flow.edge('M3', 'End', color='black')
+probability_flow.edge('M4', 'End', color='black')
+probability_flow.edge('J2', 'End', color='black')
+
+# Renderizar y mostrar el diagrama
+probability_flow.render('Escala_Probabilidad_Flujo', view=True)
+display(Image(filename='Escala_Probabilidad_Flujo.png'))
+
 Haz lo mismo con esta información y ajusta el codigo:
 
 	Definición de la Escala de Probabilidad
