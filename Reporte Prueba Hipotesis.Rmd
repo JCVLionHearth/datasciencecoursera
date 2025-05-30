@@ -1,0 +1,335 @@
+---
+title: "Análisis de Pruebas de Hipótesis"
+subtitle: "Ciencia de Datos - Maestria IA"
+author: "Juan Carlos Vega Rueda"
+date: "Mayo 2025"
+output:
+  pdf_document:
+    df_print: paged
+    latex_engine: xelatex
+    toc: no
+    toc_depth: 3
+    #number_sections: yes
+    fig_caption: yes
+fontsize: 11pt
+mainfont: Arial
+lang: es
+#sansfont: Calibri
+header-includes:
+#- \usepackage{subcaption}
+#- \usepackage{multicol}
+- \usepackage{graphicx}
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[r]{\textit{\scriptsize Ciencia de Datos-Maestría IA}}
+- \fancyhead[L]{\includegraphics[height=0.8cm]{laSalle.png}}
+- \fancyfoot[R]{\textit{\scriptsize Pruebas de Hipotesis}}
+- \fancyfoot[C]{\thepage}
+#- \renewcommand{\headrulewidth}{0.1pt}
+#- \renewcommand{\footrulewidth}{0.4pt}
+- \usepackage{floatpag}
+- \floatpagestyle{empty}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \usepackage{xcolor}
+#- \usepackage{lipsum}
+#classoption: twocolumn
+papersize: a4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+Sys.setlocale("LC_CTYPE","en_US.UTF-8")
+digits=2
+
+```
+
+\newpage 
+
+# Introducción
+El conjunto de datos Smokers Health Data ofrece una base sólida para analizar los efectos del tabaquismo sobre diversas variables fisiológicas y clínicas en adultos. A través de este análisis, se busca identificar diferencias significativas entre personas fumadoras y no fumadoras, utilizando herramientas estadísticas inferenciales implementadas en R. Este enfoque permite respaldar decisiones en salud pública y medicina preventiva con evidencia cuantitativa.
+
+# Objetivos
+- Aplicar pruebas de hipótesis para comparar medias y proporciones entre fumadores y no fumadores.
+- Determinar si existen diferencias estadísticamente significativas en variables como colesterol y frecuencia cardíaca.
+- Evaluar el impacto del tabaquismo sobre indicadores clínicos clave.
+- Promover el uso de análisis estadístico como herramienta de apoyo en los análisis.
+
+# Definiciones
+
+- **Prueba de hipótesis:** procedimiento estadístico para evaluar afirmaciones sobre parámetros poblacionales a partir de datos muestrales.
+- **Hipótesis nula ($H_0$):** suposición inicial que se pone a prueba, generalmente indicando ausencia de efecto o diferencia.
+- **Hipótesis alternativa ($H_1$):** plantea una diferencia o efecto significativo respecto a $H_0$.
+- **p-valor*:** probabilidad de obtener un resultado igual o más extremo que el observado, bajo la suposición de que $H_0$ es verdadera.
+- **Nivel de significancia ($\alpha$):** umbral (comúnmente 0.05) para decidir si se rechaza $H_0$.
+- **Prueba t de Welch:** compara medias de dos grupos con varianzas desiguales.
+- **Prueba de proporciones:** compara proporciones entre dos grupos independientes.
+
+## Cargar paquetes y datos
+
+Las siguientes son las librerias en *R* que serán utilizadas en el desarrollo de los análisis y el reporte de resultados.
+
+```{r Librerias,include=FALSE, results='hide'}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(tigerstats)
+#devtools::install_github("homerhanumat/tigerstats")
+library(BSDA)
+library(lattice)
+
+library(knitr)
+library(kableExtra)
+
+
+```
+
+```{r Librerias2,eval=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(tigerstats)
+library(BSDA)
+library(lattice)
+library(knitr)
+library(kableExtra)
+
+```
+
+Las librerias permiten el análisis de datos, el manejo de tablas, análisis estadísticos, análisis de Componentes principales y modelos de agrupamiento como la clusterización k-means.
+
+```{r, echo=FALSE,results='hide'}
+
+rm(list = ls())
+```
+
+```{r ruta, echo=FALSE,results='hide'}
+ruta<-"smoking_health_data_final.csv"
+
+df_smoking <- read_csv(ruta)
+df_smoking <- as.data.frame(unclass(df_smoking),
+                           stringsAsFactors = TRUE)
+str(df_smoking)
+dim(df_smoking)
+
+```
+```{r data_frame, echo=FALSE}
+
+
+kable(head(df_smoking, 10), format = "latex", booktabs = TRUE, caption = "Primeras 10 filas de los datos efectos del tabaquismo en la salud") %>% 
+  kable_styling(latex_options = c("striped", "hold_position")) %>% 
+  row_spec(0, background = "black", color = "white")
+
+
+```
+
+# Prueba de hipótesis para una media (frecuencia cardíaca = 75 Latidos por minuto)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): la media poblacional es igual a 75 ($μ$ = 75).
+- Hipótesis alternativa ($H_1$): la media poblacional es distinta de 75 ($μ$ ≠ 75).
+
+```{r pruebahip1, include=TRUE}
+
+z.test(x = df_smoking$heart_rate,
+       sigma.x = sd(df_smoking$heart_rate, na.rm = TRUE),
+       mu = 75,
+       alternative = "two.sided",
+       conf.level = 0.95)
+
+```
+
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, se rechaza la hipótesis nula: la frecuencia cardíaca promedio es diferente de 75.
+- Si el p-valor ≥ 0.05, no hay evidencia suficiente para rechazar que la media sea 75.
+
+Los resultados indican que con un 95% de confianza, la verdadera media poblacional está entre 75.31 y 76.07, y además en este caso p-value es 0.0003423, se rechaza la hipótesis nula, por lo que la frecuencia cardiaca es diferente de 75, de acuerdo con el resultado del test la media es **75.68897** latidos por minuto.
+
+```{r,echo=FALSE,eval=FALSE}
+
+# Graficar la distribución normal estándar con región entre -1 y 1
+pnormGC(c(-1, 1),region = "between",mean = 0, sd = 1,graph = TRUE)
+
+# Agregar líneas verticales para los valores críticos y el valor z observado
+abline(v = -1, col = "red", lwd = 2, lty = 2)
+abline(v = 1, col = "red", lwd = 2, lty = 2)
+abline(v = 3.5809, col = "blue", lwd = 2) # valor z observado
+
+```
+
+
+# Prueba de hipótesis para una media (colesterol > 200 mg/dL)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): El nivel medio de colesterol en la población es menor o igual a 200 mg/dL.
+- Hipótesis alternativa ($H_1$): El nivel medio de colesterol en la población es mayor a 200 mg/dL.
+
+```{r pruebahip2, include=TRUE}
+z.test(x = df_smoking$chol,
+       sigma.x = sd(df_smoking$chol, na.rm = TRUE),
+       mu = 200,
+       alternative = "greater",
+       conf.level = 0.95)
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, se concluye que el colesterol medio es mayor a 200 mg/dL.
+- Si el p-valor ≥ 0.05, no hay evidencia suficiente para afirmar que es mayor mg/dL.
+
+Los resultados indican que con un 95% de confianza, el colesterol medio está por encima de 235.42 mg/dL, y además en este caso p-value es menor a 0.05, por lo que se rechaza la hipótesis nula.
+
+
+# Prueba de hipótesis para una proporción (colesterol alto > 20%)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): La proporción de personas con colesterol alto es igual al 20%.
+- Hipótesis alternativa ($H_1$): La proporción de personas con colesterol alto es mayor al 20%.
+
+```{r pruebahip3, include=TRUE}
+df_smoking$chol_alto <- ifelse(df_smoking$chol > 240, 1, 0)
+prop.test(x = sum(df_smoking$chol_alto, na.rm = TRUE),
+          n = sum(!is.na(df_smoking$chol_alto)),
+          p = 0.20,
+          alternative = "greater",
+          conf.level = 0.95)
+
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, la proporción de personas con colesterol alto es mayor al 20%.
+- Si el p-valor ≥ 0.05, no hay evidencia suficiente para afirmarlo.
+
+Los resultados indican que con un 95% de confianza, el porcentaje de personas con colesterol alto es mayor a 41.56%, y además en este caso p-value es menor a 0.05, por lo que se acepta la hipótesis nula, en donde la proporción de personas con colesterol alto es de 42.8%.
+
+# Prueba de hipótesis para una proporción (taquicardia ≠ 5%)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): La proporción de personas con taquicardia es igual al 5%.
+- Hipótesis alternativa ($H_1$): La proporción de personas con taquicardia es diferente del 5%.
+
+```{r pruebahip4, include=TRUE}
+df_smoking$taquicardia <- ifelse(df_smoking$heart_rate > 100, 1, 0)
+prop.test(x = sum(df_smoking$taquicardia, na.rm = TRUE),
+          n = sum(!is.na(df_smoking$taquicardia)),
+          p = 0.05,
+          alternative = "two.sided",
+          conf.level = 0.95)
+
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, la proporción de taquicardia es diferente al 5%.
+- Si el p-valor ≥ 0.05, no hay evidencia suficiente para afirmar una diferencia.
+
+Los resultados indican que con un 95% de confianza, la proporción de personas con taquicardia está entre 1.93% y 2.92%, y además en este caso p-value es menor a 0.05, por lo que se acepta la hipótesis nula, en donde la proporción de personas con taticardia es diferente al 5%. En este caso es de 2.38%
+
+# Diferencia de medias (colesterol entre fumadores y no fumadores)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): No hay diferencia en los niveles medios de colesterol entre fumadores y no fumadores.
+- Hipótesis alternativa ($H_1$): Existe una diferencia significativa entre los niveles medios de colesterol.
+
+```{r pruebahip5, include=TRUE}
+smokers <- df_smoking[df_smoking$current_smoker == "yes", ]
+non_smokers <- df_smoking[df_smoking$current_smoker == "no", ]
+
+t.test(smokers$chol, non_smokers$chol,
+       alternative = "two.sided",
+       var.equal = FALSE)
+
+
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, hay una diferencia significativa en los niveles de colesterol entre fumadores y no fumadores.
+
+De acuerdo con los resultados, el p-valor = 0.0036, este valor es menor que 0.05, por lo tanto, se rechaza la hipótesis nula. **Hay evidencia estadísticamente significativa para afirmar que existe una diferencia en los niveles medios de colesterol entre fumadores y no fumadores.**
+
+# Diferencia de medias (frecuencia cardíaca: fumadores > no fumadores)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): No hay diferencia en la frecuencia cardíaca promedio entre fumadores y no fumadores.
+- Hipótesis alternativa ($H_1$): La frecuencia cardíaca promedio de los fumadores es mayor que la de los no fumadores.
+
+```{r pruebahip6, include=TRUE}
+t.test(smokers$heart_rate, non_smokers$heart_rate,
+       alternative = "greater",
+       var.equal = FALSE)
+
+
+
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, la frecuencia cardíaca de los fumadores es mayor que la de los no fumadores.
+
+los resultados muestran que:
+
+- p-valor = 0.00017:
+
+Este valor es mucho menor que 0.05, por lo tanto, se rechaza la hipótesis nula.
+Hay evidencia estadísticamente significativa para afirmar que la frecuencia cardíaca promedio de los fumadores es mayor que la de los no fumadores.
+
+- Intervalo de confianza 95%:
+
+El intervalo $[0.74, ∞)$ indica que la diferencia promedio entre fumadores y no fumadores es al menos 0.74 latidos por minuto, a favor de los fumadores.
+
+# Diferencia de proporciones (colesterol alto entre fumadores y no fumadores)
+
+Estas son las hipótesis planteadas:
+
+- Hipótesis nula ($H_0$): La proporción de personas con colesterol alto es la misma en fumadores y no fumadores.
+- Hipótesis alternativa ($H_1$): La proporción de personas con colesterol alto es diferente entre fumadores y no fumadores.
+
+```{r pruebahip7, include=TRUE}
+table_chol <- table(df_smoking$current_smoker, df_smoking$chol_alto)
+prop.test(x = c(table_chol["yes", "1"], table_chol["no", "1"]),
+          n = c(sum(table_chol["yes", ]), sum(table_chol["no", ])),
+          alternative = "two.sided",
+          conf.level = 0.95)
+
+```
+De acuerdo con lo anterior:
+
+- Si el p-valor < 0.05, la proporción de colesterol alto difiere entre fumadores y no fumadores.
+
+los resultados muestran que:
+
+- p-valor = 0.0195:
+
+Es menor que 0.05, por lo tanto, rechazamos la hipótesis nula.
+Hay evidencia estadísticamente significativa para afirmar que la proporción de personas con colesterol alto difiere entre fumadores y no fumadores.
+
+- Intervalo de confianza 95%:
+
+El intervalo [−0.0692, −0.0060] no incluye el 0, lo que confirma que la diferencia es significativa.
+Como ambos extremos son negativos, indica que la proporción de colesterol alto es menor en fumadores que en no fumadores.
+
+# Conclusiones
+
+- Se encontró evidencia significativa de que los fumadores tienen una frecuencia cardíaca promedio mayor que los no fumadores.
+- Los niveles medios de colesterol fueron ligeramente menores en fumadores, aunque la diferencia fue estadísticamente significativa.
+- La proporción de colesterol alto también fue significativamente diferente entre los grupos, siendo menor en fumadores.
+- Las pruebas de hipótesis permiten validar diferencias entre grupos con base en evidencia estadística, lo cual es esencial para la toma de decisiones en salud pública y medicina preventiva.
