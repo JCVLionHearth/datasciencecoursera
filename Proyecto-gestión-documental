@@ -1,3 +1,174 @@
+Perfecto. Aquí tienes un script completo y documentado que puedes ejecutar en Visual Studio Code, el cual:
+	1.	Recorre recursivamente archivos desde una fuente local o desde SharePoint.
+	2.	Extrae metadatos clave:
+	•	Filial (de la carpeta raíz).
+	•	Año (segundo nivel).
+	•	Actividad.
+	•	Fecha de creación del archivo.
+	•	Fecha de modificación del archivo.
+	3.	Exporta un archivo CSV con el resumen, listo para Power BI.
+
+⸻
+
+📦 Código completo: monitoreo_documental.py
+
+import os
+import pandas as pd
+from datetime import datetime
+
+# ---------------------------------------------
+# CONFIGURACIÓN GENERAL
+# ---------------------------------------------
+MODO = "local"  # Cambia a "sharepoint" si vas a usar conexión a SharePoint
+
+# Carpeta base para pruebas locales (ajusta según tu PC)
+ruta_local = "C:/Users/TuUsuario/Documentos/CarpetaCompartidaSimulada"
+
+# Datos de conexión a SharePoint
+sharepoint_site_url = "https://<empresa>.sharepoint.com/sites/<sitio>"
+sharepoint_username = "tu_usuario@empresa.com"
+sharepoint_password = "tu_contraseña"
+document_library = "DocumentosCompartidos"
+
+# ---------------------------------------------
+# FUNCIONES PARA LOCAL
+# ---------------------------------------------
+
+def recorrer_carpetas_local(base_dir):
+    """
+    Recorre recursivamente todas las carpetas locales y extrae metadatos.
+    """
+    data = []
+
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            ruta_completa = os.path.join(root, file)
+            partes = os.path.relpath(ruta_completa, base_dir).split(os.sep)
+
+            # Se asume estructura [Filial, Año, ActividadGrande, ActividadSub, ...]
+            filial = partes[0] if len(partes) > 0 else None
+            año = partes[1] if len(partes) > 1 else None
+            actividad_grande = partes[2] if len(partes) > 2 else None
+            actividad_sub = partes[3] if len(partes) > 3 else None
+            actividad = actividad_sub or actividad_grande
+
+            # Fechas del sistema local
+            fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta_completa))  # Windows
+            fecha_mod = datetime.fromtimestamp(os.path.getmtime(ruta_completa))
+
+            data.append({
+                "Fuente": "Local",
+                "Filial": filial,
+                "Año": año,
+                "Actividad": actividad,
+                "NombreArchivo": file,
+                "RutaArchivo": ruta_completa,
+                "FechaCreación": fecha_creacion,
+                "FechaModificación": fecha_mod
+            })
+
+    return pd.DataFrame(data)
+
+# ---------------------------------------------
+# FUNCIONES PARA SHAREPOINT
+# ---------------------------------------------
+# Descomenta si vas a trabajar con SharePoint
+
+# from office365.sharepoint.client_context import ClientContext
+# from office365.runtime.auth.authentication_context import AuthenticationContext
+
+def recorrer_archivos_sharepoint(site_url, username, password, base_folder):
+    """
+    Recorre los archivos de SharePoint y extrae metadatos (creación y modificación).
+    """
+    from office365.sharepoint.client_context import ClientContext
+    from office365.runtime.auth.authentication_context import AuthenticationContext
+
+    ctx_auth = AuthenticationContext(site_url)
+    archivos = []
+
+    if ctx_auth.acquire_token_for_user(username, password):
+        ctx = ClientContext(site_url, ctx_auth)
+        carpeta_base = ctx.web.get_folder_by_server_relative_url(base_folder)
+        carpetas_pendientes = [carpeta_base]
+
+        while carpetas_pendientes:
+            actual = carpetas_pendientes.pop()
+            archivos_actuales = actual.files
+            ctx.load(archivos_actuales)
+            ctx.execute_query()
+
+            # Archivos en esta carpeta
+            for archivo in archivos_actuales:
+                partes = archivo.serverRelativeUrl.split("/")
+                # Ajusta según estructura
+                filial = partes[3] if len(partes) > 3 else None
+                año = partes[4] if len(partes) > 4 else None
+                actividad_grande = partes[5] if len(partes) > 5 else None
+                actividad_sub = partes[6] if len(partes) > 6 else None
+                actividad = actividad_sub or actividad_grande
+
+                archivos.append({
+                    "Fuente": "SharePoint",
+                    "Filial": filial,
+                    "Año": año,
+                    "Actividad": actividad,
+                    "NombreArchivo": archivo.name,
+                    "RutaArchivo": archivo.serverRelativeUrl,
+                    "FechaCreación": archivo.time_created,
+                    "FechaModificación": archivo.time_last_modified
+                })
+
+            # Subcarpetas
+            subfolders = actual.folders
+            ctx.load(subfolders)
+            ctx.execute_query()
+            for folder in subfolders:
+                carpetas_pendientes.append(folder)
+    else:
+        print("Error al autenticar con SharePoint.")
+    return pd.DataFrame(archivos)
+
+# ---------------------------------------------
+# EJECUCIÓN DEL SCRIPT
+# ---------------------------------------------
+
+if __name__ == "__main__":
+    if MODO == "local":
+        print("Ejecutando en modo LOCAL...")
+        df = recorrer_carpetas_local(ruta_local)
+    elif MODO == "sharepoint":
+        print("Ejecutando en modo SHAREPOINT...")
+        carpeta_inicial = f"/sites/{sharepoint_site_url.split('/')[-1]}/{document_library}"
+        df = recorrer_archivos_sharepoint(sharepoint_site_url, sharepoint_username, sharepoint_password, carpeta_inicial)
+    else:
+        raise ValueError("Modo no válido. Usa 'local' o 'sharepoint'.")
+
+    print(f"Total archivos encontrados: {len(df)}")
+    df.to_csv("monitoreo_documental.csv", index=False)
+    print("Archivo 'monitoreo_documental.csv' guardado exitosamente.")
+
+
+⸻
+
+📝 Comentarios clave
+
+Parte	Explicación
+MODO = "local"	Cambia a "sharepoint" si quieres hacer el monitoreo en SharePoint directamente.
+FechaCreación / FechaModificación	Se extraen del sistema local o de los metadatos reales en SharePoint según el modo.
+RutaArchivo	Se guarda la ruta completa del archivo para trazabilidad.
+df.to_csv(...)	Genera un resumen que puedes cargar directamente en Power BI.
+
+
+⸻
+
+✅ ¿Qué necesitas ahora?
+	•	¿Quieres que te cree un entregables_esperados.csv simulado también para cruzar?
+	•	¿Quieres que te ayude a configurar el App Registration en Azure AD para usar autenticación moderna en SharePoint?
+	•	¿Quieres que te ayude a crear una visualización básica en Power BI?
+
+Estoy listo para cualquiera de los siguientes pasos.
+
 Gracias por la aclaración, es clave para diseñar bien el flujo.
 
 ✅ Resumen actualizado de la estructura
