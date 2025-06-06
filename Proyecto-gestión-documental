@@ -1,3 +1,138 @@
+Perfecto. Lo que estás buscando es crear un sistema de control de cumplimiento de entrega de reportes, donde cada tipo de reporte tiene un cronograma distinto y necesitas evaluar si los documentos cargados (desde SharePoint, Excel, PDFs, etc.) cumplen o no con ese cronograma.
+
+⸻
+
+✅ 1. Estructura del Archivo Excel de Cronograma
+
+Este archivo será la fuente maestra de fechas de entrega esperadas por tipo de reporte y por periodo. Se actualizará anualmente si cambian las fechas.
+
+Estructura recomendada:
+
+TipoReporte	FechaEsperada	Periodo	Año
+Matriz Riesgos	2025-03-14	2025-03	2025
+Matriz Riesgos	2025-05-15	2025-05	2025
+Indicadores	2025-02-14	2025-02	2025
+Aplicaciones y Herramientas	2025-05-15	2025-05	2025
+Hallazgos y Brechas	2025-04-14	2025-04	2025
+Eventos Materializados	2025-01-14	2025-01	2025
+…	…	…	…
+
+	•	TipoReporte: Nombre identificador del tipo.
+	•	FechaEsperada: Fecha exacta de entrega para ese reporte.
+	•	Periodo: Mes o cuatrimestre al que pertenece. Puede ser YYYY-MM.
+	•	Año: Para facilitar filtros por año.
+
+💡 Este archivo es clave: actualízalo cada año y carga este Excel como tabla en Power BI, por ejemplo como tblCronograma.
+
+⸻
+
+✅ 2. Tus documentos con fechas reales
+
+Estos ya los tienes. Supongamos que la tabla en Power BI se llama tblReportes.
+
+Ejemplo de estructura:
+
+NombreArchivo	TipoReporte	FechaCreacion	FechaModificacion
+matriz_riesgos_marzo.xlsx	Matriz Riesgos	2025-03-14	2025-03-15
+indicadores_abril.pdf	Indicadores	2025-04-13	2025-04-14
+…	…	…	…
+
+Debes asegurarte de que el campo TipoReporte coincida exactamente con el campo en el cronograma.
+
+⸻
+
+✅ 3. Unión entre documentos y cronograma
+
+Necesitas hacer un cruce entre tblReportes y tblCronograma, combinando por:
+	•	TipoReporte
+	•	Periodo (puedes derivarlo desde la FechaCreacion del reporte real)
+
+🧠 DAX para crear Periodo en tblReportes:
+
+Periodo = FORMAT(tblReportes[FechaCreacion], "YYYY-MM")
+
+
+⸻
+
+✅ 4. Relación entre Tablas
+	•	Relaciona tblReportes[TipoReporte] con tblCronograma[TipoReporte]
+	•	Relaciona tblReportes[Periodo] con tblCronograma[Periodo]
+
+Asegúrate de que la relación sea de muchos-a-uno, con tblCronograma como dimensión.
+
+⸻
+
+✅ 5. Medidas DAX para Indicadores
+
+5.1 ¿El documento se entregó?
+
+Entregado = 
+IF(
+    NOT(ISBLANK(tblReportes[FechaCreacion])),
+    "Entregado",
+    "No Entregado"
+)
+
+5.2 ¿Cumplió con la entrega?
+
+CumplimientoEntrega = 
+VAR FechaEsperada = RELATED(tblCronograma[FechaEsperada])
+VAR FechaEntrega = tblReportes[FechaCreacion]
+RETURN
+    IF(
+        FechaEntrega <= FechaEsperada,
+        "A Tiempo",
+        "Fuera de Plazo"
+    )
+
+5.3 Días de atraso o anticipación
+
+DiasDiferencia = 
+VAR FechaEsperada = RELATED(tblCronograma[FechaEsperada])
+VAR FechaEntrega = tblReportes[FechaCreacion]
+RETURN
+    DATEDIFF(FechaEsperada, FechaEntrega, DAY)
+
+
+⸻
+
+✅ 6. Indicadores para tablero
+
+Puedes crear tarjetas o KPI visuales con estos indicadores:
+	•	% de entregas a tiempo:
+
+PorcentajeATiempo = 
+DIVIDE(
+    CALCULATE(COUNTROWS(tblReportes), tblReportes[CumplimientoEntrega] = "A Tiempo"),
+    COUNTROWS(tblReportes)
+)
+
+	•	N° de entregas fuera de plazo
+	•	N° de entregas faltantes (sin documento)
+	•	Retraso promedio por tipo de reporte
+	•	Gráfico de barras: TipoReporte vs. % entregas a tiempo
+
+⸻
+
+✅ 7. Estrategia de Actualización del Cronograma
+	1.	Cada inicio de año (o periodo), actualiza el archivo Excel con nuevas fechas de entrega.
+	2.	Mantén el mismo formato: TipoReporte, FechaEsperada, Periodo, Año.
+	3.	Carga este archivo en Power BI (mejor si está en SharePoint y se conecta automáticamente).
+	4.	Haz refresh en Power BI para ver cambios reflejados en tu tablero.
+
+⸻
+
+✅ Resumen de Tablas en Power BI
+
+Tabla	Uso
+tblReportes	Información real de documentos entregados
+tblCronograma	Fechas esperadas por tipo y periodo
+
+
+⸻
+
+¿Quieres que te genere una plantilla en Excel para el cronograma y un ejemplo en DAX para un archivo de prueba en Power BI? Puedo crearlo y darte un archivo base.
+
 Perfecto. Aquí tienes un script completo y documentado que puedes ejecutar en Visual Studio Code, el cual:
 	1.	Recorre recursivamente archivos desde una fuente local o desde SharePoint.
 	2.	Extrae metadatos clave:
