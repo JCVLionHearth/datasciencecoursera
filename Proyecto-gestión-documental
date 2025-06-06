@@ -1,3 +1,126 @@
+¡Excelente pregunta! Lo que estás planteando es clave en sistemas de monitoreo proactivo de entregas, y en Power BI se puede lograr con una estrategia basada en el cruce entre:
+
+🎯 Lo que se espera (cronograma)
+
+con
+
+✅ Lo que se ha entregado (reportes existentes)
+
+Esto se traduce en una lógica de “faltantes” o “pendientes de entregar”.
+
+⸻
+
+✅ Objetivo
+
+Identificar fácilmente:
+	•	Reportes que deberían haberse entregado ya (según la fecha esperada),
+	•	Pero no están presentes en la tabla de entregados (tblReportes),
+	•	Y por lo tanto están pendientes o en mora.
+
+⸻
+
+💡 Estrategia: usar la tabla de cronograma como dimensión principal
+
+Tú ya tienes:
+	•	Una tabla tblCronograma con:
+TipoReporte, Periodo, FechaEsperada, etc.
+	•	Una tabla tblReportes con:
+TipoReporte, Periodo, FechaCreacion, Filial, etc.
+
+Y tienes una relación entre ambas con una clave como:
+
+ClaveRelacion = TipoReporte & "-" & Periodo
+
+
+⸻
+
+✅ Paso 1: Crear medida para identificar faltantes
+
+PendienteEntrega = 
+VAR Hoy = TODAY()
+RETURN
+CALCULATE(
+    COUNTROWS(tblCronograma),
+    NOT tblCronograma[ClaveRelacion] IN VALUES(tblReportes[ClaveRelacion]),
+    tblCronograma[FechaEsperada] <= Hoy
+)
+
+Esta medida te cuenta cuántos reportes no han sido entregados a la fecha actual, según el cronograma.
+
+⸻
+
+✅ Paso 2: Tabla de monitoreo de reportes faltantes
+
+Puedes crear una tabla virtual como:
+
+ReportesFaltantes = 
+EXCEPT(
+    SELECTCOLUMNS(tblCronograma, "TipoReporte", tblCronograma[TipoReporte], "Periodo", tblCronograma[Periodo], "FechaEsperada", tblCronograma[FechaEsperada]),
+    SELECTCOLUMNS(tblReportes, "TipoReporte", tblReportes[TipoReporte], "Periodo", tblReportes[Periodo], "FechaEsperada", RELATED(tblCronograma[FechaEsperada]))
+)
+
+Esta tabla te da una lista de reportes faltantes, cruzando lo esperado vs entregado.
+
+⸻
+
+✅ Paso 3: Crear una bandera de estado por entrega esperada
+
+Una columna calculada en tblCronograma para identificar si ya está vencido y no entregado:
+
+EstadoEntrega = 
+VAR ExisteEntrega = 
+    CALCULATE(
+        COUNTROWS(tblReportes),
+        tblReportes[TipoReporte] = tblCronograma[TipoReporte],
+        tblReportes[Periodo] = tblCronograma[Periodo]
+    )
+VAR FechaEsperada = tblCronograma[FechaEsperada]
+VAR Hoy = TODAY()
+RETURN
+SWITCH(
+    TRUE(),
+    ExisteEntrega > 0, "Entregado",
+    FechaEsperada > Hoy, "Pendiente (a futuro)",
+    FechaEsperada <= Hoy, "No Entregado (Vencido)"
+)
+
+
+⸻
+
+📊 Visualizaciones sugeridas
+	1.	Tabla de entregas pendientes y vencidas
+Filtrar por EstadoEntrega = "No Entregado (Vencido)"
+	2.	Tarjetas:
+	•	Total reportes esperados
+	•	Total entregados
+	•	Total faltantes (vencidos)
+	•	Total pendientes futuros
+	3.	Gráfico de barras:
+	•	Tipo de reporte vs cantidad de pendientes
+	•	Filial vs cumplimiento
+	4.	Calendario visual:
+Mostrar las fechas esperadas y marcar las que ya se entregaron.
+
+⸻
+
+🔄 Proactividad: alertas y seguimiento
+	•	Puedes usar Power Automate para enviar alertas semanales cuando EstadoEntrega = "No Entregado (Vencido)" por más de X días.
+	•	O agregar una lógica de riesgo de incumplimiento, marcando como alerta entregas próximas (ej: 3 días antes del vencimiento).
+
+⸻
+
+✅ En resumen
+
+Indicador	Lógica	Tabla base
+PendienteEntrega	Entregas que deberían estar, pero no están	Medida sobre tblCronograma
+EstadoEntrega	Estado por cada fila del cronograma	Columna calculada en tblCronograma
+% Entregas a tiempo	Entregados / Esperados	Medida
+
+
+⸻
+
+¿Quieres que te ayude a construir un ejemplo completo con datos simulados, o generar la tabla ReportesFaltantes como tabla visual en Power BI? También puedo ayudarte a crear un tablero interactivo con estos indicadores.
+
 Gracias por la aclaración. Como todas las compañías/filiales siguen el mismo cronograma, simplificamos mucho el modelo. No necesitas incluir la filial en el cronograma ni en la relación. Solo necesitas una clave compuesta por TipoReporte + Periodo, que puedes generar fácilmente.
 
 ⸻
