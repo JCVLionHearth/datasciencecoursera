@@ -1,3 +1,190 @@
+Gracias por la aclaración. Como todas las compañías/filiales siguen el mismo cronograma, simplificamos mucho el modelo. No necesitas incluir la filial en el cronograma ni en la relación. Solo necesitas una clave compuesta por TipoReporte + Periodo, que puedes generar fácilmente.
+
+⸻
+
+✅ Estructura Final de Tablas
+
+1. tblCronograma (cronograma maestro)
+
+TipoReporte	FechaEsperada	Periodo	Año
+Matriz Riesgos	2025-03-14	2025-03	2025
+Indicadores	2025-02-14	2025-02	2025
+Hallazgos y Brechas	2025-04-14	2025-04	2025
+
+2. tblReportes (documentos encontrados)
+
+NombreArchivo	Filial	TipoReporte	FechaCreacion	FechaModificacion
+matriz_marzo.xlsx	Zenit	Matriz Riesgos	2025-03-14	2025-03-15
+indicadores_abril.pdf	Zenit	Indicadores	2025-04-13	2025-04-14
+
+
+⸻
+
+✅ 1. Relación entre tablas
+
+Crea en ambas tablas una columna calculada:
+
+En tblReportes:
+
+Periodo = FORMAT(tblReportes[FechaCreacion], "YYYY-MM")
+ClaveRelacion = tblReportes[TipoReporte] & "-" & FORMAT(tblReportes[FechaCreacion], "YYYY-MM")
+
+En tblCronograma:
+
+ClaveRelacion = tblCronograma[TipoReporte] & "-" & tblCronograma[Periodo]
+
+Relación:
+tblReportes[ClaveRelacion] (muchos)
+con tblCronograma[ClaveRelacion] (uno)
+
+⸻
+
+✅ 2. Indicadores DAX por documento
+
+2.1. ¿Fue entregado?
+
+Entregado = 
+IF(
+    NOT(ISBLANK(tblReportes[FechaCreacion])),
+    "Sí",
+    "No"
+)
+
+2.2. Cumplimiento de entrega
+
+CumplimientoEntrega = 
+VAR FechaEsperada = RELATED(tblCronograma[FechaEsperada])
+VAR FechaEntrega = tblReportes[FechaCreacion]
+RETURN
+    IF(
+        FechaEntrega <= FechaEsperada,
+        "A Tiempo",
+        "Fuera de Plazo"
+    )
+
+2.3. Diferencia en días
+
+DiasDiferencia = 
+VAR FechaEsperada = RELATED(tblCronograma[FechaEsperada])
+VAR FechaEntrega = tblReportes[FechaCreacion]
+RETURN
+    DATEDIFF(FechaEsperada, FechaEntrega, DAY)
+
+2.4. Estado
+
+EstadoEntrega = 
+VAR FechaEsperada = RELATED(tblCronograma[FechaEsperada])
+RETURN
+    IF(
+        ISBLANK(tblReportes[FechaCreacion]),
+        "No Entregado",
+        IF(tblReportes[FechaCreacion] <= FechaEsperada, "A Tiempo", "Tardío")
+    )
+
+
+⸻
+
+✅ 3. Indicadores agregados generales
+
+3.1. Total de reportes esperados
+
+TotalEsperados = COUNTROWS(tblCronograma)
+
+3.2. Total entregados
+
+TotalEntregados = COUNTROWS(tblReportes)
+
+3.3. Total no entregados
+
+TotalNoEntregados = 
+[TotalEsperados] - [TotalEntregados]
+
+3.4. % de cumplimiento
+
+PorcentajeCumplimiento = 
+DIVIDE(
+    CALCULATE(COUNTROWS(tblReportes), tblReportes[CumplimientoEntrega] = "A Tiempo"),
+    [TotalEsperados]
+)
+
+3.5. Retraso promedio (días)
+
+RetrasoPromedio = 
+AVERAGEX(
+    FILTER(tblReportes, tblReportes[CumplimientoEntrega] = "Fuera de Plazo"),
+    [DiasDiferencia]
+)
+
+
+⸻
+
+✅ 4. Indicadores por dimensión
+
+Crea visuales con slicers por:
+	•	TipoReporte
+	•	Filial (si aún quieres filtrar por compañía)
+	•	Mes o Periodo
+
+Y agrupa métricas como:
+	•	% de cumplimiento por tipo de reporte
+	•	% de cumplimiento por mes
+	•	% de cumplimiento por compañía
+	•	Reportes no entregados por mes o por compañía
+
+⸻
+
+✅ 5. Visualizaciones en Power BI
+
+Visualización	Detalle
+Tarjetas KPI	Total entregados, no entregados, % cumplimiento
+Gráfico de barras	% de cumplimiento por tipo de reporte
+Tabla detallada	Filial, TipoReporte, FechaEsperada, FechaCreacion, Estado
+Matriz	TipoReporte por Mes con color por cumplimiento
+Histograma	Días de diferencia para reportes fuera de plazo
+Timeline o gráfico de dispersión	FechaEsperada vs FechaCreacion (ver desviaciones)
+
+
+⸻
+
+✅ 6. Análisis adicionales que puedes hacer
+
+🔹 6.1 Tendencias por mes
+
+Analiza si hay meses con más retrasos o faltantes.
+
+🔹 6.2 Comparativo entre tipos de reporte
+
+¿Cuáles tipos suelen tener más problemas de entrega?
+
+🔹 6.3 Filiales con más retrasos
+
+Agrupa por Filial si quieres comparar compañías.
+
+🔹 6.4 Alertas o semáforos
+
+Crea medidas con color de fondo (formato condicional) en matrices para mostrar:
+	•	Verde: entregado a tiempo
+	•	Amarillo: entregado tarde
+	•	Rojo: no entregado
+
+⸻
+
+✅ 7. Estrategia de actualización
+	•	Usa una tabla de fechas (calendario) para navegar por año, mes, semana.
+	•	Actualiza el cronograma anualmente con nuevas fechas de entrega.
+	•	Reutiliza los mismos DAX y relaciones.
+	•	Si agregas un nuevo TipoReporte, solo inclúyelo en el Excel y se incorporará automáticamente.
+
+⸻
+
+✅ ¿Deseas…?
+	1.	Un archivo Excel con estructura de cronograma de ejemplo
+	2.	Un archivo .pbix base con estas medidas listas
+	3.	Código M para limpiar el archivo de cronograma
+	4.	Una guía paso a paso para cargar desde SharePoint directamente
+
+Puedo ayudarte con cualquiera de esos recursos, solo dime qué prefieres.
+
 Perfecto. Lo que estás buscando es crear un sistema de control de cumplimiento de entrega de reportes, donde cada tipo de reporte tiene un cronograma distinto y necesitas evaluar si los documentos cargados (desde SharePoint, Excel, PDFs, etc.) cumplen o no con ese cronograma.
 
 ⸻
