@@ -1,3 +1,146 @@
+Perfecto. Aquí tienes la versión integrada del script con procesamiento NLP básico para clasificar el campo Texto en categorías y calcular el % de recurrencia por categoría para cada proveedor.
+
+⸻
+
+🧠 Lógica usada:
+	1.	Se normaliza el campo Texto.
+	2.	Se aplica un clasificador basado en palabras clave (fácil de ajustar o escalar).
+	3.	Se agrupan los pagos recurrentes por categoría y se calcula el porcentaje dentro del rango más frecuente (o segundo, si lo ajustas con n_rango).
+	4.	Se integran las categorías y porcentajes al data.frame de resultados.
+
+⸻
+
+✅ CÓDIGO:
+
+# Cargar librerías necesarias
+library(dplyr)
+library(openxlsx)
+library(stringr)
+
+# Definir número del rango que quieres analizar (ej. 1 para el más frecuente)
+n_rango <- 1
+
+# Clasificador simple basado en palabras clave
+clasificar_texto <- function(texto) {
+  texto <- tolower(texto)
+  texto <- str_trim(texto)
+  
+  if (str_detect(texto, "arrend|alquiler|canon")) return("Alquiler")
+  if (str_detect(texto, "segur|asegur")) return("Seguros")
+  if (str_detect(texto, "limpiez|aseo")) return("Aseo")
+  if (str_detect(texto, "mantenim|reparac|servicio")) return("Mantenimiento")
+  if (str_detect(texto, "consultor|asesor")) return("Consultoría")
+  if (str_detect(texto, "suminist|material|dotación")) return("Suministros")
+  if (str_detect(texto, "publicidad|difusión|comunicac")) return("Publicidad")
+  if (str_detect(texto, "transporte|viaje|pasaje")) return("Transporte")
+  return("Otros")
+}
+
+# Asegurarse que 'Texto' y 'Importe ML' están presentes
+read_pagos <- read_pagos %>%
+  filter(!is.na(Texto), !is.na(`Importe ML`)) %>%
+  mutate(Texto_categoria = sapply(Texto, clasificar_texto))
+
+# Preparar resultado
+resultados <- list()
+proveedores <- unique(read_pagos$Acreedor)
+
+for (proveedor in proveedores) {
+  pagos <- read_pagos %>% filter(Acreedor == proveedor)
+  valores <- pagos$`Importe ML`
+  
+  if (length(valores) < 2 || length(unique(valores)) == 1) {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = NA,
+      Frecuencia = NA,
+      Categoria_principal = NA,
+      Porcentaje_en_categoria = NA,
+      Mensaje = "Datos insuficientes o sin variación"
+    )
+    next
+  }
+  
+  desv <- sd(valores)
+  paso <- ifelse(desv != 0, desv / 100, 1)
+  max_valor <- max(valores)
+  
+  # Crear rangos
+  rangos <- list()
+  i <- 0
+  while (i * paso <= max_valor) {
+    rangos[[i + 1]] <- c(i * paso, (i + 1) * paso)
+    i <- i + 1
+  }
+  
+  # Calcular frecuencias
+  frecuencias <- rep(0, length(rangos))
+  indices_rango <- integer(length(valores))
+  for (j in seq_along(valores)) {
+    for (k in seq_along(rangos)) {
+      if (valores[j] >= rangos[[k]][1] && valores[j] < rangos[[k]][2]) {
+        frecuencias[k] <- frecuencias[k] + 1
+        indices_rango[j] <- k
+        break
+      }
+    }
+  }
+
+  orden <- order(frecuencias, decreasing = TRUE)
+  if (length(orden) >= n_rango) {
+    idx <- orden[n_rango]
+    pagos_rango <- pagos[indices_rango == idx, ]
+    
+    # Categoría más frecuente en ese rango
+    top_categoria <- pagos_rango %>%
+      group_by(Texto_categoria) %>%
+      summarise(Frecuencia = n()) %>%
+      arrange(desc(Frecuencia)) %>%
+      slice(1)
+    
+    porcentaje <- round(100 * top_categoria$Frecuencia / nrow(pagos_rango), 1)
+    
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = paste0("(", round(rangos[[idx]][1], 2), ", ", round(rangos[[idx]][2], 2), ")"),
+      Frecuencia = frecuencias[idx],
+      Categoria_principal = top_categoria$Texto_categoria,
+      Porcentaje_en_categoria = paste0(porcentaje, "%"),
+      Mensaje = ""
+    )
+  } else {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = NA,
+      Frecuencia = NA,
+      Categoria_principal = NA,
+      Porcentaje_en_categoria = NA,
+      Mensaje = paste("No hay suficientes rangos para seleccionar el top", n_rango)
+    )
+  }
+}
+
+# Combinar resultados
+df_resultados <- bind_rows(resultados)
+
+# Exportar resultados
+write.xlsx(df_resultados, file = "Resumen_Recurrencia_Categorizado.xlsx", sheetName = "Rangos y Categorías", row.names = FALSE)
+
+cat("✅ Proceso completado con análisis de texto integrado.\n")
+
+
+⸻
+
+🔍 ¿Qué puedes hacer ahora?
+	•	Modificar o ampliar las categorías del clasificar_texto().
+	•	Aplicar este mismo análisis a los top 2 o 3 rangos cambiando n_rango.
+	•	Filtrar resultados con alta concentración en una sola categoría para análisis de alertas.
+
+⸻
+
+¿Deseas que integre esto con los gráficos y la tendencia mensual también, o prefieres mantenerlo por separado para claridad?
+
+
 Gracias por compartir el código, está bastante completo y estructurado. Aquí te hago un resumen de lo que encontré y cómo lo podemos mejorar, especialmente en la segunda parte (identificación de múltiplos rangos por proveedor), que es donde estás teniendo cuellos de botella.
 
 ⸻
