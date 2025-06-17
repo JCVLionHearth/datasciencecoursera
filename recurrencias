@@ -1,3 +1,47 @@
+Perfecto. Vas a reemplazar solo una parte específica dentro del for (proveedor in proveedores) — exactamente donde actualmente tienes este bloque:
+
+if (nrow(top_rangos) > 0) {
+  resultados[[length(resultados) + 1]] <- data.frame(
+    Proveedor = rep(proveedor, nrow(top_rangos)),
+    Rango = as.character(top_rangos$rangos_cut),
+    Frecuencia = top_rangos$Freq,
+    Orden = seq_len(nrow(top_rangos)),
+    Mensaje = ""
+  )
+}
+
+👇 Reemplázalo por este nuevo bloque completo:
+
+if (nrow(top_rangos) > 0) {
+  # Extraer los límites inferiores y superiores del rango
+  limites <- do.call(rbind, lapply(as.character(top_rangos$rangos_cut), function(r) {
+    r <- gsub("\\[|\\]|\\(|\\)", "", r)  # Elimina corchetes y paréntesis
+    partes <- strsplit(r, ",")[[1]]
+    as.numeric(trimws(partes))
+  }))
+  
+  resultados[[length(resultados) + 1]] <- data.frame(
+    Proveedor = rep(proveedor, nrow(top_rangos)),
+    Rango = as.character(top_rangos$rangos_cut),
+    Frecuencia = top_rangos$Freq,
+    Orden = seq_len(nrow(top_rangos)),
+    Limite_Inferior = limites[, 1],
+    Limite_Superior = limites[, 2],
+    Mensaje = ""
+  )
+}
+
+✔ Resultado:
+
+Tu df_resultados tendrá ahora esta estructura de columnas:
+
+Proveedor | Rango | Frecuencia | Orden | Limite_Inferior | Limite_Superior | Mensaje
+
+Y luego, el write.xlsx() seguirá funcionando igual, exportando todos los valores con los límites claros y sin notación científica.
+
+¿Te gustaría que te dé también un ejemplo de cómo se ve una fila de resultado final?
+
+
 # con mas de un nivel de orden de rangos
 options(scipen = 999)  # Evita notación científica en general
 
