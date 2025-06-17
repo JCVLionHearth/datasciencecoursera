@@ -1,0 +1,282 @@
+
+
+# Cargar librerías necesarias
+library(readxl)
+library(dplyr)
+library(openxlsx)
+library('xlsx')
+library('writexl')
+library("readxl")
+
+
+# Rutas y archivos
+path1 <- "//10.11.46.150/cdn/MATRIZ/Originales/Pagos/Histórico"
+archivos1 <- c("Pagos_2020.xlsx", "Pagos_2021.xlsx", "Pagos_2022.xlsx", 
+               "Pagos_2023.xlsx", "Pagos_2024_1s.xlsx", "Pagos_2024_2s.xlsx")
+
+path2 <- "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/PAGOS/1Q 2025"
+archivos2 <- c("pagos_2025_enero-mayo.xlsx")
+
+# Diccionario de homologación
+homologar_nombres <- function(nombre) {
+  nombre <- trimws(nombre)
+  switch(nombre,
+         "Vía de pago" = "Via de pago",
+         "VP" = "Via de pago",
+         "Nｺ doc." = "Nro documento",
+         "Nº documento" = "Nro documento",
+         "Fecha doc." = "Fecha documento",
+         "Fecha de documento" = "Fecha documento",
+         "Clase de documento" = "Clase",
+         "Clase" = "Clase",
+         "Fe.contabilización" = "Fecha contab.",
+         "Fe.contab." = "Fecha contab.",
+         "Fecha de pago" = "Fecha pago",
+         "Fecha pago" = "Fecha pago",
+         "Sociedad" = "Sociedad",
+         "Soc." = "Sociedad",
+         "Compens." = "Fecha compensacion",
+         "Fecha compensación" = "Fecha compensacion",
+         "Importe en moneda local" = "Importe ML",
+         "Importe en ML" = "Importe ML",
+         nombre)
+}
+
+# Función para leer y homologar columnas
+leer_y_homologar <- function(path, archivo) {
+  df <- read_excel(file.path(path, archivo))
+  colnames(df) <- sapply(colnames(df), homologar_nombres)
+  return(df)
+}
+
+# Leer todos los archivos
+dfs1 <- lapply(archivos1, function(f) leer_y_homologar(path1, f))
+dfs2 <- lapply(archivos2, function(f) leer_y_homologar(path2, f))
+todos <- c(dfs1, dfs2)
+
+# Encontrar columnas comunes
+columnas_comunes <- Reduce(intersect, lapply(todos, names))
+
+# Convertir columnas comunes a texto y unir
+unidos <- bind_rows(lapply(todos, function(df) {
+  df_comun <- df[, columnas_comunes]
+  df_comun[] <- lapply(df_comun, as.character)
+  return(df_comun)
+}))
+
+# Guardar resultado
+#write.xlsx(unidos, file = "Pagos_Unificados_Homologados.xlsx", sheetName = "Pagos", row.names = FALSE)
+
+cat("✅ Archivo combinado guardado como 'Pagos_Unificados_Homologados.xlsx'\n")
+
+
+##################
+
+# Convertir la columna 'Acreedor' a texto y eliminar NA
+read_pagos <- unidos %>%
+  mutate(Acreedor = as.character(Acreedor)) %>%
+  filter(!is.na(Acreedor))
+
+# Filtrar por clase 'ZP' o 'KZ' y excluir un acreedor específico
+read_pagos <- read_pagos %>%
+  filter((Clase == "ZP" | Clase == "KZ") & Acreedor != "3037711")
+
+
+# Limpiar la columna 'Importe en ML'
+read_pagos$`Importe ML` <- gsub("[\\$,\\.]", "", read_pagos$`Importe ML`)
+read_pagos$`Importe ML` <- sapply(read_pagos$`Importe ML`, function(x) {
+  if (grepl("\\(", x)) {
+    -as.numeric(gsub("[\\(\\)]", "", x))
+  } else {
+    as.numeric(x)
+  }
+})
+
+# Filtrar valores positivos
+read_pagos <- read_pagos %>%
+  filter(`Importe ML` > 0)
+
+# Inicializar lista de resultados
+resultados <- list()
+
+# Obtener lista de proveedores únicos
+proveedores <- unique(read_pagos$Acreedor)
+
+cat("inicio for\n")
+
+# Procesar cada proveedor
+for (proveedor in proveedores) {
+  valores <- read_pagos %>%
+    filter(Acreedor == proveedor) %>%
+    pull(`Importe ML`)
+  
+  if (length(valores) < 2) {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango_con_la_mayoria_de_valores = NA,
+      Frecuencia_en_ese_rango = NA,
+      Mensaje = paste("No hay suficientes datos para calcular la desviación estándar y el rango. Cantidad de datos:", length(valores))
+    )
+    next
+  }
+  
+  if (length(unique(valores)) == 1) {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango_con_la_mayoria_de_valores = NA,
+      Frecuencia_en_ese_rango = NA,
+      Mensaje = paste("Todos los valores son iguales. No se puede calcular la desviación estándar y el rango. Cantidad de datos:", length(valores))
+    )
+    next
+  }
+  
+  desviacion_estandar <- sd(valores)
+  x <- ifelse(desviacion_estandar != 0, desviacion_estandar / 100, 1)
+  max_valor <- max(valores)
+  
+  rangos <- list()
+  i <- 0
+  while (i * x <= max_valor) {
+    rangos[[i + 1]] <- c(i * x, (i + 1) * x)
+    i <- i + 1
+  }
+  
+  frecuencias <- rep(0, length(rangos))
+  for (valor in valores) {
+    for (j in seq_along(rangos)) {
+      if (valor >= rangos[[j]][1] && valor < rangos[[j]][2]) {
+        frecuencias[j] <- frecuencias[j] + 1
+        break
+      }
+    }
+  }
+  
+  max_frecuencia <- max(frecuencias)
+  max_rango <- rangos[[which.max(frecuencias)]]
+  
+  resultados[[length(resultados) + 1]] <- data.frame(
+    Proveedor = proveedor,
+    Rango_con_la_mayoria_de_valores = paste0("(", max_rango[1], ", ", max_rango[2], ")"),
+    Frecuencia_en_ese_rango = max_frecuencia,
+    Mensaje = ""
+  )
+}
+
+cat("resultados\n")
+
+# Combinar resultados en un data frame
+df_resultados <- do.call(rbind, resultados)
+
+# Guardar en archivo Excel
+data_output <- "C:/Users/e0010825/OneDrive - Ecopetrol S.A/Pagos/Recurrencia/2024/"
+File_output <- "Recurrencia_NOV24_VF.xlsx"
+write.xlsx(df_resultados, file = paste0(data_output, File_output), sheetName = "Recurrencia", row.names = FALSE)
+
+cat("Fin del proceso\n")
+
+###############
+###############
+# Segunda opción
+
+library(ggplot2)
+library(dplyr)
+library(openxlsx)
+
+# Parámetro: n-ésimo rango más frecuente
+n_rango <- 2
+
+# Convertir 'Fecha pago' a tipo fecha
+read_pagos$`Fecha pago` <- as.Date(read_pagos$`Fecha pago`, format = "%Y-%m-%d")
+
+# Eliminar fechas inválidas
+read_pagos <- read_pagos %>% filter(!is.na(`Fecha pago`))
+
+# Inicializar resultados
+resultados <- list()
+proveedores <- unique(read_pagos$Acreedor)
+
+for (proveedor in proveedores) {
+  valores <- read_pagos %>%
+    filter(Acreedor == proveedor) %>%
+    pull(`Importe ML`)
+  
+  if (length(valores) < 2 || length(unique(valores)) == 1) {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = NA,
+      Frecuencia = NA,
+      Mensaje = "Datos insuficientes o sin variación"
+    )
+    next
+  }
+  
+  desv <- sd(valores)
+  paso <- ifelse(desv != 0, desv / 100, 1)
+  max_valor <- max(valores)
+  
+  rangos <- list()
+  i <- 0
+  while (i * paso <= max_valor) {
+    rangos[[i + 1]] <- c(i * paso, (i + 1) * paso)
+    i <- i + 1
+  }
+  
+  frecuencias <- rep(0, length(rangos))
+  for (valor in valores) {
+    for (j in seq_along(rangos)) {
+      if (valor >= rangos[[j]][1] && valor < rangos[[j]][2]) {
+        frecuencias[j] <- frecuencias[j] + 1
+        break
+      }
+    }
+  }
+  
+  orden <- order(frecuencias, decreasing = TRUE)
+  if (length(orden) >= n_rango) {
+    idx <- orden[n_rango]
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = paste0("(", round(rangos[[idx]][1], 2), ", ", round(rangos[[idx]][2], 2), ")"),
+      Frecuencia = frecuencias[idx],
+      Mensaje = ""
+    )
+  } else {
+    resultados[[length(resultados) + 1]] <- data.frame(
+      Proveedor = proveedor,
+      Rango = NA,
+      Frecuencia = NA,
+      Mensaje = paste("No hay suficientes rangos para seleccionar el top", n_rango)
+    )
+  }
+}
+
+df_resultados <- do.call(rbind, resultados)
+
+# Tendencia mensual
+read_pagos$Mes <- format(read_pagos$`Fecha pago`, "%Y-%m")
+tendencia <- read_pagos %>%
+  group_by(Mes) %>%
+  summarise(Total = sum(`Importe ML`, na.rm = TRUE))
+
+# Gráfico de barras por proveedor
+ggplot(df_resultados[!is.na(df_resultados$Frecuencia), ], aes(x = reorder(Proveedor, -Frecuencia), y = Frecuencia)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = paste("Frecuencia del rango #", n_rango, "más común por proveedor"), x = "Proveedor", y = "Frecuencia") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggsave("frecuencia_por_proveedor.png", width = 10, height = 6)
+
+# Gráfico de línea de tendencia mensual
+ggplot(tendencia, aes(x = Mes, y = Total, group = 1)) +
+  geom_line(color = "darkgreen", size = 1.2) +
+  geom_point(color = "darkgreen") +
+  labs(title = "Tendencia de pagos por mes", x = "Mes", y = "Importe ML") +
+  theme_minimal()
+
+ggsave("tendencia_mensual.png", width = 10, height = 6)
+
+# Guardar resultados
+write.xlsx(df_resultados, file = "Resumen_Recurrencia.xlsx", sheetName = "Rangos", row.names = FALSE)
+write.xlsx(tendencia, file = "Resumen_Recurrencia.xlsx", sheetName = "Tendencia", append = TRUE, row.names = FALSE)
+
+cat("✅ Análisis completado. Resultados y gráficos guardados.\n")
