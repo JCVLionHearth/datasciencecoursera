@@ -1,0 +1,96 @@
+Perfecto, Juan Carlos. Aquí tienes un objetivo, una metodología y una propuesta de estructura de código en R para generar el análisis de señales de alerta en estados financieros con fines de detección de posibles riesgos de lavado de activos (LA/FT):
+
+⸻
+
+🎯 Objetivo del análisis
+
+Detectar señales de alerta financieras en contrapartes mediante un monitoreo histórico de indicadores clave en sus estados financieros, con el propósito de identificar comportamientos atípicos que puedan estar asociados a posibles riesgos de lavado de activos o financiamiento del terrorismo (LA/FT). Este análisis busca complementar la variación interanual tradicional con técnicas más avanzadas de análisis, visualización y generación de alertas automatizadas.
+
+⸻
+
+🛠️ Metodología
+	1.	Carga y limpieza de datos: Integrar la información financiera por compañía y año fiscal, verificando consistencia, tipos de datos y valores faltantes.
+	2.	Cálculo de variaciones anuales: Medir la variación porcentual año a año de las principales variables financieras.
+	3.	Generación de indicadores adicionales:
+	•	Creación de banderas por variaciones atípicas (porcentajes extremos).
+	•	Análisis de razones financieras clave.
+	•	Evaluación de consistencia entre cuentas (ej. activos = pasivos + patrimonio).
+	4.	Identificación de señales de alerta:
+	•	Creación de alertas basadas en reglas predefinidas (ej. disminución abrupta de ventas, utilidad negativa recurrente, endeudamiento excesivo, etc.).
+	•	Detección de comportamientos inusuales (outliers estadísticos).
+	5.	Visualización del desempeño financiero:
+	•	Gráficos de evolución por NIT o compañía.
+	•	Matriz de calor de alertas por año.
+	6.	Reporte automático: Exportar resumen ejecutivo con alertas, análisis y visualizaciones en formato Excel o PDF.
+
+⸻
+
+📊 Código en R (estructura base con comentarios)
+
+# Cargar librerías
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(openxlsx)
+library(scales)
+
+# Cargar base de datos
+datos <- read.csv("estados_financieros.csv")  # Reemplaza con tu ruta
+
+# Paso 1: Calcular variaciones anuales por compañía
+datos_var <- datos %>%
+  arrange(NIT, anio_fiscal) %>%
+  group_by(NIT) %>%
+  mutate(
+    var_activos = (total_activos / lag(total_activos) - 1) * 100,
+    var_ventas = (ventas_net / lag(ventas_net) - 1) * 100,
+    var_utilidad = (utilidad_neta / lag(utilidad_neta) - 1) * 100,
+    var_cap_trab = (capital_trabajo / lag(capital_trabajo) - 1) * 100
+  ) %>%
+  ungroup()
+
+# Paso 2: Crear banderas por variaciones atípicas
+datos_alertas <- datos_var %>%
+  mutate(
+    alerta_utilidad_neg = ifelse(utilidad_neta < 0, 1, 0),
+    alerta_var_ventas = ifelse(abs(var_ventas) > 50, 1, 0),
+    alerta_endeudamiento = ifelse(indice_endeudamiento > 0.85, 1, 0),
+    alerta_rent_op_baja = ifelse(rentabilidad_operativa < 0.05, 1, 0),
+    alerta_cap_trab_neg = ifelse(capital_trabajo < 0, 1, 0)
+  )
+
+# Paso 3: Visualización de alertas
+ggplot(datos_alertas, aes(x = anio_fiscal, fill = factor(alerta_utilidad_neg))) +
+  geom_bar(position = "stack") +
+  facet_wrap(~compania) +
+  scale_fill_manual(values = c("0" = "grey", "1" = "red")) +
+  labs(title = "Alertas por utilidad neta negativa", fill = "Alerta")
+
+# Paso 4: Crear resumen de alertas por compañía
+resumen_alertas <- datos_alertas %>%
+  group_by(NIT, compania) %>%
+  summarise(
+    años_alerta_utilidad = sum(alerta_utilidad_neg, na.rm = TRUE),
+    años_alerta_ventas = sum(alerta_var_ventas, na.rm = TRUE),
+    años_alerta_endeudamiento = sum(alerta_endeudamiento, na.rm = TRUE),
+    total_alertas = rowSums(across(starts_with("alerta_")), na.rm = TRUE)
+  )
+
+# Paso 5: Exportar resumen a Excel
+write.xlsx(list("Resumen Alertas" = resumen_alertas,
+                "Datos con Alertas" = datos_alertas),
+           file = "reporte_alertas_financieras.xlsx")
+
+
+⸻
+
+🚩 Ideas adicionales que puedes implementar
+	•	Ranking de riesgo financiero por compañía.
+	•	Semáforos (verde, amarillo, rojo) según número de alertas.
+	•	Score de alerta ponderado (por tipo y severidad).
+	•	Modelos de detección de outliers con caret, lof, o randomForest.
+	•	Panel en Shiny para navegación interactiva por NIT.
+
+⸻
+
+¿Quieres que generemos juntos un ejemplo de datos sintéticos para probarlo o deseas ajustar el código con tus datos reales?
