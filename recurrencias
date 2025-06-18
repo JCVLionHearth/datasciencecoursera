@@ -1,3 +1,22 @@
+
+Perfecto. Aquí tienes un resumen introductorio claro y técnico de la metodología de análisis de recurrencia usando la desviación estándar dividida en 100, aplicado a dos niveles (rango más frecuente y segundo más frecuente):
+
+⸻
+
+📝 Resumen de la metodología de análisis de pagos recurrentes por desviación estándar
+
+Con el objetivo de identificar pagos que se repiten de forma recurrente a lo largo del tiempo por proveedor, se ha desarrollado una metodología que permite analizar la concentración de valores pagados mediante histogramas personalizados por acreedor. Esta técnica parte del cálculo de la desviación estándar de los pagos realizados a cada proveedor y la divide entre 100, generando así un tamaño de bin (intervalo) que sirve como base para construir los rangos de análisis. Estos rangos son utilizados para agrupar los valores de los pagos y contar la frecuencia de ocurrencia dentro de cada intervalo.
+
+A diferencia de los percentiles, donde todos los rangos contienen el mismo número de datos por definición, esta metodología permite detectar los valores o rangos de pago donde efectivamente se concentran más transacciones, independientemente de su valor absoluto. Esto resulta útil para identificar comportamientos atípicos o patrones sistemáticos de pago, incluso cuando existe gran dispersión entre los montos.
+
+El análisis identifica no solo el rango más frecuente (modo por intervalos), sino también un segundo nivel de recurrencia, permitiendo detectar posibles agrupaciones alternas en los pagos. Cada resultado incluye la frecuencia de ocurrencia dentro del rango, los límites inferior y superior, y el orden de recurrencia (1° más frecuente, 2° más frecuente, etc.).
+
+Esta información puede complementarse con el análisis del texto asociado a los pagos o tendencias mensuales para fortalecer la detección de alertas y monitorear la consistencia de los pagos en el tiempo.
+
+⸻
+
+¿Deseas que prepare también una versión breve para presentación (por ejemplo, en PowerPoint o en un resumen ejecutivo)?
+
 Claro, aquí tienes una descripción clara y técnica de la metodología basada en percentiles, con un ejemplo sencillo y una propuesta de gráfico visual para incluir en tu documento:
 
 ⸻
