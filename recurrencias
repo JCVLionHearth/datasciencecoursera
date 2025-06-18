@@ -1,48 +1,76 @@
-Perfecto. Vas a reemplazar solo una parte específica dentro del for (proveedor in proveedores) — exactamente donde actualmente tienes este bloque:
+# Cargar librerías necesarias
+library(readxl)
+library(dplyr)
+library(openxlsx)
+library('xlsx')
+library('writexl')
+library("readxl")
+library(ggplot2)
 
-if (nrow(top_rangos) > 0) {
-  resultados[[length(resultados) + 1]] <- data.frame(
-    Proveedor = rep(proveedor, nrow(top_rangos)),
-    Rango = as.character(top_rangos$rangos_cut),
-    Frecuencia = top_rangos$Freq,
-    Orden = seq_len(nrow(top_rangos)),
-    Mensaje = ""
-  )
+
+# Rutas y archivos
+path1 <- "//10.11.46.150/cdn/MATRIZ/Originales/Pagos/Histórico"
+archivos1 <- c("Pagos_2020.xlsx", "Pagos_2021.xlsx", "Pagos_2022.xlsx", 
+               "Pagos_2023.xlsx", "Pagos_2024_1s.xlsx", "Pagos_2024_2s.xlsx")
+
+path2 <- "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/Pagos Recurrentes"
+archivos2 <- c("pagos_2025_enero-mayo.xlsx")
+
+# Diccionario de homologación
+homologar_nombres <- function(nombre) {
+  nombre <- trimws(nombre)
+  switch(nombre,
+         "Vía de pago" = "Via de pago",
+         "VP" = "Via de pago",
+         "Nｺ doc." = "Nro documento",
+         "Nº documento" = "Nro documento",
+         "Fecha doc." = "Fecha documento",
+         "Fecha de documento" = "Fecha documento",
+         "Clase de documento" = "Clase",
+         "Clase" = "Clase",
+         "Fe.contabilización" = "Fecha contab.",
+         "Fe.contab." = "Fecha contab.",
+         "Fecha de pago" = "Fecha pago",
+         "Fecha pago" = "Fecha pago",
+         "Sociedad" = "Sociedad",
+         "Soc." = "Sociedad",
+         "Compens." = "Fecha compensacion",
+         "Fecha compensación" = "Fecha compensacion",
+         "Importe en moneda local" = "Importe ML",
+         "Importe en ML" = "Importe ML",
+         nombre)
 }
 
-👇 Reemplázalo por este nuevo bloque completo:
-
-if (nrow(top_rangos) > 0) {
-  # Extraer los límites inferiores y superiores del rango
-  limites <- do.call(rbind, lapply(as.character(top_rangos$rangos_cut), function(r) {
-    r <- gsub("\\[|\\]|\\(|\\)", "", r)  # Elimina corchetes y paréntesis
-    partes <- strsplit(r, ",")[[1]]
-    as.numeric(trimws(partes))
-  }))
-  
-  resultados[[length(resultados) + 1]] <- data.frame(
-    Proveedor = rep(proveedor, nrow(top_rangos)),
-    Rango = as.character(top_rangos$rangos_cut),
-    Frecuencia = top_rangos$Freq,
-    Orden = seq_len(nrow(top_rangos)),
-    Limite_Inferior = limites[, 1],
-    Limite_Superior = limites[, 2],
-    Mensaje = ""
-  )
+# Función para leer y homologar columnas
+leer_y_homologar <- function(path, archivo) {
+  df <- read_excel(file.path(path, archivo))
+  colnames(df) <- sapply(colnames(df), homologar_nombres)
+  return(df)
 }
 
-✔ Resultado:
+# Leer todos los archivos
+dfs1 <- lapply(archivos1, function(f) leer_y_homologar(path1, f))
+dfs2 <- lapply(archivos2, function(f) leer_y_homologar(path2, f))
+todos <- c(dfs1, dfs2)
 
-Tu df_resultados tendrá ahora esta estructura de columnas:
+# Encontrar columnas comunes
+columnas_comunes <- Reduce(intersect, lapply(todos, names))
 
-Proveedor | Rango | Frecuencia | Orden | Limite_Inferior | Limite_Superior | Mensaje
+# Convertir columnas comunes a texto y unir
+unidos <- bind_rows(lapply(todos, function(df) {
+  df_comun <- df[, columnas_comunes]
+  df_comun[] <- lapply(df_comun, as.character)
+  return(df_comun)
+}))
 
-Y luego, el write.xlsx() seguirá funcionando igual, exportando todos los valores con los límites claros y sin notación científica.
+# Guardar resultado
+#write.xlsx(unidos, file = "Pagos_Unificados_Homologados.xlsx", sheetName = "Pagos", row.names = FALSE)
 
-¿Te gustaría que te dé también un ejemplo de cómo se ve una fila de resultado final?
+cat("✅ Archivo combinado guardado como 'Pagos_Unificados_Homologados.xlsx'\n")
 
 
-# con mas de un nivel de orden de rangos
+# Identificación de pagos recurrentes
+
 options(scipen = 999)  # Evita notación científica en general
 
 # Convertir la columna 'Acreedor' a texto y eliminar NA
@@ -73,10 +101,14 @@ read_pagos <- read_pagos %>%
 n_top_rangos <- 2
 
 # Convertir fecha 
-read_pagos$`Fecha pago` <- as.Date(read_pagos$`Fecha pago`)
+# Normalizar formato de fecha en la columna 'Fecha pago'
+read_pagos$`Fecha pago` <- as.Date(read_pagos$`Fecha pago`, tryFormats = c("%Y-%m-%d", "%d.%m.%Y"))
+sum(is.na(read_pagos$`Fecha pago`))  # Cantidad de fechas no convertidas
+
 
 # Eliminar fechas inválidas
 read_pagos <- read_pagos %>% filter(!is.na(`Fecha pago`))
+
 
 # Inicializar resultados
 resultados <- list()
@@ -93,6 +125,8 @@ for (proveedor in proveedores) {
       Rango = NA,
       Frecuencia = NA,
       Orden = NA,
+      Limite_Inferior = NA,
+      Limite_Superior = NA,
       Mensaje = "Datos insuficientes o sin variación"
     )
     next
@@ -114,11 +148,20 @@ for (proveedor in proveedores) {
   
   
   if (nrow(top_rangos) > 0) {
+    # Extraer los límites inferiores y superiores del rango
+    limites <- do.call(rbind, lapply(as.character(top_rangos$rangos_cut), function(r) {
+      r <- gsub("\\[|\\]|\\(|\\)", "", r)  # Elimina corchetes y paréntesis
+      partes <- strsplit(r, ",")[[1]]
+      as.numeric(trimws(partes))
+    }))
+    
     resultados[[length(resultados) + 1]] <- data.frame(
       Proveedor = rep(proveedor, nrow(top_rangos)),
       Rango = as.character(top_rangos$rangos_cut),
       Frecuencia = top_rangos$Freq,
       Orden = seq_len(nrow(top_rangos)),
+      Limite_Inferior = limites[, 1],
+      Limite_Superior = limites[, 2],
       Mensaje = ""
     )
   }
@@ -128,4 +171,46 @@ for (proveedor in proveedores) {
 df_resultados <- do.call(rbind, resultados)
 
 # Guardar
-write.xlsx(df_resultados, file = "Top_rangos_recurrentes_por_proveedor.xlsx", row.names = FALSE)
+write.xlsx(df_resultados, file = "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/Pagos Recurrentes/Top_rangos_recurrentes_por_Acreedor.xlsx", row.names = FALSE)
+
+
+# Agregar columna con el orden del rango recurrente
+read_pagos$Orden_Rango <- NA # Inicializar columna
+
+for (i in 1:nrow(df_resultados)) {
+  proveedor <- df_resultados$Proveedor[i]
+  lim_inf <- df_resultados$Limite_Inferior[i]
+  lim_sup <- df_resultados$Limite_Superior[i]
+  orden <- df_resultados$Orden[i]
+  
+  idx <- which(read_pagos$Acreedor == proveedor &
+                 read_pagos$`Importe ML` >= lim_inf &
+                 read_pagos$`Importe ML` < lim_sup)
+  
+  read_pagos$Orden_Rango[idx] <- orden
+}
+
+
+# Guardar
+write.xlsx(read_pagos, file = "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/Pagos Recurrentes/Pagos_finales_filtrados.xlsx", row.names = FALSE)
+
+# filtro
+
+listado <- c("3003498", "3003858", "3001460", "3002331", "3003576", "3014594", 
+             "3002439", "3002887", "3004354", "3002146", "3002891", "3005539", 
+             "3016196", "3016049", "3001928", "3007498", "3002052", "3014412", 
+             "3003079", "3009281", "3002825", "3037760", "3003896", "3001739", 
+             "4002", "3033907", "3019787", "3002837", "3003933", "3018879")
+
+
+pagos_busqueda<-read_pagos %>%
+  filter(Acreedor %in% listado)
+
+# Guardar
+write.xlsx(pagos_busqueda, file = "Pagos_filtrados.xlsx", row.names = FALSE)
+
+pagos_busqueda$`Fecha pago` <- as.Date(pagos_busqueda$`Fecha pago`, tryFormats = c("%Y-%m-%d", "%d.%m.%Y"))
+
+library(writexl)
+write_xlsx(pagos_busqueda, path = "Pagos_filtrados.xlsx")
+
