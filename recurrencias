@@ -1,4 +1,52 @@
+Claro, aquí tienes una descripción clara y técnica de la metodología basada en percentiles, con un ejemplo sencillo y una propuesta de gráfico visual para incluir en tu documento:
 
+⸻
+
+📝 Párrafo para el documento (Metodología basada en percentiles)
+
+Para identificar patrones de pagos recurrentes por acreedor, se adopta una metodología basada en percentiles, la cual permite clasificar los pagos en grupos de igual proporción según su valor. A cada acreedor con suficientes registros se le calculan los percentiles (por ejemplo, del 0 al 100 en intervalos de 10), dividiendo así su historial de pagos en 10 rangos o deciles. Posteriormente, se calcula la frecuencia de pagos en cada rango, lo que permite identificar los valores más comúnmente pagados, incluso cuando los pagos tienen alta dispersión. Esta técnica es más robusta que el uso de la desviación estándar, ya que no se ve afectada por valores atípicos.
+Por ejemplo, para un proveedor con pagos entre $50.000 y $200 millones, se detectó que más del 40% de los pagos se concentraban entre $80 millones y $110 millones, correspondientes al percentil 5–6. Esta información permite priorizar el análisis de recurrencias sobre valores realmente representativos.
+
+⸻
+
+📊 Ejemplo de gráfico sugerido: Histograma con cortes por percentil
+
+A continuación, un código base en R para crear un gráfico de ejemplo con datos ficticios de un proveedor. Este gráfico muestra:
+	•	Histograma de pagos (frecuencia de valores).
+	•	Líneas verticales que marcan los cortes de percentiles.
+	•	Zonas sombreadas donde se concentran los pagos.
+
+# Simular pagos para un proveedor
+set.seed(123)
+pagos_proveedor <- c(rnorm(500, mean = 90000000, sd = 15000000),  # valores frecuentes
+                     runif(100, min = 50000, max = 200000000))    # valores dispersos
+
+# Calcular percentiles
+percentiles <- quantile(pagos_proveedor, probs = seq(0, 1, 0.1))
+
+# Crear data frame
+df <- data.frame(Importe = pagos_proveedor)
+
+# Crear histograma
+library(ggplot2)
+
+ggplot(df, aes(x = Importe)) +
+  geom_histogram(binwidth = 5000000, fill = "#69b3a2", color = "white", alpha = 0.7) +
+  geom_vline(xintercept = percentiles, linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = percentiles[6], xmax = percentiles[7], ymin = 0, ymax = Inf,
+           fill = "red", alpha = 0.2) +
+  labs(title = "Distribución de pagos y cortes por percentil",
+       subtitle = "Proveedor X – Pagos entre 2020 y 2025",
+       x = "Importe del pago (COP)",
+       y = "Frecuencia") +
+  theme_minimal()
+
+
+⸻
+
+Este gráfico te permite ilustrar que, aunque los pagos están dispersos, una gran concentración ocurre en un rango específico, resaltado con color. Puedes adaptar el gráfico con datos reales de un proveedor y mencionar en la figura que el área sombreada representa el rango más recurrente identificado por la metodología.
+
+¿Quieres que te genere también ese gráfico con tus datos reales para un proveedor específico?
 Gracias por compartir el código completo. A continuación, te ayudo en tres partes:
 
 ⸻
