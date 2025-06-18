@@ -1,3 +1,53 @@
+Perfecto. A continuación te dejo una versión mejorada del cálculo del tamaño de rango (paso), en la que R elige automáticamente un divisor adaptado al comportamiento de cada proveedor, para evitar que los rangos sean excesivamente amplios.
+
+⸻
+
+✅ Lógica inteligente para elegir el divisor
+
+La idea es que si la dispersión es muy alta (es decir, sd/mean > 1), usemos un divisor más alto (rango más pequeño); y si es baja, usamos uno más conservador. Esto se hace así:
+
+Relación SD / Media	Dispersión	Divisor sugerido
+> 1.0	Muy alta	1000
+0.5 – 1.0	Alta	500
+0.2 – 0.5	Media	200
+< 0.2	Baja	100
+
+
+⸻
+
+🧠 Código R: versión adaptativa del paso
+
+Reemplaza esta línea que ya tienes:
+
+paso <- ifelse(desv != 0, desv / 100, 1)
+
+Por este bloque completo:
+
+media <- mean(valores)
+relacion <- ifelse(media != 0, desv / media, 0)
+
+divisor <- case_when(
+  relacion > 1     ~ 1000,
+  relacion > 0.5   ~ 500,
+  relacion > 0.2   ~ 200,
+  TRUE             ~ 100
+)
+
+paso <- desv / divisor
+
+
+⸻
+
+✅ ¿Qué hace este cambio?
+	•	Para cada proveedor, se calcula su dispersión relativa (sd / mean).
+	•	Según ese valor, el script ajusta el tamaño de los rangos automáticamente.
+	•	Así, los proveedores con pagos muy variables no quedan con un único rango gigante.
+	•	Conserva la metodología de la desviación estándar, pero la hace más granular y útil.
+
+⸻
+
+¿Quieres que también te cree un pequeño gráfico ejemplo con bins más finos y resalte el rango más frecuente para uno de los proveedores?
+
 
 Perfecto. Aquí tienes un resumen introductorio claro y técnico de la metodología de análisis de recurrencia usando la desviación estándar dividida en 100, aplicado a dos niveles (rango más frecuente y segundo más frecuente):
 
