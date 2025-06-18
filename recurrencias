@@ -1,3 +1,46 @@
+
+Claro, aquí tienes lo solicitado en dos partes: primero un párrafo introductorio explicativo de la metodología adaptativa con desviación estándar, y luego un ejemplo claro con datos ficticios que puedes incluir directamente en tu documento.
+
+⸻
+
+📝 Párrafo introductorio – Metodología adaptativa con desviación estándar
+
+Con el propósito de identificar comportamientos recurrentes en los pagos realizados a proveedores, se ha desarrollado una metodología basada en histogramas por proveedor, donde los rangos de análisis se construyen a partir de la desviación estándar de los montos pagados. A diferencia de un enfoque fijo, esta versión implementa una lógica adaptativa, que ajusta el tamaño de los rangos (bins) según la dispersión de los datos para evitar que un único intervalo abarque la mayoría de los valores.
+
+Para ello, se calcula la relación entre la desviación estándar y la media de los pagos por proveedor (SD/Media). En función de ese valor, se asigna un divisor dinámico que permite acotar mejor los intervalos:
+	•	Si la dispersión es muy alta (SD/Media > 1), se usan divisores grandes como 1000.
+	•	Si es media o baja, se utilizan divisores menores como 200 o 100.
+
+Esto permite mantener la coherencia estadística de la metodología original, pero con una mayor sensibilidad para detectar concentraciones de pagos reales, evitando sesgos por escalas grandes.
+
+⸻
+
+📊 Ejemplo con datos ficticios
+
+Supongamos que el proveedor A123 recibió 200 pagos en total. El valor mínimo pagado fue $50.000 y el máximo $25.000.000, con una desviación estándar de $4.000.000 y una media de $6.000.000, lo que da una dispersión relativa (SD/Media) de 0.67.
+
+Dado ese valor, el script asigna un divisor de 500, por lo que el tamaño del rango (paso) sería:
+
+paso = 4.000.000 / 500 = 8.000
+
+Con este tamaño, se generan rangos como:
+	•	$0 – $8.000
+	•	$8.000 – $16.000
+	•	$16.000 – $24.000
+	•	…
+	•	$5.992.000 – $6.000.000
+	•	… hasta $25 millones
+
+Luego se cuenta cuántos pagos caen en cada intervalo. Supongamos que se encuentra que el rango con mayor concentración fue:
+
+$5.992.000 – $6.000.000, con 42 pagos.
+
+Eso indica que existe un comportamiento sistemático de pagos alrededor de ese monto, lo cual puede ser relevante para fines de monitoreo, control o auditoría.
+
+⸻
+
+¿Te gustaría que también te genere un gráfico de barras (en ggplot2) con estos rangos ficticios y la frecuencia de pagos para mostrarlo visualmente en el documento?
+
 Perfecto. A continuación te dejo una versión mejorada del cálculo del tamaño de rango (paso), en la que R elige automáticamente un divisor adaptado al comportamiento de cada proveedor, para evitar que los rangos sean excesivamente amplios.
 
 ⸻
