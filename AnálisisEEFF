@@ -1,3 +1,127 @@
+Perfecto. A continuación te presento un script completo en R con:
+	1.	Cálculo de variaciones anuales.
+	2.	Alertas para activo, pasivo, patrimonio, y sus versiones corrientes y no corrientes.
+	3.	Cálculo de razones financieras clave: liquidez, estructura de capital, autonomía, apalancamiento.
+	4.	Generación de banderas de alerta con umbrales justificados.
+	5.	Clasificación de riesgo.
+	6.	Exportación final a un Excel con múltiples hojas.
+	7.	Comentarios explicativos de cada métrica y umbral.
+
+⸻
+
+✅ SCRIPT COMPLETO Y DOCUMENTADO EN R
+
+# 📦 Cargar paquetes necesarios
+library(readxl)
+library(dplyr)
+library(openxlsx)
+library(scales)
+
+# 📂 Paso 1: Cargar base de datos
+path <- "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/Analisis_EEFF/datos"
+archivo <- "reporte_eeff_2023.xlsx"
+datos <- read_excel(file.path(path, archivo))
+
+# 🧹 Paso 2: Calcular variaciones anuales
+datos_var <- datos %>%
+  arrange(NIT, `Ano Fiscal`) %>%
+  group_by(NIT) %>%
+  mutate(
+    var_activos = (`Total Activos` / lag(`Total Activos`) - 1) * 100,
+    var_pasivos = (`Total Pasivos` / lag(`Total Pasivos`) - 1) * 100,
+    var_patrimonio = (`Patrimonio` / lag(`Patrimonio`) - 1) * 100,
+    var_act_corr = (`Activo Corriente` / lag(`Activo Corriente`) - 1) * 100,
+    var_pas_corr = (`Pasivo Corriente` / lag(`Pasivo Corriente`) - 1) * 100,
+    var_act_ncorr = (`Activo No Corriente` / lag(`Activo No Corriente`) - 1) * 100,
+    var_pas_ncorr = (`Pasivo No Corriente` / lag(`Pasivo No Corriente`) - 1) * 100,
+    var_ventas = (`Ventas Netas` / lag(`Ventas Netas`) - 1) * 100,
+    var_utilidad = (`Utilidad Neta` / lag(`Utilidad Neta`) - 1) * 100,
+    var_cap_trab = (`Capital de Trabajo` / lag(`Capital de Trabajo`) - 1) * 100
+  ) %>%
+  ungroup()
+
+# 🧠 Paso 3: Calcular razones financieras
+datos_ratios <- datos_var %>%
+  mutate(
+    razon_liquidez = ifelse(`Pasivo Corriente` != 0, `Activo Corriente` / `Pasivo Corriente`, NA),     # Capacidad de cubrir obligaciones de corto plazo
+    razon_autonomia = ifelse(`Total Activos` != 0, `Patrimonio` / `Total Activos`, NA),                # Qué porcentaje de los activos está financiado por capital propio
+    razon_endeudamiento = ifelse(`Total Activos` != 0, `Total Pasivos` / `Total Activos`, NA),         # Proporción de deuda sobre activos
+    razon_capital_trab = `Activo Corriente` - `Pasivo Corriente`,                                      # Fondo disponible para operaciones
+    razon_apalancamiento = ifelse(`Patrimonio` != 0, `Total Pasivos` / `Patrimonio`, NA)               # Nivel de apalancamiento con respecto al capital propio
+  )
+
+# ⚠️ Paso 4: Generar alertas basadas en reglas
+datos_alertas <- datos_ratios %>%
+  mutate(
+    alerta_utilidad_neg = ifelse(`Utilidad Neta` < 0, 1, 0),
+    alerta_var_ventas = ifelse(abs(var_ventas) > 50, 1, 0),
+    alerta_endeudamiento = ifelse(razon_endeudamiento > 0.85, 1, 0),
+    alerta_rent_op_baja = ifelse(`Rentabilidad Operativa` < 0.05, 1, 0),
+    alerta_cap_trab_neg = ifelse(razon_capital_trab < 0, 1, 0),
+    
+    alerta_var_activo = ifelse(abs(var_activos) > 50, 1, 0),
+    alerta_var_pasivo = ifelse(abs(var_pasivos) > 50, 1, 0),
+    alerta_var_patrimonio = ifelse(abs(var_patrimonio) > 50, 1, 0),
+    alerta_var_corrientes = ifelse(abs(var_act_corr) > 50 | abs(var_pas_corr) > 50, 1, 0),
+    alerta_var_nocorrientes = ifelse(abs(var_act_ncorr) > 50 | abs(var_pas_ncorr) > 50, 1, 0),
+
+    alerta_liquidez_baja = ifelse(razon_liquidez < 1, 1, 0),
+    alerta_autonomia_baja = ifelse(razon_autonomia < 0.25, 1, 0),    # patrimonio bajo respecto a activos
+    alerta_apalancamiento_alto = ifelse(razon_apalancamiento > 3, 1, 0),
+
+    # Puntaje total
+    puntaje_alerta = rowSums(across(starts_with("alerta_")), na.rm = TRUE),
+
+    # Clasificación de riesgo
+    nivel_riesgo = case_when(
+      puntaje_alerta == 0 ~ "Bajo",
+      puntaje_alerta <= 3 ~ "Medio",
+      puntaje_alerta > 3 ~ "Alto"
+    )
+  )
+
+# 📝 Paso 5: Exportar a Excel con varias hojas
+wb <- createWorkbook()
+
+# Hoja completa
+addWorksheet(wb, "Resumen_Riesgo")
+writeData(wb, "Resumen_Riesgo", datos_alertas)
+
+# Hojas por nivel
+niveles <- unique(datos_alertas$nivel_riesgo)
+for (nivel in niveles) {
+  hoja <- paste0("Riesgo_", nivel)
+  addWorksheet(wb, hoja)
+  writeData(wb, hoja, datos_alertas %>% filter(nivel_riesgo == nivel))
+}
+
+# Guardar archivo
+output_file <- file.path(path, "alertas_financieras_completo.xlsx")
+saveWorkbook(wb, output_file, overwrite = TRUE)
+cat("✅ Archivo exportado en:", output_file, "\n")
+
+
+⸻
+
+📖 Explicación de razones y umbrales
+
+Métrica	Definición	Umbral de alerta	Justificación
+Liquidez corriente	Activo Corriente / Pasivo Corriente	< 1	No puede cubrir sus obligaciones de corto plazo
+Autonomía financiera	Patrimonio / Total Activos	< 0.25	Alta dependencia de financiación externa
+Endeudamiento	Total Pasivos / Total Activos	> 0.85	Alto riesgo financiero por sobreapalancamiento
+Apalancamiento	Total Pasivos / Patrimonio	> 3	Múltiplos excesivos de deuda sobre capital propio
+Capital de trabajo	Activo Corriente - Pasivo Corriente	< 0	Problemas de liquidez operativa
+Variaciones anuales	Variación porcentual año a año de cada rubro financiero	±50%	Cambios abruptos o inusuales deben ser revisados
+Utilidad neta	Resultado del ejercicio	< 0	Pérdidas persistentes pueden comprometer viabilidad
+Rentabilidad operativa	Utilidad operativa / Ventas	< 5%	Bajo margen para operar eficientemente
+
+
+⸻
+
+¿Deseas que prepare también una visualización tipo ggplot2 o plotly con estos datos? También podemos exportarlo a CSV para Power BI o armar un Shiny App si deseas explorarlo de forma interactiva.
+
+#######
+
 Perfecto, ya tienes una base sólida. Aquí te dejo un resumen estructurado con comentarios adicionales y sugerencias para completar tu flujo con documentación clara, generación de umbrales y otras medidas:
 
 ⸻
