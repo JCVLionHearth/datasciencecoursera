@@ -1,3 +1,52 @@
+Mi objetivo es el siguiente: Identificar señales de alerta identificar al analizar los estados financieros de las contrapartes de la compañía, con el fin de analizar posibles riesgos en materia de riesgos LAFTFPADM y FCPA. 
+
+quiero generar al final una data con las variaciones
+Explicaciones de los umbrales
+Otras medidas y metodologías
+
+🛠️ Metodología
+	1.	Carga y limpieza de datos: Integrar la información financiera por compañía y año fiscal, verificando consistencia, tipos de datos y valores faltantes.
+	2.	Cálculo de variaciones anuales: Medir la variación porcentual año a año de las principales variables financieras.
+	3.	Generación de indicadores adicionales:
+	•	Creación de banderas por variaciones atípicas (porcentajes extremos).
+	•	Análisis de razones financieras clave.
+	•	Evaluación de consistencia entre cuentas (ej. activos = pasivos + patrimonio).
+	4.	Identificación de señales de alerta:
+	•	Creación de alertas basadas en reglas predefinidas (ej. disminución abrupta de ventas, utilidad negativa recurrente, endeudamiento excesivo, etc.).
+	•	Detección de comportamientos inusuales (outliers estadísticos).
+
+library(openxlsx)
+library(scales)
+library('xlsx')
+library('writexl')
+library("readxl")
+
+# Cargar base de datos
+path <- "//10.11.46.150/cdn/JCVR/Rutinas de Monitoreo/Analisis_EEFF/datos"
+datos <- read_excel(file.path(path, "reporte_eeff_2023.xlsx"))
+
+# Paso 1: Calcular variaciones anuales por compañía
+datos_var <- datos %>%
+  arrange(NIT, `Ano Fiscal`) %>%
+  group_by(NIT) %>%
+  mutate(
+    var_activos = (`Total Activos` / lag(`Total Activos`) - 1) * 100,
+    var_ventas = (`Ventas Netas` / lag(`Ventas Netas`) - 1) * 100,
+    var_utilidad = (`Utilidad Neta` / lag(`Utilidad Neta`) - 1) * 100,
+    var_cap_trab = (`Capital de Trabajo` / lag(`Capital de Trabajo`) - 1) * 100
+  ) %>%
+  ungroup()
+
+# Paso 2: Crear banderas por variaciones atípicas
+datos_alertas <- datos_var %>%
+  mutate(
+    alerta_utilidad_neg = ifelse(`Utilidad Neta` < 0, 1, 0),
+    alerta_var_ventas = ifelse(abs(var_ventas) > 50, 1, 0),
+    alerta_endeudamiento = ifelse(`Indice de Endeudamiento` > 0.85, 1, 0),
+    alerta_rent_op_baja = ifelse(`Rentabilidad Operativa` < 0.05, 1, 0),
+    alerta_cap_trab_neg = ifelse(`Capital de Trabajo` < 0, 1, 0)
+  )
+
 Perfecto, Juan Carlos. Aquí tienes un objetivo, una metodología y una propuesta de estructura de código en R para generar el análisis de señales de alerta en estados financieros con fines de detección de posibles riesgos de lavado de activos (LA/FT):
 
 ⸻
