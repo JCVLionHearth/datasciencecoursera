@@ -1,0 +1,120 @@
+Manual de Usuario
+
+Chatbot de Consultas Éticas – Microsoft Teams (Copilot Studio)
+
+Copie este texto directamente en su sitio web interno (formato Markdown/HTML).
+Reemplace cada zona marcada [CAPTURA #] por la imagen correspondiente.
+
+⸻
+
+1. Descripción general
+
+El chatbot de consultas y dilemas éticos es un asistente conversacional creado en Copilot Studio y publicado en Microsoft Teams.
+Su propósito es orientar a los colaboradores en la toma de decisiones conforme al Código de Ética corporativo, las políticas de cumplimiento y la normativa vigente.
+
+⸻
+
+2. Requisitos previos
+
+Elemento	Detalle
+Cuenta de Microsoft Teams	Licencia corporativa activa.
+Conectividad	Acceso a Internet o a la red interna con permiso para instalar aplicaciones de Teams.
+Versión de Teams	Escritorio (Windows/macOS) o Web reciente (≥ marzo 2025).
+
+
+⸻
+
+3. Instalación en Teams
+	1.	Abrir el catálogo de aplicaciones
+En el cliente de Teams, haga clic en Apps (barra lateral).
+[CAPTURA 1 – Teams > Apps > Catálogo]
+	2.	Buscar la aplicación
+Escriba “Chatbot Ético” en la barra de búsqueda.
+[CAPTURA 2 – Resultado de búsqueda]
+	3.	Agregar a Teams
+	•	Haga clic en el icono del chatbot.
+	•	Seleccione Agregar.
+	•	Confirme los permisos solicitados (solo lectura del perfil y envío de mensajes).
+[CAPTURA 3 – Botón «Agregar» y ventana de permisos]
+	4.	Confirmación
+Teams mostrará un mensaje “La aplicación se ha instalado correctamente”.
+[CAPTURA 4 – Notificación de instalación]
+
+⸻
+
+4. Primer inicio
+	1.	Abrir chat
+En la barra lateral, aparecerá el nombre del chatbot. Haga clic para abrir la conversación.
+[CAPTURA 5 – Icono en barra lateral]
+	2.	Mensaje de bienvenida
+El bot envía un saludo con ejemplos de uso y botones sugeridos.
+[CAPTURA 6 – Mensaje de bienvenida]
+	3.	Ejemplo rápido
+Escriba “¿Puedo aceptar un regalo de un proveedor?”.
+El bot devuelve una respuesta breve y una explicación normativa con enlaces a las políticas.
+[CAPTURA 7 – Consulta y respuesta]
+
+⸻
+
+5. Estructura del flujo conversacional
+
+Elemento	Qué hace
+Menú guiado	Botones tipo Adaptive Card con categorías: “Regalos”, “Conflicto de intereses”, “Uso de datos”, etc.
+Entrada libre	Puede formular la pregunta en lenguaje natural.
+Desambiguación	Si la pregunta es ambigua, el bot propone opciones.
+Enlaces útiles	Artículos de la base de conocimiento o contacto con el área de Ética & Cumplimiento.
+
+[CAPTURA 8 – Menú de categorías]
+
+⸻
+
+6. Buenas prácticas de uso
+	•	Sea claro y específico: describa su situación con datos relevantes (cargo, contexto, país).
+	•	Evite datos personales sensibles: no comparta información médica ni financiera privada.
+	•	Use los botones rápidos cuando existan; reduce errores de interpretación.
+	•	Revise los enlaces: la respuesta suele incluir la política oficial correspondiente.
+
+⸻
+
+7. Accesos directos
+
+Comando	Acción
+@ChatbotAyuda	Muestra las categorías disponibles.
+@ChatbotContactarHumano	Escala el caso a un especialista.
+@ChatbotPolíticas	Devuelve el índice de políticas vigentes en PDF.
+
+
+⸻
+
+8. Soporte y escalamiento
+
+Si la respuesta no resuelve su dilema, escriba “Escalar caso”; el bot creará un ticket con el área de Ética & Cumplimiento y adjuntará el historial de la conversación.
+
+⸻
+
+Catálogo de posibles requerimientos / incidentes
+
+Código	Categoría	Síntoma habitual	Posible causa	Severidad	Acción inicial de soporte
+INC-01	Instalación	El botón Agregar no aparece	Políticas de Teams que bloquean apps personalizadas	Media	Verificar permisos de Teams App Setup Policy
+INC-02	Autenticación	“No tiene permiso para usar esta app”	Falta de licencia o restricción de AD	Alta	Revisar grupo de seguridad y licencias
+INC-03	Bot sin respuesta	Mensaje “Algo salió mal” o silencio > 30 s	Servicio de Copilot Studio caído o throttling	Alta	Chequear portal de salud de Copilot Studio; reiniciar bot
+INC-04	Respuesta inadecuada	Información incompleta o normativa incorrecta	Base de conocimiento desactualizada	Media	Actualizar FAQ en Copilot Studio y volver a publicar
+INC-05	Bucle de diálogo	Bot repite la misma pregunta	Falla en la lógica del flujo	Media	Revisar condición en Power Fx / Node
+INC-06	Permisos de archivo	Enlaces a políticas devuelven 403	Mal share link en SharePoint	Baja	Corregir permisos o crear link anónimo controlado
+INC-07	Latencia	Respuestas tardan > 10 s	Sobrecarga de recursos o llamada a API externa lenta	Baja	Analizar métricas de rendimiento; escalar el plan
+INC-08	Accesibilidad	Lector de pantalla no anuncia botones	Falta de etiquetas ARIA	Baja	Añadir aria-label en Adaptive Cards
+INC-09	Confidencialidad	Se muestra dato sensible por error	Prompt mal diseñado o fuga de contexto	Crítica	Suspender bot, investigar logs, aplicar red teaming
+INC-10	Solicitud de eliminación	Usuario pide borrar historial	Compliance (GDPR, Habeas Data)	Media	Ejecutar proceso de supresión en Copilot Studio
+
+Tip: Mantenga este catálogo en su sistema de tickets (ServiceNow, JIRA, etc.) para que los agentes seleccionen el código adecuado al registrar un incidente.
+
+⸻
+
+9. Contacto de soporte
+	•	Canal Teams: #Soporte-Chatbot-Ética
+	•	Correo: soporte.etica@ejemplo.com
+	•	Horario: Lun–Vie, 08:00 – 18:00 (GMT-5)
+
+⸻
+
+¡Listo! Sustituya cada [CAPTURA #] por la imagen que corresponda y publique el manual en su intranet o portal de ayuda.
