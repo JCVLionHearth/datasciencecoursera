@@ -1,3 +1,206 @@
+Manual Técnico
+
+Chatbot de Consultas Éticas – Microsoft Copilot Studio + Microsoft Teams
+(Guía para desarrolladores, administradores de Power Platform y agentes de soporte de ALM)
+
+Use este documento como plantilla Markdown/HTML para su wiki de TI.
+Reemplace los marcadores [SHOT #] con capturas de pantalla del portal, YAML, etc.
+
+⸻
+
+1. Alcance y arquitectura
+
+Capa	Componente	Descripción breve
+Experiencia	Aplicación Teams	Paquete .zip con manifest.json, iconos y permisos.
+Agente	Microsoft Copilot Studio	Diseño de flujos, temas, variables y generative answers.
+Conocimiento	SharePoint / Web / PDFs	Fuentes que se indexan; se versionan en Git/SharePoint.
+ALM	Soluciones Power Platform + Pipelines	Dev → QA → Prod con pipelines sin código o Azure DevOps.
+Observabilidad	Application Insights + Transcripts	Telemetría, conversación y métricas de uso.
+
+
+⸻
+
+2. Prerrequisitos
+
+Ítem	Detalle
+Licencias	Microsoft Copilot Studio (o PVA) per user/app, Power Platform Pipelines, y Teams.
+Environments	Tres entornos Dataverse nombrados DEV, QA, PROD.
+Roles de seguridad	System Admin (DEV), Pipeline User (todos los entornos), Teams Admin para publicar apps  ￼
+Herramientas	Power Platform CLI (pac), PowerShell, Git, Azure DevOps (opcional), VS Code.
+
+
+⸻
+
+3. Configuración inicial de entornos
+	1.	Crear entornos en el Centro de administración Power Platform (+ Nuevo entorno).
+	•	Tipo: Sandbox para DEV/QA, Producción para PROD.
+	•	Base de datos Dataverse activada.
+[SHOT 1 – Alta de entorno]
+	2.	Instalar Copilot Studio en cada entorno (Instalar app).
+	3.	Desplegar solución base de Pipelines (AppID Pipelines Core).
+	4.	Asignar roles System Customizer, Pipeline User, Environment Maker según corresponda.
+
+⸻
+
+4. Administración de soluciones
+
+Paso	Acción	Resultado
+4.1	En DEV, vaya a Soluciones → Nueva y seleccione Unmanaged.	Contenedor fuente.
+4.2	Agregue: • Agent (bot) • Recursos web (Adaptive Card JSON) • Environment Variables (URLs, IDs)	Todos los artefactos quedan versionados  ￼
+4.3	Habilite Generative Answers y cargue documentos (PDF, DOCX, URL) en Knowledge Sources.	Índice creado automáticamente.
+4.4	Ejecute Validar vínculos (Power Shell link-check o flujo Power Automate).	Reporte 404/403.
+
+Importante: Solo unmanaged en DEV; al exportar, marque “Export as managed” para QA/PROD, evitando el problema de edición en destino.  ￼
+
+⸻
+
+5. Flujo de construcción del bot
+	1.	Diseño de temas
+	•	Triggers: frases clave o “Copilot”.
+	•	Uso de RecognizedEntities para extraer datos.
+[SHOT 2 – Canvas de tema]
+	2.	Llamadas a Power Automate
+	•	Para consultas a APIs externas o BD.
+	•	Patrón Try/Catch con fallbacks.
+	3.	Adaptive Cards
+	•	Diseñe en Adaptive Card Designer y copie JSON al nodo Mostrar.
+	•	Defina aria-label para accesibilidad.
+	4.	Pruebas unitarias
+	•	Use Test Bot.
+	•	Documente casos y resultados (xlsx).
+
+⸻
+
+6. Estrategias de conocimiento
+
+Tipo	Ubicación	Modo de actualización
+FAQ HTML	SharePoint Site /sites/Etica/FAQ	Pull diario con crawler interno.
+Manual Ético PDF	Biblioteca SharePoint	Versión mayor → re-indexación automática.
+Política HR	Página Wiki interna	Marcado con “last reviewed” → alerta a makers.
+
+
+⸻
+
+7. CI/CD pipelines
+
+7.1 Power Platform Pipelines (no-code)
+	1.	En DEV, abra Pipelines → Nuevo pipeline.
+	2.	Configure etapas:
+	•	DEV → QA (autoplay)
+	•	QA → PROD (requiere aprobación jefe Ética)
+[SHOT 3 – Config wizard]
+	3.	Al promover, seleccione la solución administrada exportada.
+	4.	Pipeline registra versión y valida prerequisitos (dependencias, DLP).  ￼
+
+7.2 Azure DevOps (YAML)
+
+trigger:
+  branches: [ main ]
+
+variables:
+  SolutionName: EthicsChatbot
+  DevEnvironment: DevEnvUrl
+  QaEnvironment: QaEnvUrl
+  ProdEnvironment: ProdEnvUrl
+
+stages:
+- stage: Build
+  jobs:
+  - job: Export_Unmanaged
+    steps:
+    - task: PowerPlatformExportSolution@0
+      inputs:
+        authenticationType: 'PowerPlatformSPN'
+        solutionName: '$(SolutionName)'
+        solutionInputFile: '$(Build.ArtifactStagingDirectory)/$(SolutionName)_unmanaged.zip'
+        environmentUrl: '$(DevEnvironment)'
+- stage: Release_QA
+  dependsOn: Build
+  jobs:
+  - job: Import_Managed_QA
+    steps:
+    - task: PowerPlatformImportSolution@0
+      inputs:
+        authenticationType: 'PowerPlatformSPN'
+        solutionInputFile: '$(Pipeline.Workspace)/$(SolutionName)_managed.zip'
+        environmentUrl: '$(QaEnvironment)'
+
+Basado en el patrón oficial Power Platform Build Tools  ￼
+
+⸻
+
+8. Despliegue en Teams
+	1.	Actualizar manifest (manifest.json) con nuevo botId y validDomains.
+	2.	Generar paquete .zip (manifest.json, color.png, outline.png).
+	3.	En Teams Tenant apps → Cargar nueva versión.
+	4.	Verificar permiso “personal scope” y “team scope” según política.
+[SHOT 4 – Upload app]
+
+⸻
+
+9. Monitoreo y observabilidad
+
+Métrica	Dónde verla	Acción
+Salud de servicio	Centro de Copilot Studio	Reiniciar bot, abrir ticket Microsoft.  ￼
+Latencia/errores	Application Insights (Requests/Failures)	Optimizar llamadas a API.
+Uso por tema	Analytics → Topics	Ajustar flujos de conversación.
+Transcripts	Exportación CSV	Revisar incidentes (INC-04, INC-05).
+
+
+⸻
+
+10. Gobernanza y seguridad
+	•	DLP: Definir política “No external connector” en QA/PROD.
+	•	Purge de datos personales: Habilitar Data retention 30 d.
+	•	Red Teaming (naranja): Ejecutar pruebas trimestrales de jailbreak.
+	•	Backups: Exportar solución unmanaged semanal a Git.
+
+⸻
+
+11. Validación de enlaces automatizada
+	1.	Script PowerShell (ejemplo parcial):
+
+$urls = Import-Csv links.csv
+foreach ($u in $urls) {
+  $resp = Invoke-WebRequest -Uri $u.Url -UseBasicParsing -Method Head
+  if($resp.StatusCode -ne 200){ 
+      Write-Output "$($u.Name);$($resp.StatusCode)" >> broken_links.log
+  }
+}
+
+	2.	Agregue tarea al pipeline post-deploy para QA.
+	3.	Alerta a canal #Soporte-Chatbot-Ética con webhook si hay fallos.
+
+⸻
+
+12. Troubleshooting → Incidentes (mapeo rápido)
+
+Código incidente	Posible causa técnica	Sección guía
+INC-01	App policies bloquean instalación	§2, §3
+INC-02	Falta de rol Pipeline User	§2, §7
+INC-03	Copilot Studio down	§9
+INC-04	KB obsoleta	§6
+INC-05	Condición bucle	§5
+INC-06	Permisos SharePoint	§6
+INC-07	Límite de llamadas API	§9
+INC-08	Falta aria-label	§5
+INC-09	Prompt leakage	§10
+INC-10	Supresión de datos	§10
+
+
+⸻
+
+13. Referencias rápidas
+	•	Copilot Studio fundamentals  ￼
+	•	Release Wave 1 2025 features  ￼
+	•	Import/export agentes  ￼
+
+⸻
+
+¡Con esto tiene un manual técnico completo para construir, mantener y desplegar su chatbot ético mediante Copilot Studio, con prácticas ALM y seguridad corporativa. Ajuste las secciones según el stack (Azure DevOps, GitHub Actions, etc.) y la política interna de su organización.
+
+
+
 Manual de Usuario
 
 Chatbot de Consultas Éticas – Microsoft Teams (Copilot Studio)
