@@ -1,3 +1,69 @@
+Aquí tienes un pequeño “pipeline” en R para pasar de tu tabla navex ―que contiene las columnas
+numero_identificacion y resultado_verificacion― a un resumen por persona con:
+	•	una columna-dummy (en realidad, de conteo) por cada categoría de resultado_verificacion;
+	•	el total de apariciones;
+	•	un indicador de riesgo ético de 1 a 3, siguiendo las reglas que describiste.
+
+Suposición de trabajo
+“Muchas veces” se interpreta como tres o más registros “no corroborado”.
+Si te conviene otro umbral, cambia el parámetro threshold.
+
+# ── Paquetes ──────────────────────────────────────────────────────────────
+library(dplyr)
+library(tidyr)
+library(janitor)   # para limpiar nombres de variables
+
+# ── Función reutilizable ──────────────────────────────────────────────────
+calcular_riesgo_etico <- function(df,
+                                  id_col      = "numero_identificacion",
+                                  cat_col     = "resultado_verificacion",
+                                  threshold   = 3) {
+
+  df %>%
+    ## 1. Asegura nombres "seguros" para R (sin acentos ni espacios)
+    clean_names() %>%                               # ej.: 'número identificación' → 'numero_identificacion'
+    
+    ## 2. Cuenta apariciones por identificación y categoría
+    count(.data[[id_col]], .data[[cat_col]], name = "freq") %>%
+    
+    ## 3. Convierte cada categoría en columna-dummy con su frecuencia
+    pivot_wider(names_from  = all_of(cat_col),
+                values_from = freq,
+                values_fill = 0) %>%
+    
+    ## 4. Limpia otra vez por si los nombres de categoría tenían espacios
+    clean_names() %>%                               # ej.: 'no corroborado' → 'no_corroborado'
+    
+    ## 5. Calcula total de registros por persona
+    mutate(total_casos = rowSums(across(-all_of(id_col)))) %>%
+    
+    ## 6. Clasifica el riesgo ético (1 = bajo, 3 = alto)
+    mutate(riesgo_etico = case_when(
+      corroborado      > 0                 ~ 3,                    # cualquier “corroborado”
+      no_corroborado   >= threshold        ~ 2,                    # muchos “no corroborado”
+      TRUE                                   ~ 1                   # resto
+    ))
+}
+
+# ── Ejecución sobre tu data frame navex ───────────────────────────────────
+navex_indicador <- calcular_riesgo_etico(navex, threshold = 3)
+
+# navex_indicador ahora contiene, por ejemplo:
+# numero_identificacion  corroborado  no_corroborado  otros  total_casos  riesgo_etico
+# 1                      1            2               0      3            3
+# 2                      0            4               0      4            2
+# 3                      0            0               1      1            1
+
+Cómo adaptar el código
+
+Necesitas…	Cambia…
+Usar otro nombre de columna	id_col o cat_col
+Ajustar la definición de “muchas veces”	threshold
+Añadir más categorías	El pivot_wider() las crea automáticamente; solo asegúrate de revisar la lógica de riesgo_etico si incorporas otras reglas.
+
+Con este resumen puedes enlazar fácilmente tu indicador de riesgo ético a cualquier otra tabla con la clave numero_identificacion. ¡Listo para el siguiente paso de tu análisis!
+
+
 Gracias por la aclaración. A continuación, te presento el código actualizado para realizar el análisis de anomalías considerando tanto el `trader_id` como el `tipo_operación`.
 
 ```r
