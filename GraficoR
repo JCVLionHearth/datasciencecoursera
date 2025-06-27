@@ -1,0 +1,36 @@
+# Ejemplo: distribución de un score con cortes P75 y P95 -----------------
+
+# 1. Simulamos datos (puedes sustituirlos por tu vector real)
+set.seed(123)                                 # reproducibilidad
+score <- rnorm(1000, mean = 0.5, sd = 0.2)    # 1 000 observaciones
+
+# 2. Calculamos percentiles
+p75 <- quantile(score, 0.75)
+p95 <- quantile(score, 0.95)
+
+# 3. Preparamos el gráfico
+library(ggplot2)
+
+ggplot(data.frame(score), aes(x = score)) +
+  # histograma base
+  geom_histogram(binwidth = 0.05, colour = "black", fill = "grey80", boundary = 0) +
+  
+  # franjas de color según el nivel de alerta
+  geom_rect(aes(xmin = -Inf, xmax = p75, ymin = 0, ymax = Inf),
+            fill = "forestgreen", alpha = 0.12) +          # Nivel bajo
+  geom_rect(aes(xmin = p75, xmax = p95, ymin = 0, ymax = Inf),
+            fill = "gold", alpha = 0.12) +                 # Nivel medio
+  geom_rect(aes(xmin = p95, xmax =  Inf, ymin = 0, ymax = Inf),
+            fill = "firebrick", alpha = 0.12) +            # Nivel alto
+  
+  # líneas verticales en P75 y P95
+  geom_vline(xintercept = p75, linetype = "dashed", size = 1) +
+  geom_vline(xintercept = p95, linetype = "dashed", size = 1) +
+  
+  # etiquetas
+  labs(title    = "Distribución del score con cortes en P75 y P95",
+       subtitle = paste("P75 =", round(p75, 3), "  |  P95 =", round(p95, 3)),
+       x = "Score normalizado",
+       y = "Frecuencia") +
+  
+  theme_minimal()
