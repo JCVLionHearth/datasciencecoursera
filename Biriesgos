@@ -1,0 +1,87 @@
+Perfecto, gracias por compartir la imagen. Entiendo que tienes tu archivo Excel conectado a Power BI desde una ruta local (aunque esté sincronizada con OneDrive), y ahora quieres cambiar esa conexión para que el archivo sea tomado directamente desde SharePoint, sin perder tus pasos de transformación en Power Query. Esto se puede hacer y aquí te explico paso a paso cómo hacerlo correctamente.
+
+⸻
+
+✅ Objetivo
+
+Cambiar la línea de conexión de:
+
+Excel.Workbook(File.Contents("C:\Users\...\Valorizaciones de Riesgos_Live.xlsx"), null, false)
+
+a una que lea directamente desde SharePoint, usando una URL del tipo:
+
+https://[tu_organización].sharepoint.com/sites/[sitio]/[carpeta]/Valorizaciones%20de%20Riesgos_Live.xlsx
+
+
+⸻
+
+🛠️ Pasos detallados
+
+1. Consigue la URL correcta del archivo en SharePoint
+	1.	Ve a SharePoint y ubica el archivo Excel.
+	2.	Haz clic en “Copiar vínculo”.
+	3.	Asegúrate de obtener una URL directa como esta:
+
+https://[dominio].sharepoint.com/:x:/r/sites/[sitio]/Documentos compartidos/Valorizaciones de Riesgos_Live.xlsx
+
+
+	4.	Reemplaza lo necesario: lo que realmente usaremos es algo así:
+
+https://[dominio].sharepoint.com/sites/[sitio]/_layouts/15/download.aspx?SourceUrl=/sites/[sitio]/Documentos compartidos/Valorizaciones de Riesgos_Live.xlsx
+
+
+
+2. Edita en Power Query el origen (sin perder pasos)
+	1.	En Power BI ve a Transformar datos (Power Query).
+	2.	En el panel de la izquierda selecciona tu tabla (Riesgos).
+	3.	Haz clic en el paso “Origen”.
+	4.	Reemplaza este código:
+
+Excel.Workbook(File.Contents("C:\Users\E305878\OneDrive - Ecopetrol S.A\Carpetas compartidas GIR\BI Riesgos\Data_bwise\RGCI - Valoraciones de Riesgos_Live.xlsx"), null, false)
+
+Por esto otro:
+
+let
+    Source = SharePoint.Files("https://[dominio].sharepoint.com/sites/[sitio]", [ApiVersion = 15]),
+    File = Source{[Name="Valorizaciones de Riesgos_Live.xlsx"]}[Content],
+    Excel = Excel.Workbook(File, null, true)
+in
+    Excel
+
+🔁 Reemplaza [dominio] y [sitio] con los valores reales de tu organización.
+
+3. Selecciona la hoja o tabla
+
+Una vez cargues Excel, continúa seleccionando como antes la hoja o tabla llamada Riesgos.
+
+4. Verifica que los demás pasos sigan funcionando
+
+Power Query automáticamente usará los pasos posteriores como estaban (filtrados, transformaciones, columnas renombradas, etc.).
+
+⸻
+
+✅ Ejemplo completo (ajustado)
+
+let
+    Source = SharePoint.Files("https://ecopetrol.sharepoint.com/sites/GestionRiesgos", [ApiVersion = 15]),
+    File = Source{[Name="Valorizaciones de Riesgos_Live.xlsx"]}[Content],
+    Excel = Excel.Workbook(File, null, true),
+    Riesgos_Sheet = Excel{[Item="Riesgos", Kind="Sheet"]}[Data]
+in
+    Riesgos_Sheet
+
+
+⸻
+
+🧠 Cosas importantes a tener en cuenta:
+	•	No uses Web.Contents() para archivos en SharePoint, porque no lista todos los archivos ni es tan estable como SharePoint.Files().
+	•	Si tienes muchas carpetas en el sitio, puedes usar un Table.SelectRows para filtrar el archivo si hay duplicados:
+
+File = Table.SelectRows(Source, each [Name] = "Valorizaciones de Riesgos_Live.xlsx"){0}[Content],
+
+
+	•	Esto solo funcionará si tienes acceso al sitio de SharePoint desde Power BI (tu sesión debe estar autenticada).
+
+⸻
+
+¿Quieres que te ayude a convertir exactamente tu línea original a una basada en SharePoint con tu ruta específica? Si me puedes compartir la URL real (o una versión anonimizada), te genero el código exacto.
