@@ -1,0 +1,50 @@
+Excelente enfoque. Estás en la fase de comunicación de resultados, y eso implica balancear claridad, rigurosidad técnica y utilidad práctica. Te ayudo con tres cosas:
+
+⸻
+
+✅ 1. ¿Cómo definir un umbral mínimo para considerar pagos “recurrentes”?
+
+Usualmente, el umbral depende del volumen total de pagos por proveedor. Pero como estás aplicando la lógica de rangos más frecuentes, puedes justificar algo como:
+	•	Umbral absoluto fijo: mínimo 25 pagos en alguno de los dos rangos (como venías haciendo).
+	•	Umbral flexible: mínimo el 30% del total de pagos de ese proveedor caen en alguno de los rangos identificados.
+	•	Umbral combinado: mínimo 25 pagos o el 30% del total, lo que sea mayor.
+
+Este enfoque combinado permite no excluir proveedores pequeños, pero también no incluir falsos positivos entre los grandes.
+
+⸻
+
+✅ 2. Redacción recomendada para incluir en tu documento
+
+Como resultado del análisis de pagos realizados entre enero de 2020 y mayo de 2025, se identificaron proveedores que presentan recurrencia en los montos recibidos. Para ello, se calcularon histogramas por proveedor, definidos a partir de su desviación estándar dividida por un factor adaptativo, y se identificaron los dos rangos con mayor frecuencia de ocurrencia de pagos.
+
+A partir de estos rangos, se consideró que un proveedor presenta comportamiento recurrente si concentra al menos 25 pagos o el 30% del total de sus pagos en alguno de los dos rangos identificados. Con base en esta definición, se detectaron N proveedores con pagos recurrentes significativos, lo cual puede indicar patrones sistemáticos de pago o procesos automatizados que requieren monitoreo.
+
+⸻
+
+✅ 3. Ejemplo de cálculo para justificar el umbral
+
+Por ejemplo, el proveedor A123 recibió 72 pagos en total, de los cuales 28 se encuentran en el primer rango más frecuente y 16 en el segundo. Como el proveedor tiene 28 pagos (mayor a 25) y esto representa el 39% del total, cumple con el criterio de recurrencia y se incluye en el análisis.
+
+⸻
+
+✅ ¿Cómo calcularlo en R?
+
+Puedes agregar algo como:
+
+# Umbral de pagos
+umbral_fijo <- 25
+
+resumen_proveedores <- read_pagos %>%
+  filter(!is.na(Orden_Rango)) %>%
+  group_by(Acreedor) %>%
+  summarise(
+    TotalPagos = n(),
+    PagosRecurrentes = sum(!is.na(Orden_Rango)),
+    Porcentaje = PagosRecurrentes / TotalPagos * 100
+  ) %>%
+  filter(PagosRecurrentes >= umbral_fijo | Porcentaje >= 30)
+
+
+⸻
+
+¿Quieres que te ayude también a insertar esa tabla resumen de proveedores con pagos recurrentes para incluir en tu documento?
