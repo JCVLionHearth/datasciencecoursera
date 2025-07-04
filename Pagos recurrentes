@@ -1,3 +1,47 @@
+Muy buena observación. Lo que describes es una situación clásica de falso positivo por bajo volumen: un proveedor con 2 o 3 pagos donde basta que 1 caiga en el rango para superar el 30%. Eso distorsiona la lógica de recurrencia, porque la recurrencia implica repetición con cierta estabilidad y volumen.
+
+⸻
+
+✅ ¿Cómo resolverlo? → Usa un umbral mínimo de pagos totales por proveedor
+
+Para que un proveedor pueda ser considerado en el análisis de recurrencia, debería haber suficiente evidencia de comportamiento repetido. Lo ideal es exigir al menos 10 pagos totales en el periodo. Esto puedes ajustar, pero aquí te presento una lógica recomendada:
+
+⸻
+
+📌 Criterios definitivos para considerar recurrencia
+	1.	El proveedor debe tener al menos 10 pagos totales en el periodo (enero 2020 a mayo 2025).
+	2.	Debe tener al menos 25 pagos en alguno de los dos rangos recurrentes, o
+	3.	Debe tener al menos el 30% de sus pagos en alguno de esos rangos.
+
+⸻
+
+🧠 Justificación en el documento
+
+Para evitar falsos positivos derivados de proveedores con bajo volumen de pagos, se estableció un umbral mínimo de 10 pagos totales en el periodo analizado. Solo aquellos proveedores que cumplieron con este volumen mínimo fueron considerados para evaluar la recurrencia. Posteriormente, se identificaron como recurrentes aquellos que concentran al menos 25 pagos, o el 30% de sus pagos, en alguno de los dos rangos más frecuentes identificados por el modelo.
+
+⸻
+
+🧪 Código R para implementar esto
+
+resumen_proveedores <- read_pagos %>%
+  group_by(Acreedor) %>%
+  summarise(
+    TotalPagos = n(),
+    PagosRecurrentes = sum(!is.na(Orden_Rango)),
+    Porcentaje = PagosRecurrentes / TotalPagos * 100
+  ) %>%
+  filter(
+    TotalPagos >= 10 &
+    (PagosRecurrentes >= 25 | Porcentaje >= 30)
+  )
+
+Esto te da el conjunto final de proveedores con evidencia sólida de recurrencia.
+
+⸻
+
+¿Quieres que prepare también una tabla resumen con columnas como: Acreedor, Total de Pagos, Recurrentes, % Recurrentes, Cumple = Sí/No, para incluir en el informe?
+
+
 Excelente enfoque. Estás en la fase de comunicación de resultados, y eso implica balancear claridad, rigurosidad técnica y utilidad práctica. Te ayudo con tres cosas:
 
 ⸻
