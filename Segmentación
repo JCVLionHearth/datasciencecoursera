@@ -1,3 +1,98 @@
+¡Perfecto! A continuación te dejo una explicación estructurada y lista para presentación o informe sobre las variables utilizadas para el cálculo del score final de segmentación, su origen, construcción y tratamiento, tanto para clientes como para proveedores. He organizado todo con claridad, nivel técnico y justificación metodológica.
+
+⸻
+
+🧾 Variables utilizadas para el cálculo del score final de segmentación
+
+🏢 Segmentos: Proveedores (7 variables) y Clientes (9 variables)
+
+Las variables se construyeron con base en fuentes internas y externas, con procesos de limpieza, homologación, cruces iterativos, codificación, categorización ordinal y en algunos casos imputación de valores faltantes.
+
+⸻
+
+📂 Origen de datos
+	•	Proveedores: base de datos SAP – LFA1
+	•	Clientes: base de datos SAP – KNA1
+	•	Variables complementarias: LFB1 (actividad económica), ventas, archivos externos de listas, PEP, ROS, jurisdicciones, fuentes abiertas, noticias y canales de distribución.
+
+⸻
+
+🔍 Variables comunes a ambos segmentos (clientes y proveedores)
+	1.	Reporte en Listas
+	•	Fuente: bases de datos de listas restrictivas internacionales y nacionales (OFAC, ONU, UE, SIREL, etc.).
+	•	Proceso: las contrapartes se cruzaron con estas listas.
+	•	Calificación: categorización ordinal ajustada →
+	•	Si calificación original es 3 → se asigna 4
+	•	Si es 2 → se asigna 3
+	•	Si es 1 → se asigna 2
+	•	Si no está → se asigna 1
+	2.	ROS (Reporte de Operaciones Sospechosas)
+	•	Fuente: base TOTALIDAD ROS alojada en el repositorio de DALISES.
+	•	Calificación: ordinal de 1 a 4 según criticidad del reporte.
+	3.	Riesgo de Actividad Económica
+	•	Fuente: código CIIU obtenido de la base LFB1 (SAP).
+	•	Cruces realizados con:
+	•	Listado de actividades de riesgo de Supersociedades.
+	•	Listado propio con categorías de riesgo (alto, medio, bajo).
+	•	Asignación manual de códigos cuando no fue posible cruzar automáticamente.
+	•	Imputación: se aplicó el modelo Amelia (imputación múltiple) para completar los valores faltantes del nivel de riesgo asociado, no del código como tal.
+	4.	Fuentes Abiertas (noticias)
+	•	Fuente: base estructurada de noticias cargadas previamente desde repositorios de fuentes abiertas.
+	•	Proceso: búsqueda por número de identificación en la base y asignación binaria (con/sin mención), o categorizada según criticidad.
+	5.	PEP (Persona Expuesta Políticamente)
+	•	Fuentes:
+	•	Archivo oficial del DANE.
+	•	Base de contratación pública, en donde se considera PEP si el tipo de industria es “oficial”.
+	•	Cruce por número de documento o nombre.
+	•	Calificación: binaria o ordinal según el tipo de fuente.
+	6.	Riesgo de Jurisdicción
+	•	Fuente: listado interno de riesgo país y riesgo municipio.
+	•	Proceso: cada contraparte fue ubicada según su país y municipio, y se le asignó un nivel de riesgo.
+	•	Calificación: ordinal de 1 a 4.
+	7.	Nivel Ético
+	•	Construida a partir de:
+	•	Casos éticos (calificados 1 a 4 según severidad y corroboración).
+	•	Procesos disciplinarios (binario, 3 si tiene, 1 si no).
+	•	Procesos penales (binario).
+	•	Procuraduría (binario).
+	•	Ponderación:
+	•	Casos éticos: 40%
+	•	Cada una de las otras tres variables: 20%
+	•	Resultado: score ponderado y clasificación en niveles (bajo, medio, alto).
+
+⸻
+
+📌 Variables exclusivas para clientes
+	8.	Riesgo de Canal
+	•	Fuente: base de ventas, campo de canal de distribución.
+	•	Clasificación basada en criticidad logística:
+	•	Canales como carrotanque, buquetanque, botes → calificación 3
+	•	Gasoducto, poliducto, oleoducto → calificación 1
+	•	Otros canales → según criticidad técnica
+	9.	Riesgo de Producto
+	•	Fuente: base de ventas, campo de producto.
+	•	Clasificación:
+	•	Productos críticos como apiazol, ácido sulfúrico, disolventes → 3
+	•	Productos de media sensibilidad como gasolina, ACPM, sodio, cemento → 2
+	•	Productos menos sensibles como metanol, tolueno, hexano → 1
+	•	Otros productos → valor mínimo
+
+⸻
+
+⚙️ Tratamiento de los datos
+	•	Cruces iterativos por múltiples campos de identificación (documento, nombre, tipo).
+	•	Homologación de campos según estructura unificada para clientes y proveedores.
+	•	Normalización de variables entre 0 y 1 antes del cálculo de score.
+	•	Ponderación por variable según criticidad y aporte al riesgo global.
+	•	Segmentación final por percentiles:
+	•	Bajo (≤ P75),
+	•	Medio (P75–P95),
+	•	Alto (> P95)
+
+⸻
+
+¿Deseas que este texto lo prepare como slide de presentación, como parte de un reporte en Word, o como texto base para un dashboard en Power BI? También te puedo generar un diagrama de flujo de las variables y sus fuentes.
+
 ¡Excelente, me alegra mucho que te haya servido! 🎯
 
 Si luego necesitas:
