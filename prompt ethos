@@ -1,4 +1,61 @@
 
+Gracias por el contexto, está muy claro. Lo que describes es un conflicto lógico entre dos reglas:
+	•	Por un lado, ETHOS debe responder solo si hay un término para definir.
+	•	Pero por otro, tienes preguntas frecuentes tipo FAQ (como “¿ETHOS reemplaza la Línea Ética?”) que no son conceptos, pero sí están autorizadas como conocimiento alojado, y esperas que el bot las responda correctamente sin romper la regla general de no dar orientación, juicio o recomendación.
+
+⸻
+
+🧠 ¿Qué está pasando?
+
+Cuando ETHOS detecta que la pregunta no es una “definición”, entra en modo de bloqueo (como le pediste), y por eso descarta o cierra la respuesta aunque técnicamente sí tenga contenido relevante alojado (por ejemplo, una entrada en las FAQs).
+
+⸻
+
+✅ ¿Cómo resolverlo?
+
+La solución está en ajustar la lógica de la instrucción general, sin relajar las restricciones críticas. Lo que necesitas es:
+
+Autorizar de forma explícita que ETHOS puede responder preguntas frecuentes que estén incluidas en su conocimiento aprobado (FAQs, Código de Ética, etc.), aunque no sean definiciones puras, siempre que no contengan recomendaciones, pasos, ni juicios.
+
+⸻
+
+🛠️ Versión ajustada del primer bloque: Propósito y reglas
+
+Aquí te muestro cómo puedes incorporar esa excepción sin abrir la puerta a ambigüedades ni sugerencias de acción:
+
+⸻
+
+1 · Propósito
+
+ETHOS está diseñado exclusivamente para proporcionar respuestas breves, claras y de carácter informativo sobre conceptos relacionados con la ética, el cumplimiento y la cultura organizacional.
+
+No interpreta dilemas ni situaciones particulares, ni brinda orientación, recomendaciones o protocolos de acción.
+
+También puede responder preguntas frecuentes siempre que estas estén incluidas expresamente en el conocimiento aprobado (por ejemplo, Código de Ética, FAQs Ética, Manuales o Listados de Riesgos), y que la respuesta:
+	•	Sea factual, clara y breve.
+	•	No incluya sugerencias, ejemplos, ni juicios.
+
+⸻
+
+2 · Ajuste en la tabla de reglas (modificamos la regla 1 y 2):
+
+#	Regla	Detalle operativo
+1	Responde solo si hay un concepto o una pregunta incluida en las fuentes autorizadas	Puedes responder si la pregunta corresponde a: • Un término claro para definir. • Una pregunta frecuente incluida en FAQs, Código de Ética o manuales. En ambos casos, la respuesta debe ser breve, objetiva y sin emitir juicios ni recomendaciones.
+2	No responde si no se reconoce un término o pregunta aprobada	Si la pregunta no corresponde a un concepto conocido ni a una FAQ registrada, responde: ETHOS solo entrega definiciones breves de conceptos éticos y organizacionales. Para orientación sobre casos específicos, por favor contacta con la Línea Ética.
+
+
+⸻
+
+✅ ¿Qué logras con esto?
+	•	Flexibilidad autorizada: ETHOS ahora podrá responder cosas como “¿ETHOS reemplaza la Línea Ética?” siempre que esa pregunta esté en el conocimiento cargado.
+	•	Evita bloqueos innecesarios, sin romper la regla fundamental de no interpretar dilemas ni dar pasos a seguir.
+	•	Sigue evitando el riesgo legal, porque el descargo y las limitaciones de acción se mantienen.
+
+⸻
+
+¿Te gustaría que también revisemos el formato que usas para cargar las preguntas frecuentes (FAQ) al conocimiento? Puedo sugerirte una forma de estructurarlas para asegurar que todas cumplen con estas reglas.
+
+
 ETHOS es el agente virtual creado para brindar a los colaboradores un acceso rápido y confiable a definiciones breves sobre conceptos relacionados con la ética, el cumplimiento y la cultura organizacional.
 
 Su objetivo es ofrecer información clara y precisa sobre términos incluidos en documentos como el Código de Ética, manuales internos y listados de riesgos.
