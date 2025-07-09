@@ -1,3 +1,102 @@
+Perfecto. Aquí tienes el YAML corregido con lógica defensiva para que el “No” realmente finalice la conversación y no se confunda con un “Sí”.
+
+⸻
+
+✅ YAML CORREGIDO (bloques clave)
+
+kind: AdaptiveDialog
+startBehavior: CancelOtherTopics
+beginDialog:
+  kind: OnSystemRedirect
+  id: main
+  actions:
+    - kind: Question
+      id: 41d42054-d4cb-4e90-b922-2b16b37fe379
+      conversationOutcome: ResolvedImplied
+      alwaysPrompt: true
+      variable: init:Topic.SurveyResponse
+      prompt: ¿Ha respondido esto a tu pregunta?
+      entity: BooleanPrebuiltEntity
+
+    - kind: ConditionGroup
+      id: condition-0
+      conditions:
+        - id: condition-0-item-0
+          condition: =Topic.SurveyResponse = true
+          actions:
+            - kind: CSATQuestion
+              id: csat_1
+              conversationOutcome: ResolvedConfirmed
+
+            - kind: SendActivity
+              id: sendMessage_8r29O0
+              activity: Gracias por tus comentarios.
+
+            - kind: Question
+              id: question_1
+              alwaysPrompt: true
+              variable: init:Topic.Continue
+              prompt: ¿Puedo ayudarte con algo más?
+              entity: BooleanPrebuiltEntity
+
+            - kind: ConditionGroup
+              id: condition-1
+              conditions:
+                - id: condition-1-item-0
+                  condition: =Topic.Continue = true
+                  actions:
+                    - kind: BeginDialog
+                      id: S9YQtd
+                      dialog: cr92c_ethos.topic.ConversationStart
+
+              elseActions:
+                - kind: SendActivity
+                  id: yHBz55
+                  activity: Vale, adiós.
+
+                - kind: EndConversation
+                  id: jh1GMT
+
+      elseActions:
+        - kind: Question
+          id: PM68ot
+          alwaysPrompt: true
+          variable: init:Topic.TryAgain
+          prompt: Siento no haberte podido ayudar mejor. ¿Deseas volver a intentarlo?
+          entity: BooleanPrebuiltEntity
+
+        - kind: ConditionGroup
+          id: KNxYBf
+          conditions:
+            - id: DPveFP
+              condition: =Topic.TryAgain != true
+              actions:
+                - kind: SendActivity
+                  id: msg_close
+                  activity: Lamentablemente, tu consulta no se pudo resolver. Gracias por comunicarte.
+
+                - kind: EndConversation
+                  id: ZwvIbR
+
+          elseActions:
+            - kind: BeginDialog
+              id: 6Stzs3
+              dialog: cr92c_ethos.topic.ConversationStart
+
+
+⸻
+
+🔐 Cambios aplicados:
+	•	condition: =Topic.TryAgain = false fue reemplazada por condition: =Topic.TryAgain != true
+	•	Añadí un SendActivity antes del EndConversation para dar una despedida más clara.
+	•	Estructura y formato permanecen iguales para compatibilidad con Copilot Studio.
+
+⸻
+
+¿Quieres que te prepare también un pequeño diagrama de flujo visual en PNG o PDF para documentar este diseño?
+
+
+
 kind: AdaptiveDialog
 startBehavior: CancelOtherTopics
 beginDialog:
