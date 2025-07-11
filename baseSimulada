@@ -1,3 +1,105 @@
+Excelente, Juan Carlos. Estás armando un ejercicio muy completo y útil para evaluación técnica. A continuación te propongo un borrador estructurado del correo que puedes ajustar según el destinatario (recursos humanos, líder técnico, etc.). Incluye la justificación del trabajo técnico, la descripción de las bases, las tareas sugeridas y cierra con posibles formas de ampliar la evaluación.
+
+⸻
+
+📧 Asunto: Ejercicio práctico en Excel – Evaluación de habilidades técnicas con bases simuladas
+
+⸻
+
+✉️ Cuerpo del correo:
+
+Hola [Nombre],
+
+Espero que estés muy bien.
+
+Comparto a continuación un ejercicio práctico diseñado para evaluar habilidades en el manejo de Excel, especialmente orientadas a tareas de transformación, limpieza, análisis y visualización de datos. El ejercicio se basa en dos bases de datos simuladas, generadas con scripts en Python que replican escenarios comunes de gestión de casos dentro de un contexto organizacional.
+
+🛠️ Generación de datos simulados
+
+Se desarrollaron scripts personalizados para:
+	•	Crear identificaciones únicas con nombres, fechas de nacimiento y ciudad de residencia, totalmente ficticios.
+	•	Generar una base de 10.000 casos simulados, con descripciones verosímiles de situaciones como alertas, dilemas éticos, faltas de terceros y denuncias.
+	•	Introducir de manera intencional errores comunes que se presentan en entornos reales de trabajo:
+	•	100 registros duplicados.
+	•	Campos vacíos en columnas clave (por ejemplo, ROL).
+	•	Formatos inconsistentes de fechas.
+	•	Errores tipográficos en nombres.
+
+Todos los nombres, identificaciones y descripciones fueron generados artificialmente, sin relación con personas reales, garantizando la confidencialidad y el cumplimiento de criterios éticos en la simulación.
+
+⸻
+
+📂 Estructura de las bases
+	1.	Base de Casos (simulacion_datos_excel.csv)
+	•	10.000 registros
+	•	Campos: Case Number, Tipo de Caso, Rol, Nombre, Identificación, Relacionamiento, Resultado de Verificación, Resumen de los Hechos, Fecha de Reporte, entre otros.
+	2.	Base de Identificaciones (base_identificaciones.csv)
+	•	2.000 registros únicos
+	•	Campos: Número de Identificación, Fecha de Nacimiento, Ciudad de Residencia, Nombre completo
+
+⸻
+
+✅ Tareas sugeridas para el candidato
+
+El ejercicio puede enfocarse en una combinación de las siguientes tareas, agrupadas por tipo:
+
+🧼 Limpieza y transformación de datos
+	•	Extraer el año desde el campo CASE_NUMBER.
+	•	Separar el prefijo de entidad (ECO, OCENSA, etc.) en una nueva columna.
+	•	Rellenar valores faltantes en la columna ROL.
+	•	Unificar y normalizar los formatos de fechas.
+	•	Detectar y corregir errores tipográficos en nombres.
+	•	Identificar y eliminar registros duplicados.
+
+📊 Análisis de datos
+	•	Calcular la frecuencia de casos por persona.
+	•	Identificar el Top 10 de personas con más casos reportados.
+	•	Realizar un cruce con la base de identificaciones (join por número de identificación).
+	•	Calcular frecuencia de casos por ciudad.
+	•	Generar una tabla de frecuencia cruzada entre RESULTADO_VERIFICACION y CASE_TYPE.
+	•	Distribución de casos por año (desde el CASE_NUMBER).
+	•	Análisis por tipo de relación: ¿qué tipo aparece más/menos?
+
+📈 Visualización y síntesis
+	•	Crear histogramas de edad (a partir de FECHA_NACIMIENTO).
+	•	Tablas dinámicas por ciudad, tipo de caso y año.
+	•	Uso de filtros avanzados y segmentaciones.
+
+⸻
+
+💡 Sugerencias adicionales (para ampliar la evaluación)
+	•	Pedir una hoja resumen con hallazgos clave.
+	•	Solicitar una visualización tipo dashboard.
+	•	Incluir fórmulas condicionales o reglas de validación.
+	•	Realizar preguntas de análisis como:
+	•	¿Cuál ciudad presenta más casos por denuncias?
+	•	¿Hay personas que tienen múltiples roles en los casos?
+	•	¿Se puede identificar alguna anomalía con base en las fechas de reporte?
+
+⸻
+
+🧠 Habilidades evaluadas
+	•	Limpieza de datos y normalización.
+	•	Imputación y corrección de errores.
+	•	Uso de funciones de texto, fecha y búsqueda.
+	•	Manejo de tablas dinámicas, filtros y análisis cruzado.
+	•	Capacidad de análisis relacional y síntesis visual.
+
+⸻
+
+Quedo atento si deseas hacer algún ajuste adicional en la simulación o en las instrucciones para los candidatos.
+
+Un saludo,
+[Tu nombre]
+[Tu cargo/área si aplica]
+
+⸻
+
+¿Quieres que te genere un PDF o documento en Word con esta misma estructura para compartirlo como instructivo?
+
+
+
+
 ¡Perfecto! Vamos a mejorar el contenido del campo RESUMEN_DE_LOS_HECHOS para que tenga más sentido y aporte valor al ejercicio.
 
 ⸻
