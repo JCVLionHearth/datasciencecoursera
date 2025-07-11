@@ -1,3 +1,89 @@
+import pandas as pd
+import random
+from faker import Faker
+import os
+
+fake = Faker('es_CO')
+
+# Crear carpeta si no existe
+os.makedirs("datos_simulados", exist_ok=True)
+
+# ---------- PARTE 1: Crear base de identificaciones ----------
+num_personas = 2000
+ids = set()
+while len(ids) < num_personas:
+    ids.add(fake.random_int(min=10000000, max=99999999))
+ids = list(ids)
+
+ciudades_colombia = [
+    'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta',
+    'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Manizales', 'Villavicencio',
+    'Neiva', 'Armenia', 'Pasto', 'Montería', 'Sincelejo', 'Valledupar', 'Tunja', 'Popayán'
+]
+
+# Crear datos de identificación
+data_ident = []
+for id_num in ids:
+    fila = [
+        id_num,
+        fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
+        random.choice(ciudades_colombia),
+        fake.name()
+    ]
+    data_ident.append(fila)
+
+df_ident = pd.DataFrame(data_ident, columns=[
+    'NUMERO_IDENTIFICACION_COND', 'FECHA_NACIMIENTO', 'CIUDAD_RESIDENCIA', 'NOMBRE_COMPLETO_COND'
+])
+df_ident.to_csv("datos_simulados/base_identificaciones.csv", index=False, encoding='utf-8-sig')
+
+# ---------- PARTE 2: Crear base de casos ----------
+n = 5000  # Número de casos a simular
+case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
+resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
+relaciones = ['JEFE', 'COMPAÑERO', 'SUBORDINADO', 'CLIENTE', 'OTRO']
+roles = ['DENUNCIANTE', 'IMPLICADO', '']
+
+def fecha_sucia():
+    date = fake.date_between(start_date='-2y', end_date='today')
+    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+    return date.strftime(random.choice(formatos))
+
+# Generar datos de casos
+data_casos = []
+for i in range(n):
+    id_random = random.choice(ids)
+    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
+
+    fila = [
+        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        random.choice(roles),
+        random.choice(case_types),
+        nombre,
+        id_random,
+        random.choice(relaciones),
+        random.choice(resultados),
+        fake.sentence(nb_words=20),
+        fecha_sucia()
+    ]
+    data_casos.append(fila)
+
+df_casos = pd.DataFrame(data_casos, columns=[
+    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
+    'NUMERO_IDENTIFICACION_COND', 'RELACIONAMIENTO', 'RESULTADO_VERIFICACION',
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE'
+])
+
+# Introducir duplicados y errores tipográficos (opcional)
+df_casos = pd.concat([df_casos, df_casos.sample(40, random_state=1)], ignore_index=True)
+errores = df_casos.sample(frac=0.05, random_state=2).index
+df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'] = df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
+
+# Guardar
+df_casos.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
+
+
+
 quiero garantizar que los 5000 registros o los n que pueda hacer de esta primera base:
 
 import pandas as pd
