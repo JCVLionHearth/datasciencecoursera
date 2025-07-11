@@ -1,3 +1,102 @@
+¡Perfecto! Vamos a mejorar el contenido del campo RESUMEN_DE_LOS_HECHOS para que tenga más sentido y aporte valor al ejercicio.
+
+⸻
+
+🎯 Objetivo:
+
+Simular descripciones coherentes de casos, que podrían pertenecer a un entorno laboral relacionado con ética, conflictos de interés, denuncias o alertas.
+
+📦 Solución:
+
+Crear una función que genere textos semisintéticos a partir de estructuras comunes de reportes reales. Usaremos plantillas con variables aleatorias como nombres, áreas, hechos y fechas.
+
+⸻
+
+✅ Paso 1: Crear una función coherente para RESUMEN_DE_LOS_HECHOS
+
+Agrega esta función al script antes del bucle que genera los casos:
+
+def generar_resumen_hechos(nombre, tipo_caso):
+    hechos = {
+        'ALERTA': [
+            f"Se recibió una alerta anónima en la que se reporta una posible irregularidad cometida por {nombre} relacionada con procedimientos de contratación.",
+            f"Durante un control rutinario, se identificó una alerta interna que involucra a {nombre} por presunto incumplimiento de políticas de seguridad.",
+            f"El sistema de auditoría automática generó una alerta por accesos inusuales realizados por {nombre} en horarios no laborables."
+        ],
+        'DILEMA': [
+            f"{nombre} consultó al área de ética sobre un posible conflicto de interés al participar en un proceso donde está involucrado un familiar cercano.",
+            f"Se reportó un dilema ético por parte de {nombre} al recibir obsequios de un proveedor con el que actualmente negocia condiciones contractuales.",
+            f"{nombre} expresó dudas sobre su participación en decisiones que pueden generar beneficios personales indirectos."
+        ],
+        'FALTA DE TERCEROS': [
+            f"{nombre} reportó que un contratista incurrió en comportamientos inadecuados con otros empleados durante una reunión.",
+            f"Según {nombre}, un proveedor incurrió en prácticas que contravienen el código de ética durante la ejecución de un proyecto.",
+            f"Se recibió reporte de {nombre} donde manifiesta que un cliente realizó insinuaciones indebidas hacia su equipo de trabajo."
+        ],
+        'DENUNCIA': [
+            f"{nombre} presentó una denuncia formal contra un compañero por acoso laboral reiterado desde el mes de abril.",
+            f"Se recibió denuncia de {nombre} en la que se indica que su jefe inmediato ha manipulado resultados para favorecer decisiones personales.",
+            f"{nombre} interpuso una denuncia por actos de corrupción en el proceso de selección de contratistas, con evidencia documental."
+        ]
+    }
+    return random.choice(hechos[tipo_caso])
+
+
+⸻
+
+✅ Paso 2: Reemplazar la línea del resumen en tu bucle de generación
+
+Reemplaza esta línea:
+
+fake.sentence(nb_words=20),
+
+Por esta:
+
+generar_resumen_hechos(nombre, tipo_caso),
+
+Pero primero asegúrate de capturar el tipo_caso antes en la iteración:
+
+tipo_caso = random.choice(case_types)
+
+Y luego reemplaza "random.choice(case_types)" por tipo_caso en la fila.
+
+⸻
+
+🔁 Ejemplo actualizado del bucle de generación de casos:
+
+for i in range(n):
+    id_random = random.choice(ids)
+    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
+    tipo_caso = random.choice(case_types)
+
+    fila = [
+        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        random.choice(roles),
+        tipo_caso,
+        nombre,
+        id_random,
+        random.choice(relaciones),
+        random.choice(resultados),
+        generar_resumen_hechos(nombre, tipo_caso),
+        fecha_sucia()
+    ]
+    data_casos.append(fila)
+
+
+⸻
+
+🧠 Beneficios de este cambio
+	•	Simula casos con narrativas verosímiles.
+	•	Enriquece el análisis cualitativo (pueden usar Excel para detectar palabras clave).
+	•	Se puede pedir que clasifiquen los textos según palabras clave o gravedad.
+	•	Facilita ejercicios de limpieza y tokenización si luego deseas integrarlo con Python.
+
+⸻
+
+¿Quieres que prepare también una versión .xlsx con hojas separadas para entregar como caso práctico o un PDF guía para candidatos?
+
+
+
 import pandas as pd
 import random
 from faker import Faker
