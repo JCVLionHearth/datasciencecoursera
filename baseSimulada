@@ -1,0 +1,111 @@
+quiero garantizar que los 5000 registros o los n que pueda hacer de esta primera base:
+
+import pandas as pd
+import random
+from faker import Faker
+import os
+
+fake = Faker('es_CO')
+
+# Crear carpeta si no existe
+os.makedirs("datos_simulados", exist_ok=True)
+
+# Parámetros
+n = 5000  # Número de registros
+case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
+resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
+relaciones = ['JEFE', 'COMPAÑERO', 'SUBORDINADO', 'CLIENTE', 'OTRO']
+roles = ['DENUNCIANTE', 'IMPLICADO','']
+
+# Función para fechas sucias
+def fecha_sucia():
+    date = fake.date_between(start_date='-2y', end_date='today')
+    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+    return date.strftime(random.choice(formatos))
+
+# Lista de nombres que se repetirán
+nombres_repetidos = [fake.name() for _ in range(30)]
+
+# Generar datos
+data = []
+for i in range(n):
+    nombre = random.choice(nombres_repetidos) if i < 200 else fake.name()
+    fila = [
+        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        random.choice(roles),
+        random.choice(case_types),
+        nombre,
+        fake.random_int(min=10000000, max=99999999) if random.random() > 0.1 else '',
+        random.choice(relaciones),
+        random.choice(resultados),
+        fake.sentence(nb_words=20),
+        fecha_sucia()
+    ]
+    data.append(fila)
+
+# Crear DataFrame
+df = pd.DataFrame(data, columns=[
+    'CASE NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
+    'NUMERO_IDENTIFICACION_COND', 'RELACIONAMIENTO', 'RESULTADO VERIFICACION',
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA DE REPORTE'
+])
+
+# Introducir duplicados
+df = pd.concat([df, df.sample(40, random_state=1)], ignore_index=True)
+
+# Introducir errores tipográficos
+errores = df.sample(frac=0.05, random_state=2).index
+df.loc[errores, 'NOMBRE_COMPLETO_COND'] = df.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
+
+# Guardar archivo
+df.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
+
+
+estén todos en estas identificaciones
+
+import pandas as pd
+import random
+from faker import Faker
+import os
+
+fake = Faker('es_CO')
+
+# Crear carpeta si no existe
+os.makedirs("datos_simulados", exist_ok=True)
+
+# Generar identificaciones únicas
+num_registros = 2000
+ids = set()
+while len(ids) < num_registros:
+    ids.add(fake.random_int(min=10000000, max=99999999))
+ids = list(ids)
+
+# Lista de ciudades colombianas comunes
+ciudades_colombia = [
+    'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta', 'Bucaramanga',
+    'Pereira', 'Santa Marta', 'Ibagué', 'Manizales', 'Villavicencio', 'Neiva', 'Armenia',
+    'Pasto', 'Montería', 'Sincelejo', 'Valledupar', 'Tunja', 'Popayán'
+]
+
+# Generar datos simulados
+data = []
+for id_num in ids:
+    fila = [
+        id_num,
+        fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
+        random.choice(ciudades_colombia)
+    ]
+    data.append(fila)
+
+# Crear DataFrame
+df_info = pd.DataFrame(data, columns=[
+    'NUMERO_IDENTIFICACION_COND', 'FECHA_NACIMIENTO', 'CIUDAD_RESIDENCIA'
+])
+
+# Guardar archivo CSV con codificación UTF-8 con BOM
+df_info.to_csv("datos_simulados/base_identificaciones.csv", index=False, encoding='utf-8-sig')
+
+además quiero garantizar que pueda sacar un top 10 de personas que han hecho mas casos...
+
+
+con esto como debería ser la logica
