@@ -1,4 +1,11 @@
 
+me sale este error:
+Traceback (most recent call last):
+  File "C:\Proyectos Python Local\Creacion_base_simulada\base_simulada2.py", line 121, in <module>
+    cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: can't compare datetime.datetime to datetime.date
+
 Gracias por el contexto. Te corrijo el código completo con lo siguiente:
 
 ⸻
