@@ -1,3 +1,78 @@
+
+Perfecto. Para agregar una columna de FECHA_CIERRE solo cuando el resultado del caso sea 'CORROBORADO' o 'NO CORROBORADO', y dejarla vacía ('') cuando esté 'EN INVESTIGACIÓN', simplemente debes modificar el bucle donde generas cada fila de caso.
+
+Aquí te muestro exactamente cómo ajustarlo:
+
+⸻
+
+✅ Paso 1: Añadir lógica para FECHA_CIERRE
+
+Justo antes de construir la fila, agrega esto:
+
+resultado = random.choice(resultados)
+fecha_reporte = fecha_sucia()
+
+# Si el caso está cerrado, generar fecha de cierre posterior a la fecha de reporte
+if resultado in ['CORROBORADO', 'NO CORROBORADO']:
+    # Convertir fecha_reporte a datetime para calcular cierre
+    try:
+        fecha_reporte_dt = pd.to_datetime(fecha_reporte, dayfirst=True, errors='coerce')
+        if pd.isna(fecha_reporte_dt):
+            fecha_cierre = ''
+        else:
+            fecha_cierre_dt = fecha_reporte_dt + pd.to_timedelta(random.randint(5, 90), unit='d')
+            formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+            fecha_cierre = fecha_cierre_dt.strftime(random.choice(formatos))
+    except:
+        fecha_cierre = ''
+else:
+    fecha_cierre = ''
+
+
+⸻
+
+✅ Paso 2: Incluir fecha_cierre en tu fila
+
+Agrega fecha_cierre al final de la fila:
+
+fila = [
+    f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+    random.choice(roles),
+    tipo_caso,
+    nombre,
+    id_random,
+    random.choice(cargo),
+    resultado,
+    generar_resumen_hechos(nombre, tipo_caso),
+    fecha_reporte,
+    fecha_cierre
+]
+
+
+⸻
+
+✅ Paso 3: Agrega el nombre de la nueva columna
+
+Actualiza esta línea:
+
+df_casos = pd.DataFrame(data_casos, columns=[
+    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
+    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE', 'FECHA_CIERRE'
+])
+
+
+⸻
+
+📌 Resultado
+	•	Tendrás una columna adicional FECHA_CIERRE.
+	•	En los casos cerrados (CORROBORADO, NO CORROBORADO) tendrá una fecha posterior a la de reporte.
+	•	En los casos abiertos (EN INVESTIGACIÓN), estará vacía.
+
+⸻
+
+¿Deseas que la diferencia entre fecha de reporte y de cierre se limite a cierto rango específico (ej. mínimo 15 días y máximo 60)? ¿O lo dejamos como está?
+
 para los casos que son corroborados y no corroborados, se condiseran casos cerrados, por lo que debo agregar un campo de fecha de cierre para estos casos y en donde el resultado diga "en investigación" esta fecha debe estar en blanco
 
 import pandas as pd
