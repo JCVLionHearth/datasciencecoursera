@@ -1,122 +1,57 @@
-Excelente, Juan Carlos. Estás armando un ejercicio muy completo y útil para evaluación técnica. A continuación te propongo un borrador estructurado del correo que puedes ajustar según el destinatario (recursos humanos, líder técnico, etc.). Incluye la justificación del trabajo técnico, la descripción de las bases, las tareas sugeridas y cierra con posibles formas de ampliar la evaluación.
+para los casos que son corroborados y no corroborados, se condiseran casos cerrados, por lo que debo agregar un campo de fecha de cierre para estos casos y en donde el resultado diga "en investigación" esta fecha debe estar en blanco
 
-⸻
+import pandas as pd
+import random
+from faker import Faker
+import os
 
-📧 Asunto: Ejercicio práctico en Excel – Evaluación de habilidades técnicas con bases simuladas
+fake = Faker('es_CO')
 
-⸻
+# Crear carpeta si no existe
+os.makedirs("datos_simulados", exist_ok=True)
 
-✉️ Cuerpo del correo:
+# ---------- PARTE 1: Crear base de identificaciones ----------
+num_personas = 2000
+ids = set()
+while len(ids) < num_personas:
+    ids.add(fake.random_int(min=10000, max=99999))
+ids = list(ids)
 
-Hola [Nombre],
+ciudades_colombia = [
+    'Bogotá', 'Barrancabermeja', 'Barranquilla', 'Cartagena', 'Cúcuta',
+    'Bucaramanga', 'Orito', 'Manizales', 'Villavicencio',
+    'Neiva', 'Puerto Gaitán','Acacías','Tauramena','Yopal','Saravena','Apiay','Cali'
+]
 
-Espero que estés muy bien.
+# Crear datos de identificación
+data_ident = []
+for id_num in ids:
+    fila = [
+        id_num,
+        fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
+        random.choice(ciudades_colombia),
+        fake.name()
+    ]
+    data_ident.append(fila)
 
-Comparto a continuación un ejercicio práctico diseñado para evaluar habilidades en el manejo de Excel, especialmente orientadas a tareas de transformación, limpieza, análisis y visualización de datos. El ejercicio se basa en dos bases de datos simuladas, generadas con scripts en Python que replican escenarios comunes de gestión de casos dentro de un contexto organizacional.
+df_ident = pd.DataFrame(data_ident, columns=[
+    'NUMERO_IDENTIFICACION_COND', 'FECHA_NACIMIENTO', 'CIUDAD_TRABAJO', 'NOMBRE_COMPLETO_COND'
+])
+df_ident.to_csv("datos_simulados/base_identificaciones.csv", index=False, encoding='utf-8-sig')
 
-🛠️ Generación de datos simulados
+# ---------- PARTE 2: Crear base de casos ----------
+n = 10000  # Número de casos a simular
+case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
+resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
+cargo = ['PROFESIONAL', 'GERENTE', 'COORDINADOR', 'CLIENTE', 'CONTRATISTA','VICEPRESIDENTE','TECNICO']
+roles = ['DENUNCIANTE', 'IMPLICADO', '']
 
-Se desarrollaron scripts personalizados para:
-	•	Crear identificaciones únicas con nombres, fechas de nacimiento y ciudad de residencia, totalmente ficticios.
-	•	Generar una base de 10.000 casos simulados, con descripciones verosímiles de situaciones como alertas, dilemas éticos, faltas de terceros y denuncias.
-	•	Introducir de manera intencional errores comunes que se presentan en entornos reales de trabajo:
-	•	100 registros duplicados.
-	•	Campos vacíos en columnas clave (por ejemplo, ROL).
-	•	Formatos inconsistentes de fechas.
-	•	Errores tipográficos en nombres.
+def fecha_sucia():
+    date = fake.date_between(start_date='-2y', end_date='today')
+    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+    return date.strftime(random.choice(formatos))
 
-Todos los nombres, identificaciones y descripciones fueron generados artificialmente, sin relación con personas reales, garantizando la confidencialidad y el cumplimiento de criterios éticos en la simulación.
-
-⸻
-
-📂 Estructura de las bases
-	1.	Base de Casos (simulacion_datos_excel.csv)
-	•	10.000 registros
-	•	Campos: Case Number, Tipo de Caso, Rol, Nombre, Identificación, Relacionamiento, Resultado de Verificación, Resumen de los Hechos, Fecha de Reporte, entre otros.
-	2.	Base de Identificaciones (base_identificaciones.csv)
-	•	2.000 registros únicos
-	•	Campos: Número de Identificación, Fecha de Nacimiento, Ciudad de Residencia, Nombre completo
-
-⸻
-
-✅ Tareas sugeridas para el candidato
-
-El ejercicio puede enfocarse en una combinación de las siguientes tareas, agrupadas por tipo:
-
-🧼 Limpieza y transformación de datos
-	•	Extraer el año desde el campo CASE_NUMBER.
-	•	Separar el prefijo de entidad (ECO, OCENSA, etc.) en una nueva columna.
-	•	Rellenar valores faltantes en la columna ROL.
-	•	Unificar y normalizar los formatos de fechas.
-	•	Detectar y corregir errores tipográficos en nombres.
-	•	Identificar y eliminar registros duplicados.
-
-📊 Análisis de datos
-	•	Calcular la frecuencia de casos por persona.
-	•	Identificar el Top 10 de personas con más casos reportados.
-	•	Realizar un cruce con la base de identificaciones (join por número de identificación).
-	•	Calcular frecuencia de casos por ciudad.
-	•	Generar una tabla de frecuencia cruzada entre RESULTADO_VERIFICACION y CASE_TYPE.
-	•	Distribución de casos por año (desde el CASE_NUMBER).
-	•	Análisis por tipo de relación: ¿qué tipo aparece más/menos?
-
-📈 Visualización y síntesis
-	•	Crear histogramas de edad (a partir de FECHA_NACIMIENTO).
-	•	Tablas dinámicas por ciudad, tipo de caso y año.
-	•	Uso de filtros avanzados y segmentaciones.
-
-⸻
-
-💡 Sugerencias adicionales (para ampliar la evaluación)
-	•	Pedir una hoja resumen con hallazgos clave.
-	•	Solicitar una visualización tipo dashboard.
-	•	Incluir fórmulas condicionales o reglas de validación.
-	•	Realizar preguntas de análisis como:
-	•	¿Cuál ciudad presenta más casos por denuncias?
-	•	¿Hay personas que tienen múltiples roles en los casos?
-	•	¿Se puede identificar alguna anomalía con base en las fechas de reporte?
-
-⸻
-
-🧠 Habilidades evaluadas
-	•	Limpieza de datos y normalización.
-	•	Imputación y corrección de errores.
-	•	Uso de funciones de texto, fecha y búsqueda.
-	•	Manejo de tablas dinámicas, filtros y análisis cruzado.
-	•	Capacidad de análisis relacional y síntesis visual.
-
-⸻
-
-Quedo atento si deseas hacer algún ajuste adicional en la simulación o en las instrucciones para los candidatos.
-
-Un saludo,
-[Tu nombre]
-[Tu cargo/área si aplica]
-
-⸻
-
-¿Quieres que te genere un PDF o documento en Word con esta misma estructura para compartirlo como instructivo?
-
-
-
-
-¡Perfecto! Vamos a mejorar el contenido del campo RESUMEN_DE_LOS_HECHOS para que tenga más sentido y aporte valor al ejercicio.
-
-⸻
-
-🎯 Objetivo:
-
-Simular descripciones coherentes de casos, que podrían pertenecer a un entorno laboral relacionado con ética, conflictos de interés, denuncias o alertas.
-
-📦 Solución:
-
-Crear una función que genere textos semisintéticos a partir de estructuras comunes de reportes reales. Usaremos plantillas con variables aleatorias como nombres, áreas, hechos y fechas.
-
-⸻
-
-✅ Paso 1: Crear una función coherente para RESUMEN_DE_LOS_HECHOS
-
-Agrega esta función al script antes del bucle que genera los casos:
+# Generar datos de casos
 
 def generar_resumen_hechos(nombre, tipo_caso):
     hechos = {
@@ -143,256 +78,35 @@ def generar_resumen_hechos(nombre, tipo_caso):
     }
     return random.choice(hechos[tipo_caso])
 
-
-⸻
-
-✅ Paso 2: Reemplazar la línea del resumen en tu bucle de generación
-
-Reemplaza esta línea:
-
-fake.sentence(nb_words=20),
-
-Por esta:
-
-generar_resumen_hechos(nombre, tipo_caso),
-
-Pero primero asegúrate de capturar el tipo_caso antes en la iteración:
-
-tipo_caso = random.choice(case_types)
-
-Y luego reemplaza "random.choice(case_types)" por tipo_caso en la fila.
-
-⸻
-
-🔁 Ejemplo actualizado del bucle de generación de casos:
-
+data_casos = []
 for i in range(n):
     id_random = random.choice(ids)
     nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
     tipo_caso = random.choice(case_types)
 
     fila = [
-        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
         random.choice(roles),
         tipo_caso,
         nombre,
         id_random,
-        random.choice(relaciones),
+        random.choice(cargo),
         random.choice(resultados),
         generar_resumen_hechos(nombre, tipo_caso),
         fecha_sucia()
     ]
     data_casos.append(fila)
 
-
-⸻
-
-🧠 Beneficios de este cambio
-	•	Simula casos con narrativas verosímiles.
-	•	Enriquece el análisis cualitativo (pueden usar Excel para detectar palabras clave).
-	•	Se puede pedir que clasifiquen los textos según palabras clave o gravedad.
-	•	Facilita ejercicios de limpieza y tokenización si luego deseas integrarlo con Python.
-
-⸻
-
-¿Quieres que prepare también una versión .xlsx con hojas separadas para entregar como caso práctico o un PDF guía para candidatos?
-
-
-
-import pandas as pd
-import random
-from faker import Faker
-import os
-
-fake = Faker('es_CO')
-
-# Crear carpeta si no existe
-os.makedirs("datos_simulados", exist_ok=True)
-
-# ---------- PARTE 1: Crear base de identificaciones ----------
-num_personas = 2000
-ids = set()
-while len(ids) < num_personas:
-    ids.add(fake.random_int(min=10000000, max=99999999))
-ids = list(ids)
-
-ciudades_colombia = [
-    'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta',
-    'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Manizales', 'Villavicencio',
-    'Neiva', 'Armenia', 'Pasto', 'Montería', 'Sincelejo', 'Valledupar', 'Tunja', 'Popayán'
-]
-
-# Crear datos de identificación
-data_ident = []
-for id_num in ids:
-    fila = [
-        id_num,
-        fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
-        random.choice(ciudades_colombia),
-        fake.name()
-    ]
-    data_ident.append(fila)
-
-df_ident = pd.DataFrame(data_ident, columns=[
-    'NUMERO_IDENTIFICACION_COND', 'FECHA_NACIMIENTO', 'CIUDAD_RESIDENCIA', 'NOMBRE_COMPLETO_COND'
-])
-df_ident.to_csv("datos_simulados/base_identificaciones.csv", index=False, encoding='utf-8-sig')
-
-# ---------- PARTE 2: Crear base de casos ----------
-n = 5000  # Número de casos a simular
-case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
-resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
-relaciones = ['JEFE', 'COMPAÑERO', 'SUBORDINADO', 'CLIENTE', 'OTRO']
-roles = ['DENUNCIANTE', 'IMPLICADO', '']
-
-def fecha_sucia():
-    date = fake.date_between(start_date='-2y', end_date='today')
-    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
-    return date.strftime(random.choice(formatos))
-
-# Generar datos de casos
-data_casos = []
-for i in range(n):
-    id_random = random.choice(ids)
-    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
-
-    fila = [
-        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
-        random.choice(roles),
-        random.choice(case_types),
-        nombre,
-        id_random,
-        random.choice(relaciones),
-        random.choice(resultados),
-        fake.sentence(nb_words=20),
-        fecha_sucia()
-    ]
-    data_casos.append(fila)
-
 df_casos = pd.DataFrame(data_casos, columns=[
     'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
-    'NUMERO_IDENTIFICACION_COND', 'RELACIONAMIENTO', 'RESULTADO_VERIFICACION',
+    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
     'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE'
 ])
 
 # Introducir duplicados y errores tipográficos (opcional)
-df_casos = pd.concat([df_casos, df_casos.sample(40, random_state=1)], ignore_index=True)
+df_casos = pd.concat([df_casos, df_casos.sample(100, random_state=1)], ignore_index=True)
 errores = df_casos.sample(frac=0.05, random_state=2).index
 df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'] = df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
 
 # Guardar
 df_casos.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
-
-
-
-quiero garantizar que los 5000 registros o los n que pueda hacer de esta primera base:
-
-import pandas as pd
-import random
-from faker import Faker
-import os
-
-fake = Faker('es_CO')
-
-# Crear carpeta si no existe
-os.makedirs("datos_simulados", exist_ok=True)
-
-# Parámetros
-n = 5000  # Número de registros
-case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
-resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
-relaciones = ['JEFE', 'COMPAÑERO', 'SUBORDINADO', 'CLIENTE', 'OTRO']
-roles = ['DENUNCIANTE', 'IMPLICADO','']
-
-# Función para fechas sucias
-def fecha_sucia():
-    date = fake.date_between(start_date='-2y', end_date='today')
-    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
-    return date.strftime(random.choice(formatos))
-
-# Lista de nombres que se repetirán
-nombres_repetidos = [fake.name() for _ in range(30)]
-
-# Generar datos
-data = []
-for i in range(n):
-    nombre = random.choice(nombres_repetidos) if i < 200 else fake.name()
-    fila = [
-        f"{random.choice(['ECO', 'OCENSA', 'CENIT', 'HOCOL'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
-        random.choice(roles),
-        random.choice(case_types),
-        nombre,
-        fake.random_int(min=10000000, max=99999999) if random.random() > 0.1 else '',
-        random.choice(relaciones),
-        random.choice(resultados),
-        fake.sentence(nb_words=20),
-        fecha_sucia()
-    ]
-    data.append(fila)
-
-# Crear DataFrame
-df = pd.DataFrame(data, columns=[
-    'CASE NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
-    'NUMERO_IDENTIFICACION_COND', 'RELACIONAMIENTO', 'RESULTADO VERIFICACION',
-    'RESUMEN_DE_LOS_HECHOS', 'FECHA DE REPORTE'
-])
-
-# Introducir duplicados
-df = pd.concat([df, df.sample(40, random_state=1)], ignore_index=True)
-
-# Introducir errores tipográficos
-errores = df.sample(frac=0.05, random_state=2).index
-df.loc[errores, 'NOMBRE_COMPLETO_COND'] = df.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
-
-# Guardar archivo
-df.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
-
-
-estén todos en estas identificaciones
-
-import pandas as pd
-import random
-from faker import Faker
-import os
-
-fake = Faker('es_CO')
-
-# Crear carpeta si no existe
-os.makedirs("datos_simulados", exist_ok=True)
-
-# Generar identificaciones únicas
-num_registros = 2000
-ids = set()
-while len(ids) < num_registros:
-    ids.add(fake.random_int(min=10000000, max=99999999))
-ids = list(ids)
-
-# Lista de ciudades colombianas comunes
-ciudades_colombia = [
-    'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta', 'Bucaramanga',
-    'Pereira', 'Santa Marta', 'Ibagué', 'Manizales', 'Villavicencio', 'Neiva', 'Armenia',
-    'Pasto', 'Montería', 'Sincelejo', 'Valledupar', 'Tunja', 'Popayán'
-]
-
-# Generar datos simulados
-data = []
-for id_num in ids:
-    fila = [
-        id_num,
-        fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
-        random.choice(ciudades_colombia)
-    ]
-    data.append(fila)
-
-# Crear DataFrame
-df_info = pd.DataFrame(data, columns=[
-    'NUMERO_IDENTIFICACION_COND', 'FECHA_NACIMIENTO', 'CIUDAD_RESIDENCIA'
-])
-
-# Guardar archivo CSV con codificación UTF-8 con BOM
-df_info.to_csv("datos_simulados/base_identificaciones.csv", index=False, encoding='utf-8-sig')
-
-además quiero garantizar que pueda sacar un top 10 de personas que han hecho mas casos...
-
-
-con esto como debería ser la logica
