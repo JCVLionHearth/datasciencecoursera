@@ -1,3 +1,121 @@
+Perfecto, Juan Carlos. Para garantizar que cada persona (identificación + nombre) tenga siempre el mismo cargo y pertenezca a la misma compañía en todos sus casos, debes asignar esas variables una sola vez por persona, y luego reutilizarlas en la generación de los casos.
+
+Aquí te dejo la versión corregida y mejorada de tu código, aplicando esa lógica:
+
+⸻
+
+✅ Cambios clave:
+	1.	Se crea un diccionario que asocia cada ID con un CARGO y una COMPAÑÍA.
+	2.	En el loop de generación de casos, se reutiliza esa información para cada registro correspondiente a esa persona.
+	3.	El resultado no se vuelve a generar dos veces (tu código original lo generaba y luego lo reemplazaba accidentalmente).
+
+⸻
+
+🔧 CÓDIGO CORREGIDO
+
+Reemplaza desde la sección "PARTE 2" así:
+
+# ---------- PARTE 2: Crear base de casos ----------
+n = 10000
+Tipologías = ['ACOSO LABORAL', 'ACOSO SEXUAL', 'CONFLICTO DE INTERÉS', 'CORRUPCIÓN', 'FRAUDE', 'FINANCIACIÓN DEL TERRORISMO', 'LAVADO DE ACTIVOS', 'INCUMPLIMIENTO DE NORMAS']
+resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
+cargos_posibles = ['PROFESIONAL', 'GERENTE', 'COORDINADOR', 'CLIENTE', 'CONTRATISTA', 'VICEPRESIDENTE', 'TECNICO']
+companias_posibles = ['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD']
+roles = ['DENUNCIANTE', 'IMPLICADO', '']
+
+fecha_corte = datetime(2025, 6, 30).date()
+
+def fecha_sucia(date_obj):
+    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+    return date_obj.strftime(random.choice(formatos))
+
+# Diccionario: {identificación: (cargo fijo, compañía fija)}
+persona_config = {
+    id_: {
+        'cargo': random.choice(cargos_posibles),
+        'compania': random.choice(companias_posibles)
+    }
+    for id_ in ids
+}
+
+def generar_resumen_hechos(nombre, tipo_caso):
+    hechos = {
+        'ACOSO LABORAL': [...],  # (Tu lista original)
+        'ACOSO SEXUAL': [...],
+        'CONFLICTO DE INTERÉS': [...],
+        'CORRUPCIÓN': [...],
+        'FRAUDE': [...],
+        'FINANCIACIÓN DEL TERRORISMO': [...],
+        'LAVADO DE ACTIVOS': [...],
+        'INCUMPLIMIENTO DE NORMAS': [...]
+    }
+    return random.choice(hechos.get(tipo_caso, [f"No hay ejemplos disponibles para la tipología '{tipo_caso}'"]))
+
+# Generar los casos
+data_casos = []
+for i in range(n):
+    id_random = random.choice(ids)
+    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
+    tipo_caso = random.choice(Tipologías)
+    resultado = random.choice(resultados)
+
+    fecha_inicio = fecha_corte - timedelta(days=730)
+    fecha_reporte_dt = fake.date_between_dates(date_start=fecha_inicio, date_end=fecha_corte)
+    fecha_reporte_str = fecha_sucia(fecha_reporte_dt)
+
+    if resultado in ['CORROBORADO', 'NO CORROBORADO']:
+        cierre_min = fecha_reporte_dt + timedelta(days=5)
+        cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
+        if cierre_min >= cierre_max:
+            fecha_cierre_str = ''
+        else:
+            fecha_cierre_dt = fake.date_between_dates(date_start=cierre_min, date_end=cierre_max)
+            fecha_cierre_str = fecha_sucia(fecha_cierre_dt)
+    else:
+        fecha_cierre_str = ''
+
+    cargo_fijo = persona_config[id_random]['cargo']
+    compania_fija = persona_config[id_random]['compania']
+
+    fila = [
+        f"{compania_fija}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        random.choice(roles),
+        tipo_caso,
+        nombre,
+        id_random,
+        cargo_fijo,
+        resultado,
+        generar_resumen_hechos(nombre, tipo_caso),
+        fecha_reporte_str,
+        fecha_cierre_str
+    ]
+    data_casos.append(fila)
+
+df_casos = pd.DataFrame(data_casos, columns=[
+    'CASE_NUMBER', 'ROL', 'TIPOLOGÍAS', 'NOMBRE_COMPLETO_COND',
+    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE', 'FECHA_CIERRE'
+])
+
+# Introducir duplicados y errores tipográficos
+df_casos = pd.concat([df_casos, df_casos.sample(100, random_state=1)], ignore_index=True)
+errores = df_casos.sample(frac=0.05, random_state=2).index
+df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'] = df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
+
+# Guardar
+df_casos.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
+
+
+⸻
+
+✅ Resultado garantizado:
+	•	Una misma persona siempre tendrá el mismo cargo y la misma compañía.
+	•	Cada caso tiene su propia CASE_NUMBER, resultado, fechas, resumen, etc.
+
+¿Deseas también que agregue el campo "ESTADO_CASO" como "CERRADO" o "EN PROCESO" según si tiene o no FECHA_CIERRE?
+
+
+
 Tengo el siguiente código para generar bases simuladas, sin embargo debo garantizar que la persona (identificación + nombre) tenga un único cargo y aunque tenga varios casos, debe pertenecer a la misma compañía
 
 import pandas as pd
