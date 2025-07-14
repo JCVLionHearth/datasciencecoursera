@@ -1,226 +1,10 @@
-
-me sale este error:
-Traceback (most recent call last):
-  File "C:\Proyectos Python Local\Creacion_base_simulada\base_simulada2.py", line 121, in <module>
-    cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: can't compare datetime.datetime to datetime.date
-
-Gracias por el contexto. Te corrijo el código completo con lo siguiente:
-
-⸻
-
-✅ Mejoras aplicadas:
-	1.	Fecha de corte fija: 30 de junio de 2025 (fecha_corte = datetime(2025, 6, 30)).
-	2.	Las fechas de reporte y de cierre no pueden superar esa fecha.
-	3.	La fecha de cierre solo se genera si el resultado es 'CORROBORADO' o 'NO CORROBORADO'.
-	4.	Corregido el uso de fecha_reporte para que sea una fecha real tipo datetime, y luego formateada en sucio.
-
-⸻
-
-🧠 Código corregido completo (solo la parte de generación de casos)
+Tengo el siguiente código para generar bases simuladas, sin embargo debo garantizar que la persona (identificación + nombre) tenga un único cargo y aunque tenga varios casos, debe pertenecer a la misma compañía
 
 import pandas as pd
 import random
 from faker import Faker
 import os
 from datetime import datetime, timedelta
-
-fake = Faker('es_CO')
-
-# Crear carpeta si no existe
-os.makedirs("datos_simulados", exist_ok=True)
-
-# ---------- PARTE 1: Crear base de identificaciones ----------
-# (se mantiene igual...)
-
-# ---------- PARTE 2: Crear base de casos ----------
-n = 10000
-case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
-resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
-cargo = ['PROFESIONAL', 'GERENTE', 'COORDINADOR', 'CLIENTE', 'CONTRATISTA','VICEPRESIDENTE','TECNICO']
-roles = ['DENUNCIANTE', 'IMPLICADO', '']
-
-# Definir fecha de corte
-fecha_corte = datetime(2025, 6, 30)
-
-# Función para formatear fechas "sucias"
-def fecha_sucia(date_obj):
-    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
-    return date_obj.strftime(random.choice(formatos))
-
-# Función para generar resumen coherente
-def generar_resumen_hechos(nombre, tipo_caso):
-    hechos = {
-        'ALERTA': [
-            f"Se recibió una alerta anónima en la que se reporta una posible irregularidad cometida por {nombre} relacionada con procedimientos de contratación.",
-            f"Durante un control rutinario, se identificó una alerta interna que involucra a {nombre} por presunto incumplimiento de políticas de seguridad.",
-            f"El sistema de auditoría automática generó una alerta por accesos inusuales realizados por {nombre} en horarios no laborables."
-        ],
-        'DILEMA': [
-            f"{nombre} consultó al área de ética sobre un posible conflicto de interés al participar en un proceso donde está involucrado un familiar cercano.",
-            f"Se reportó un dilema ético por parte de {nombre} al recibir obsequios de un proveedor con el que actualmente negocia condiciones contractuales.",
-            f"{nombre} expresó dudas sobre su participación en decisiones que pueden generar beneficios personales indirectos."
-        ],
-        'FALTA DE TERCEROS': [
-            f"{nombre} reportó que un contratista incurrió en comportamientos inadecuados con otros empleados durante una reunión.",
-            f"Según {nombre}, un proveedor incurrió en prácticas que contravienen el código de ética durante la ejecución de un proyecto.",
-            f"Se recibió reporte de {nombre} donde manifiesta que un cliente realizó insinuaciones indebidas hacia su equipo de trabajo."
-        ],
-        'DENUNCIA': [
-            f"{nombre} presentó una denuncia formal contra un compañero por acoso laboral reiterado desde el mes de abril.",
-            f"Se recibió denuncia de {nombre} en la que se indica que su jefe inmediato ha manipulado resultados para favorecer decisiones personales.",
-            f"{nombre} interpuso una denuncia por actos de corrupción en el proceso de selección de contratistas, con evidencia documental."
-        ]
-    }
-    return random.choice(hechos[tipo_caso])
-
-# Generar datos
-data_casos = []
-for i in range(n):
-    id_random = random.choice(ids)
-    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
-    tipo_caso = random.choice(case_types)
-    resultado = random.choice(resultados)
-
-    # Generar fecha de reporte (máximo hasta la fecha de corte)
-    fecha_inicio = fecha_corte - timedelta(days=730)  # Hasta 2 años antes
-    fecha_reporte_dt = fake.date_between_dates(date_start=fecha_inicio, date_end=fecha_corte)
-    fecha_reporte_str = fecha_sucia(fecha_reporte_dt)
-
-    # Generar fecha de cierre solo si está cerrado
-    if resultado in ['CORROBORADO', 'NO CORROBORADO']:
-        cierre_min = fecha_reporte_dt + timedelta(days=5)
-        cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
-        if cierre_min >= cierre_max:
-            fecha_cierre_str = ''
-        else:
-            fecha_cierre_dt = fake.date_between_dates(date_start=cierre_min, date_end=cierre_max)
-            fecha_cierre_str = fecha_sucia(fecha_cierre_dt)
-    else:
-        fecha_cierre_str = ''
-
-    fila = [
-        f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
-        random.choice(roles),
-        tipo_caso,
-        nombre,
-        id_random,
-        random.choice(cargo),
-        resultado,
-        generar_resumen_hechos(nombre, tipo_caso),
-        fecha_reporte_str,
-        fecha_cierre_str
-    ]
-    data_casos.append(fila)
-
-# Crear DataFrame
-df_casos = pd.DataFrame(data_casos, columns=[
-    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
-    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
-    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE', 'FECHA_CIERRE'
-])
-
-# Introducir duplicados y errores tipográficos (opcional)
-df_casos = pd.concat([df_casos, df_casos.sample(100, random_state=1)], ignore_index=True)
-errores = df_casos.sample(frac=0.05, random_state=2).index
-df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'] = df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
-
-# Guardar archivo
-df_casos.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
-
-
-⸻
-
-✅ Resultado
-	•	No hay fechas de reporte ni cierre posteriores al 30 de junio de 2025.
-	•	FECHA_CIERRE sólo está llena si el caso está cerrado.
-	•	El campo respeta formatos “sucios” variados.
-
-¿Quieres también que agregue una validación o bandera (ESTADO) con los valores "CERRADO" o "EN PROCESO" para facilitar el análisis posterior?
-
-
-
-Perfecto. Para agregar una columna de FECHA_CIERRE solo cuando el resultado del caso sea 'CORROBORADO' o 'NO CORROBORADO', y dejarla vacía ('') cuando esté 'EN INVESTIGACIÓN', simplemente debes modificar el bucle donde generas cada fila de caso.
-
-Aquí te muestro exactamente cómo ajustarlo:
-
-⸻
-
-✅ Paso 1: Añadir lógica para FECHA_CIERRE
-
-Justo antes de construir la fila, agrega esto:
-
-resultado = random.choice(resultados)
-fecha_reporte = fecha_sucia()
-
-# Si el caso está cerrado, generar fecha de cierre posterior a la fecha de reporte
-if resultado in ['CORROBORADO', 'NO CORROBORADO']:
-    # Convertir fecha_reporte a datetime para calcular cierre
-    try:
-        fecha_reporte_dt = pd.to_datetime(fecha_reporte, dayfirst=True, errors='coerce')
-        if pd.isna(fecha_reporte_dt):
-            fecha_cierre = ''
-        else:
-            fecha_cierre_dt = fecha_reporte_dt + pd.to_timedelta(random.randint(5, 90), unit='d')
-            formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
-            fecha_cierre = fecha_cierre_dt.strftime(random.choice(formatos))
-    except:
-        fecha_cierre = ''
-else:
-    fecha_cierre = ''
-
-
-⸻
-
-✅ Paso 2: Incluir fecha_cierre en tu fila
-
-Agrega fecha_cierre al final de la fila:
-
-fila = [
-    f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
-    random.choice(roles),
-    tipo_caso,
-    nombre,
-    id_random,
-    random.choice(cargo),
-    resultado,
-    generar_resumen_hechos(nombre, tipo_caso),
-    fecha_reporte,
-    fecha_cierre
-]
-
-
-⸻
-
-✅ Paso 3: Agrega el nombre de la nueva columna
-
-Actualiza esta línea:
-
-df_casos = pd.DataFrame(data_casos, columns=[
-    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
-    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
-    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE', 'FECHA_CIERRE'
-])
-
-
-⸻
-
-📌 Resultado
-	•	Tendrás una columna adicional FECHA_CIERRE.
-	•	En los casos cerrados (CORROBORADO, NO CORROBORADO) tendrá una fecha posterior a la de reporte.
-	•	En los casos abiertos (EN INVESTIGACIÓN), estará vacía.
-
-⸻
-
-¿Deseas que la diferencia entre fecha de reporte y de cierre se limite a cierto rango específico (ej. mínimo 15 días y máximo 60)? ¿O lo dejamos como está?
-
-para los casos que son corroborados y no corroborados, se condiseran casos cerrados, por lo que debo agregar un campo de fecha de cierre para estos casos y en donde el resultado diga "en investigación" esta fecha debe estar en blanco
-
-import pandas as pd
-import random
-from faker import Faker
-import os
 
 fake = Faker('es_CO')
 
@@ -258,48 +42,94 @@ df_ident.to_csv("datos_simulados/base_identificaciones.csv", index=False, encodi
 
 # ---------- PARTE 2: Crear base de casos ----------
 n = 10000  # Número de casos a simular
-case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
+Tipologías = ['ACOSO LABORAL', 'ACOSO SEXUAL', 'CONFLICTO DE INTERÉS', 'CORRUPCIÓN','FRAUDE','FINANCIACIÓN DEL TERRORISMO','LAVADO DE ACTIVOS','INCUMPLIMIENTO DE NORMAS']
 resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
 cargo = ['PROFESIONAL', 'GERENTE', 'COORDINADOR', 'CLIENTE', 'CONTRATISTA','VICEPRESIDENTE','TECNICO']
 roles = ['DENUNCIANTE', 'IMPLICADO', '']
 
-def fecha_sucia():
-    date = fake.date_between(start_date='-2y', end_date='today')
+# Definir fecha de corte
+fecha_corte = datetime(2025, 6, 30).date()
+
+# Función para formatear fechas "sucias"
+def fecha_sucia(date_obj):
     formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
-    return date.strftime(random.choice(formatos))
+    return date_obj.strftime(random.choice(formatos))
 
 # Generar datos de casos
 
+import random
+
 def generar_resumen_hechos(nombre, tipo_caso):
     hechos = {
-        'ALERTA': [
-            f"Se recibió una alerta anónima en la que se reporta una posible irregularidad cometida por {nombre} relacionada con procedimientos de contratación.",
-            f"Durante un control rutinario, se identificó una alerta interna que involucra a {nombre} por presunto incumplimiento de políticas de seguridad.",
-            f"El sistema de auditoría automática generó una alerta por accesos inusuales realizados por {nombre} en horarios no laborables."
+        'ACOSO LABORAL': [
+            f"{nombre} presentó una denuncia formal por acoso laboral reiterado por parte de un compañero desde el mes de abril.",
+            f"Se recibió una alerta en la que se indica que {nombre} ha sido víctima de hostigamiento constante por parte de su jefe inmediato.",
+            f"{nombre} manifestó sentirse intimidado y excluido sistemáticamente en su entorno laboral."
         ],
-        'DILEMA': [
-            f"{nombre} consultó al área de ética sobre un posible conflicto de interés al participar en un proceso donde está involucrado un familiar cercano.",
-            f"Se reportó un dilema ético por parte de {nombre} al recibir obsequios de un proveedor con el que actualmente negocia condiciones contractuales.",
-            f"{nombre} expresó dudas sobre su participación en decisiones que pueden generar beneficios personales indirectos."
+        'ACOSO SEXUAL': [
+            f"{nombre} reportó haber recibido comentarios y gestos inapropiados de carácter sexual por parte de un colega.",
+            f"Se recibió una denuncia de {nombre} por insinuaciones sexuales no consentidas durante una reunión de trabajo.",
+            f"{nombre} manifestó haber sido objeto de contacto físico no deseado por parte de un superior jerárquico."
         ],
-        'FALTA DE TERCEROS': [
-            f"{nombre} reportó que un contratista incurrió en comportamientos inadecuados con otros empleados durante una reunión.",
-            f"Según {nombre}, un proveedor incurrió en prácticas que contravienen el código de ética durante la ejecución de un proyecto.",
-            f"Se recibió reporte de {nombre} donde manifiesta que un cliente realizó insinuaciones indebidas hacia su equipo de trabajo."
+        'CONFLICTO DE INTERÉS': [
+            f"{nombre} consultó sobre un posible conflicto de interés al participar en un proceso donde está involucrado un familiar.",
+            f"Se identificó que {nombre} aprobó contratos con una empresa vinculada a un amigo cercano sin declararlo previamente.",
+            f"{nombre} expresó dudas sobre su participación en decisiones que podrían beneficiarle indirectamente."
         ],
-        'DENUNCIA': [
-            f"{nombre} presentó una denuncia formal contra un compañero por acoso laboral reiterado desde el mes de abril.",
-            f"Se recibió denuncia de {nombre} en la que se indica que su jefe inmediato ha manipulado resultados para favorecer decisiones personales.",
-            f"{nombre} interpuso una denuncia por actos de corrupción en el proceso de selección de contratistas, con evidencia documental."
+        'CORRUPCIÓN': [
+            f"{nombre} fue señalado por presuntamente recibir beneficios económicos a cambio de favorecer a un proveedor.",
+            f"Se recibió una denuncia en la que se indica que {nombre} manipuló procesos de contratación para beneficiar a terceros.",
+            f"{nombre} está siendo investigado por presunta participación en actos de corrupción relacionados con licitaciones internas."
+        ],
+        'FRAUDE': [
+            f"Durante una auditoría, se detectaron inconsistencias en los reportes financieros firmados por {nombre}.",
+            f"{nombre} fue vinculado a la creación de documentos falsos para justificar gastos inexistentes.",
+            f"Se identificó que {nombre} alteró registros contables con el fin de ocultar desvíos de fondos."
+        ],
+        'FINANCIACIÓN DEL TERRORISMO': [
+            f"Se detectaron transferencias sospechosas realizadas por {nombre} hacia cuentas en jurisdicciones de alto riesgo.",
+            f"{nombre} está siendo investigado por posibles vínculos con organizaciones señaladas por actividades terroristas.",
+            f"Un reporte de operación sospechosa involucra a {nombre} en movimientos financieros inusuales sin justificación clara."
+        ],
+        'LAVADO DE ACTIVOS': [
+            f"{nombre} fue identificado como parte de una red que canaliza fondos a través de empresas fachada.",
+            f"Se detectaron operaciones financieras realizadas por {nombre} que no corresponden con su perfil económico.",
+            f"{nombre} figura como beneficiario final de transacciones asociadas a actividades de lavado de activos."
+        ],
+        'INCUMPLIMIENTO DE NORMAS': [
+            f"{nombre} fue reportado por no cumplir con los protocolos de seguridad establecidos en su área de trabajo.",
+            f"Se identificó que {nombre} omitió la aplicación de controles obligatorios en un procedimiento crítico.",
+            f"{nombre} incurrió en el uso indebido de recursos institucionales, contraviniendo las políticas internas."
         ]
     }
-    return random.choice(hechos[tipo_caso])
+    return random.choice(hechos.get(tipo_caso, [f"No hay ejemplos disponibles para la tipología '{tipo_caso}'"]))
+
 
 data_casos = []
 for i in range(n):
     id_random = random.choice(ids)
     nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
-    tipo_caso = random.choice(case_types)
+    tipo_caso = random.choice(Tipologías)
+    resultado = random.choice(resultados)
+  
+    # Generar fecha de reporte (máximo hasta la fecha de corte)
+    fecha_inicio = fecha_corte - timedelta(days=730)  # Hasta 2 años antes
+    fecha_reporte_dt = fake.date_between_dates(date_start=fecha_inicio, date_end=fecha_corte)
+    fecha_reporte_str = fecha_sucia(fecha_reporte_dt)
+
+    # Generar fecha de cierre solo si está cerrado
+    if resultado in ['CORROBORADO', 'NO CORROBORADO']:
+        cierre_min = fecha_reporte_dt + timedelta(days=5)
+        cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
+        if cierre_min >= cierre_max:
+            fecha_cierre_str = ''
+        else:
+            fecha_cierre_dt = fake.date_between_dates(date_start=cierre_min, date_end=cierre_max)
+            fecha_cierre_str = fecha_sucia(fecha_cierre_dt)
+    else:
+        fecha_cierre_str = ''
+
+
 
     fila = [
         f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
@@ -310,14 +140,15 @@ for i in range(n):
         random.choice(cargo),
         random.choice(resultados),
         generar_resumen_hechos(nombre, tipo_caso),
-        fecha_sucia()
+        fecha_reporte_str,
+        fecha_cierre_str
     ]
     data_casos.append(fila)
 
 df_casos = pd.DataFrame(data_casos, columns=[
-    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
+    'CASE_NUMBER', 'ROL', 'TIPOLOGÍAS', 'NOMBRE_COMPLETO_COND',
     'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
-    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE'
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE','FECHA_CIERRE'
 ])
 
 # Introducir duplicados y errores tipográficos (opcional)
