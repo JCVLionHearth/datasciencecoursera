@@ -1,4 +1,139 @@
 
+Gracias por el contexto. Te corrijo el código completo con lo siguiente:
+
+⸻
+
+✅ Mejoras aplicadas:
+	1.	Fecha de corte fija: 30 de junio de 2025 (fecha_corte = datetime(2025, 6, 30)).
+	2.	Las fechas de reporte y de cierre no pueden superar esa fecha.
+	3.	La fecha de cierre solo se genera si el resultado es 'CORROBORADO' o 'NO CORROBORADO'.
+	4.	Corregido el uso de fecha_reporte para que sea una fecha real tipo datetime, y luego formateada en sucio.
+
+⸻
+
+🧠 Código corregido completo (solo la parte de generación de casos)
+
+import pandas as pd
+import random
+from faker import Faker
+import os
+from datetime import datetime, timedelta
+
+fake = Faker('es_CO')
+
+# Crear carpeta si no existe
+os.makedirs("datos_simulados", exist_ok=True)
+
+# ---------- PARTE 1: Crear base de identificaciones ----------
+# (se mantiene igual...)
+
+# ---------- PARTE 2: Crear base de casos ----------
+n = 10000
+case_types = ['ALERTA', 'DILEMA', 'FALTA DE TERCEROS', 'DENUNCIA']
+resultados = ['CORROBORADO', 'NO CORROBORADO', 'EN INVESTIGACIÓN']
+cargo = ['PROFESIONAL', 'GERENTE', 'COORDINADOR', 'CLIENTE', 'CONTRATISTA','VICEPRESIDENTE','TECNICO']
+roles = ['DENUNCIANTE', 'IMPLICADO', '']
+
+# Definir fecha de corte
+fecha_corte = datetime(2025, 6, 30)
+
+# Función para formatear fechas "sucias"
+def fecha_sucia(date_obj):
+    formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m-%d-%Y', '%d-%b-%Y', '%Y/%m/%d']
+    return date_obj.strftime(random.choice(formatos))
+
+# Función para generar resumen coherente
+def generar_resumen_hechos(nombre, tipo_caso):
+    hechos = {
+        'ALERTA': [
+            f"Se recibió una alerta anónima en la que se reporta una posible irregularidad cometida por {nombre} relacionada con procedimientos de contratación.",
+            f"Durante un control rutinario, se identificó una alerta interna que involucra a {nombre} por presunto incumplimiento de políticas de seguridad.",
+            f"El sistema de auditoría automática generó una alerta por accesos inusuales realizados por {nombre} en horarios no laborables."
+        ],
+        'DILEMA': [
+            f"{nombre} consultó al área de ética sobre un posible conflicto de interés al participar en un proceso donde está involucrado un familiar cercano.",
+            f"Se reportó un dilema ético por parte de {nombre} al recibir obsequios de un proveedor con el que actualmente negocia condiciones contractuales.",
+            f"{nombre} expresó dudas sobre su participación en decisiones que pueden generar beneficios personales indirectos."
+        ],
+        'FALTA DE TERCEROS': [
+            f"{nombre} reportó que un contratista incurrió en comportamientos inadecuados con otros empleados durante una reunión.",
+            f"Según {nombre}, un proveedor incurrió en prácticas que contravienen el código de ética durante la ejecución de un proyecto.",
+            f"Se recibió reporte de {nombre} donde manifiesta que un cliente realizó insinuaciones indebidas hacia su equipo de trabajo."
+        ],
+        'DENUNCIA': [
+            f"{nombre} presentó una denuncia formal contra un compañero por acoso laboral reiterado desde el mes de abril.",
+            f"Se recibió denuncia de {nombre} en la que se indica que su jefe inmediato ha manipulado resultados para favorecer decisiones personales.",
+            f"{nombre} interpuso una denuncia por actos de corrupción en el proceso de selección de contratistas, con evidencia documental."
+        ]
+    }
+    return random.choice(hechos[tipo_caso])
+
+# Generar datos
+data_casos = []
+for i in range(n):
+    id_random = random.choice(ids)
+    nombre = df_ident[df_ident['NUMERO_IDENTIFICACION_COND'] == id_random]['NOMBRE_COMPLETO_COND'].values[0]
+    tipo_caso = random.choice(case_types)
+    resultado = random.choice(resultados)
+
+    # Generar fecha de reporte (máximo hasta la fecha de corte)
+    fecha_inicio = fecha_corte - timedelta(days=730)  # Hasta 2 años antes
+    fecha_reporte_dt = fake.date_between_dates(date_start=fecha_inicio, date_end=fecha_corte)
+    fecha_reporte_str = fecha_sucia(fecha_reporte_dt)
+
+    # Generar fecha de cierre solo si está cerrado
+    if resultado in ['CORROBORADO', 'NO CORROBORADO']:
+        cierre_min = fecha_reporte_dt + timedelta(days=5)
+        cierre_max = min(fecha_corte, fecha_reporte_dt + timedelta(days=90))
+        if cierre_min >= cierre_max:
+            fecha_cierre_str = ''
+        else:
+            fecha_cierre_dt = fake.date_between_dates(date_start=cierre_min, date_end=cierre_max)
+            fecha_cierre_str = fecha_sucia(fecha_cierre_dt)
+    else:
+        fecha_cierre_str = ''
+
+    fila = [
+        f"{random.choice(['COMPAÑIA_AA', 'COMPAÑIA_BB', 'COMPAÑIA_CC', 'COMPAÑIA_DD'])}-{random.randint(2018, 2024)}-{random.randint(1, 12)}-{random.randint(20000, 29999)}",
+        random.choice(roles),
+        tipo_caso,
+        nombre,
+        id_random,
+        random.choice(cargo),
+        resultado,
+        generar_resumen_hechos(nombre, tipo_caso),
+        fecha_reporte_str,
+        fecha_cierre_str
+    ]
+    data_casos.append(fila)
+
+# Crear DataFrame
+df_casos = pd.DataFrame(data_casos, columns=[
+    'CASE_NUMBER', 'ROL', 'CASE_TYPE', 'NOMBRE_COMPLETO_COND',
+    'NUMERO_IDENTIFICACION_COND', 'CARGO', 'RESULTADO_VERIFICACION',
+    'RESUMEN_DE_LOS_HECHOS', 'FECHA_REPORTE', 'FECHA_CIERRE'
+])
+
+# Introducir duplicados y errores tipográficos (opcional)
+df_casos = pd.concat([df_casos, df_casos.sample(100, random_state=1)], ignore_index=True)
+errores = df_casos.sample(frac=0.05, random_state=2).index
+df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'] = df_casos.loc[errores, 'NOMBRE_COMPLETO_COND'].apply(lambda x: x.replace('a', '@', 1))
+
+# Guardar archivo
+df_casos.to_csv("datos_simulados/simulacion_datos_excel.csv", index=False, encoding='utf-8-sig')
+
+
+⸻
+
+✅ Resultado
+	•	No hay fechas de reporte ni cierre posteriores al 30 de junio de 2025.
+	•	FECHA_CIERRE sólo está llena si el caso está cerrado.
+	•	El campo respeta formatos “sucios” variados.
+
+¿Quieres también que agregue una validación o bandera (ESTADO) con los valores "CERRADO" o "EN PROCESO" para facilitar el análisis posterior?
+
+
+
 Perfecto. Para agregar una columna de FECHA_CIERRE solo cuando el resultado del caso sea 'CORROBORADO' o 'NO CORROBORADO', y dejarla vacía ('') cuando esté 'EN INVESTIGACIÓN', simplemente debes modificar el bucle donde generas cada fila de caso.
 
 Aquí te muestro exactamente cómo ajustarlo:
