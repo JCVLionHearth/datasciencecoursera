@@ -1,3 +1,51 @@
+library(dplyr)
+
+# Asegurarse que Identificación sea tipo carácter
+peps_Lexis <- peps_Lexis %>% 
+  mutate(Identificación = as.character(Identificación))
+
+# Copia de trabajo de la base original
+proveedores_match <- proveedores8
+
+# Cruce 1: por SORTL
+cruce1 <- proveedores_match %>%
+  left_join(peps_Lexis, by = c("SORTL" = "Identificación"), suffix = c("", "_peps"))
+
+# Si hay coincidencia, guardar las columnas relevantes
+proveedores_match <- cruce1 %>%
+  mutate(
+    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
+    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
+  ) %>%
+  select(-ends_with("_peps"))
+
+# Cruce 2: por STCD1 (solo si no encontró coincidencia antes)
+cruce2 <- proveedores_match %>%
+  left_join(peps_Lexis, by = c("STCD1" = "Identificación"), suffix = c("", "_peps"))
+
+proveedores_match <- cruce2 %>%
+  mutate(
+    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
+    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
+  ) %>%
+  select(-ends_with("_peps"))
+
+# Cruce 3: por LIFNR (solo si sigue sin coincidencia)
+cruce3 <- proveedores_match %>%
+  left_join(peps_Lexis, by = c("LIFNR" = "Identificación"), suffix = c("", "_peps"))
+
+proveedores_match <- cruce3 %>%
+  mutate(
+    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
+    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
+  ) %>%
+  select(-ends_with("_peps"))
+
+# Resultado final: todos los registros originales + coincidencias encontradas
+resultado_final <- proveedores_match
+
+
+
 Estoy haciendo algunos cruces iterativos con diferentes bases, la base principal es la que se llama proveedores y hago este tipo de cruce con diferentes fuentes, sin embargo he notado que algunos registros que se encuentran en la base principal se pierden, no necesito que desaparezcan, ayudame a ajustar el codigo para que los registros originales permanezcan a pesar de encontrar alguna coincidencia.
 
 # Cruce con peps identificados en lexis nexis
