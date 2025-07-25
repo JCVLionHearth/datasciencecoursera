@@ -1,3 +1,86 @@
+Gracias por notarlo. Tienes razón: el problema se debe a que R solo añade el sufijo (_fuente) a las columnas duplicadas entre ambas tablas, no a todas las columnas de la base fuente. Por tanto, si una columna no existe en la tabla base (proveedores) pero sí en la tabla fuente, no se genera el sufijo y se lanza un error cuando mutate(across(...)) intenta acceder a algo que no existe.
+
+⸻
+
+✅ Solución: Adaptar la función para manejar columnas nuevas y columnas que sí existen en ambas
+
+Reescribo la función para:
+	1.	Verificar si la columna ya está en la base de proveedores (es decir, si habrá sufijo).
+	2.	Hacer el mutate() solo para las que tienen nombre duplicado.
+	3.	Para las columnas nuevas, simplemente las dejamos pasar con el left_join().
+
+⸻
+
+✅ Versión mejorada y robusta de cruce_iterativo
+
+cruce_iterativo <- function(base_proveedores, base_fuente, columnas_cruce = c("SORTL", "STCD1", "LIFNR"), 
+                            columna_union_fuente, columnas_fuente_a_agregar, sufijo = "_fuente") {
+  
+  proveedores_resultado <- base_proveedores
+  
+  for (columna_cruce in columnas_cruce) {
+    
+    # Detectar qué columnas ya existen en proveedores (para usar ifelse de combinación)
+    columnas_existentes <- columnas_fuente_a_agregar[columnas_fuente_a_agregar %in% names(proveedores_resultado)]
+    columnas_nuevas <- setdiff(columnas_fuente_a_agregar, columnas_existentes)
+    
+    # Realizar join con sufijos si hay columnas existentes
+    proveedores_resultado <- proveedores_resultado %>%
+      left_join(base_fuente, by = setNames(columna_union_fuente, columna_cruce),
+                suffix = c("", sufijo))
+    
+    # Rellenar solo columnas duplicadas (existentes) si están vacías
+    if (length(columnas_existentes) > 0) {
+      proveedores_resultado <- proveedores_resultado %>%
+        mutate(across(
+          all_of(columnas_existentes),
+          ~ ifelse(is.na(.x), get(paste0(cur_column(), sufijo)), .x),
+          .names = "{.col}"
+        ))
+    }
+    
+    # Eliminar columnas con sufijo
+    columnas_con_sufijo <- paste0(columnas_existentes, sufijo)
+    proveedores_resultado <- proveedores_resultado %>% select(-any_of(columnas_con_sufijo))
+  }
+  
+  return(proveedores_resultado)
+}
+
+
+⸻
+
+✅ Cómo funciona
+
+Si haces un cruce así:
+
+proveedores8 <- cruce_iterativo(
+  base_proveedores = proveedores8,
+  base_fuente = peps_Lexis,
+  columnas_cruce = c("SORTL", "STCD1", "LIFNR"),
+  columna_union_fuente = "Identificación",
+  columnas_fuente_a_agregar = c("Clasificación", "Fuente", "OtraNueva")
+)
+
+	•	Si Clasificación ya existe en proveedores8, la rellena solo si está vacía.
+	•	Si OtraNueva no está en proveedores8, simplemente la deja pasar en el left_join, sin errores.
+
+⸻
+
+¿Deseas que te agregue también una columna que diga por cuál campo (SORTL/STCD1/LIFNR) se encontró la coincidencia?
+
+Por ejemplo:
+
+proveedores$fuente_match <- case_when(
+  !is.na(valor_agregado_por_SORTL) ~ "SORTL",
+  !is.na(valor_agregado_por_STCD1) ~ "STCD1",
+  !is.na(valor_agregado_por_LIFNR) ~ "LIFNR",
+  TRUE ~ NA_character_
+)
+
+Puedo incluirlo dentro de la función si lo deseas. ¿Te gustaría eso?
+
+
 Gracias por compartir el flujo completo. Como mencionaste, el problema es que estás usando bind_rows() con solo los registros que tuvieron coincidencia, por lo tanto, se pierden los proveedores que no coincidieron en ningún cruce.
 
 ✅ Objetivo:
