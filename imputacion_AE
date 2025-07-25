@@ -1,3 +1,6 @@
+hay varios registros el 90% de estos que no cruzaron con algun nit, por lo que no tienen codigo ciiu, si en el listado de Riesgo_AE hay dos campos descripción y categoría, los cuales son textos, podria hacer una imputación adicional de contratación_ciiu_riesgo por medio del texto o descripcion del objeto del contrato y categoria del contrato?
+
+
 Perfecto, con esa aclaración, haremos lo siguiente:
 
 ✅ Objetivo resumido:
