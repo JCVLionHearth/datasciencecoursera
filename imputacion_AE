@@ -1,3 +1,90 @@
+Sí, absolutamente. Cuando el 90% de los registros no cruzan por NIT y por tanto no tienen código CIIU, una imputación basada en el texto del “Objeto del contrato” y/o la “Categoría del contrato” es una muy buena alternativa. Te propongo una estrategia factible y automatizable en R, sin necesidad de usar deep learning, pero con lógica semántica y categórica útil.
+
+⸻
+
+✅ ESTRATEGIA: Imputar Descripción y Categoría de Riesgo_AE con NLP ligero
+
+Enfoque:
+	1.	Usar la columna Objeto_contrato (texto libre) para buscar coincidencias aproximadas con la columna Descripción del archivo Riesgo_AE.
+	2.	Luego imputar la Categoría correspondiente (ej. “Alto”, “Medio”, “Bajo”).
+	3.	Si no hay coincidencia fuerte, usar la columna Categoria_contrato (más estructurada) para empatar con alguna categoría del riesgo.
+
+⸻
+
+✅ IMPLEMENTACIÓN EN R
+
+library(stringdist)
+library(tidyverse)
+
+# Asumimos que Riesgo_AE ya está cargado así:
+# Columnas: Clase (numérico), Descripción (texto), Categoría (riesgo cualitativo)
+Riesgo_AE <- read_excel(file.path(ruta_riesgos, "Riesgo_actividad_economica.xlsx")) %>%
+  clean_names() %>%
+  select(descripcion, categoria) %>%
+  mutate(descripcion = str_to_upper(str_trim(descripcion)))
+
+# Limpiamos texto del objeto del contrato
+contratacion_clean <- contratacion_ciiu_riesgo %>%
+  mutate(
+    objeto_limpio = str_to_upper(str_trim(Objeto_contrato))
+  )
+
+# Imputación textual usando distancia de Jaro-Winkler
+imputaciones_texto <- contratacion_clean %>%
+  filter(is.na(ciiu_final)) %>%
+  mutate(id_fila = row_number()) %>%
+  crossing(Riesgo_AE) %>%
+  mutate(distancia = stringdist(objeto_limpio, descripcion, method = "jw")) %>%
+  group_by(id_fila) %>%
+  slice_min(order_by = distancia, n = 1) %>%  # Toma la mejor coincidencia
+  ungroup() %>%
+  filter(distancia < 0.20) %>%  # Umbral ajustable: 0.20 = 80% de similitud
+  select(id_fila, categoria_imputada = categoria)
+
+# Asignamos la categoría de riesgo donde aplique
+contratacion_imputada <- contratacion_clean %>%
+  mutate(id_fila = row_number()) %>%
+  left_join(imputaciones_texto, by = "id_fila") %>%
+  mutate(
+    Categoria_RAE = coalesce(Categoria_RAE, categoria_imputada),
+    Riesgo_AE = case_when(
+      is.na(Riesgo_AE) & Categoria_RAE == "ALTO" ~ 3,
+      is.na(Riesgo_AE) & Categoria_RAE == "MEDIO" ~ 2,
+      is.na(Riesgo_AE) & Categoria_RAE == "BAJO" ~ 1,
+      TRUE ~ Riesgo_AE
+    )
+  ) %>%
+  select(-id_fila, -categoria_imputada)
+
+
+⸻
+
+✅ Explicación:
+	•	Se usa stringdist con método "jw" (Jaro-Winkler), útil para texto corto y ruidoso.
+	•	Se permite empatar cualquier texto del objeto contractual con alguna descripción de actividad económica.
+	•	Se fija un umbral de similitud, que puedes ajustar:
+	•	0.15 → más estricto (solo empata si es muy similar)
+	•	0.25 → más permisivo (puede haber errores)
+
+⸻
+
+🧠 Alternativas avanzadas:
+
+Si deseas mejorar aún más la imputación textual:
+
+Opción A: TF-IDF + Cosine Similarity (más semántico que stringdist)
+	•	Usas tm o text2vec para vectorizar Objeto_contrato y Descripción
+	•	Calculas similitud de coseno
+	•	Empatas la descripción más parecida
+
+Opción B: Embeddings tipo SBERT en Python
+	•	Usar sentence-transformers y comparar con cosine_similarity
+
+⸻
+
+¿Quieres que te prepare una versión con TF-IDF + cosine o te basta con esta por ahora? También podemos incluir como última alternativa empatar por Categoria_contrato con una categoría fija de riesgo si todo lo demás falla.
+
+
 hay varios registros el 90% de estos que no cruzaron con algun nit, por lo que no tienen codigo ciiu, si en el listado de Riesgo_AE hay dos campos descripción y categoría, los cuales son textos, podria hacer una imputación adicional de contratación_ciiu_riesgo por medio del texto o descripcion del objeto del contrato y categoria del contrato?
 
 
