@@ -1,3 +1,28 @@
+> # Limpiamos texto del objeto del contrato
+> contratacion_clean <- contratacion_ciiu_riesgo %>%
++   mutate(
++     objeto_limpio = str_to_upper(str_trim(Objeto_contrato))
++   )
+> # Imputación textual usando distancia de Jaro-Winkler
+> imputaciones_texto <- contratacion_clean %>%
++   filter(is.na(ciiu_final)) %>%
++   mutate(id_fila = row_number()) %>%
++   crossing(Riesgo_AE) %>%
++   mutate(distancia = stringdist(objeto_limpio, Descripción, method = "jw")) %>%
++   group_by(id_fila) %>%
++   slice_min(order_by = distancia, n = 1) %>%  # Toma la mejor coincidencia
++   ungroup() %>%
++   filter(distancia < 0.20) %>%  # Umbral ajustable: 0.20 = 80% de similitud
++   select(id_fila, categoria_imputada = `Valor Riesgo`)
+Error in `expand_grid()`:
+! Names must be unique.
+✖ These names are duplicated:
+  * "Riesgo_AE" at locations 13 and 17.
+ℹ Use argument `.name_repair` to specify repair strategy.
+Run `rlang::last_trace()` to see where the error occurred.
+
+
+
 Sí, absolutamente. Cuando el 90% de los registros no cruzan por NIT y por tanto no tienen código CIIU, una imputación basada en el texto del “Objeto del contrato” y/o la “Categoría del contrato” es una muy buena alternativa. Te propongo una estrategia factible y automatizable en R, sin necesidad de usar deep learning, pero con lógica semántica y categórica útil.
 
 ⸻
