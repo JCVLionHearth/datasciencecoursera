@@ -1,3 +1,293 @@
+Perfecto, con esa aclaración, haremos lo siguiente:
+
+✅ Objetivo resumido:
+
+Imputar el CIIU faltante en contratacion_suscrita_df a través de tres pasos:
+	1.	Cruces por NIT con lfb1_final y listadoCIIU para obtener ciiucode y ciiu_ppal.
+	2.	Imputación del CIIU faltante por la modalidad predominante (moda/Pareto) considerando:
+	•	Subcategoría del contrato
+	•	Categoría
+	•	Objeto del contrato
+	3.	Asociar el riesgo de actividad económica (RAE) desde Riesgo_AE a través del código CIIU.
+	4.	Agregar una agregación final por:
+	•	Nit_Proveedor, Tipo_Industria, Subcategoria_contrato
+	•	Fecha máxima
+	•	Único CIIU
+	•	Riesgo máximo
+
+⸻
+
+✅ Código completo en R
+
+library(dplyr)
+library(stringr)
+library(janitor)
+library(lubridate)
+library(readxl)
+library(tidyr)
+library(purrr)
+library(forcats)
+
+# Limpieza y estandarización
+contratacion_suscrita_df <- contratacion_suscrita %>%
+  mutate(
+    Nombre_Proveedor = str_trim(str_to_upper(`Nombre Proveedor`)),
+    Nit_Proveedor = str_trim(str_to_upper(`Nit Proveedor`)),
+    Nemonico_Proveedor = str_trim(str_to_upper(`Nemonico Proveedor Mdte 500`)),
+    Tipo_Industria = str_trim(str_to_upper(`Tipo De Industria`)),
+    Fecha_Suscripcion = ymd(`Fecha Final`),
+    Objeto_contrato = str_trim(str_to_upper(`Objeto Contrato`)),
+    Categoria_contrato = str_trim(str_to_upper(`Categoría Nombre`)),
+    Subcategoria_contrato = str_trim(str_to_upper(`Subcategoria Contrato Nombre`)),
+    Numero_contrato_central = str_trim(str_to_upper(`Contrato Central`))
+  )
+
+lfb1_final <- LFB1 %>%
+  clean_names() %>%
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII")))) %>%
+  select(lifnr, ciiucode) %>%
+  mutate(ciiucode = as.numeric(ciiucode))
+
+listadoCIIU <- listadoCIIU %>%
+  clean_names() %>%
+  mutate(nit = str_trim(toupper(nit)))
+
+# Paso 1: Cruces con fuentes CIIU
+contratacion_ciiu <- contratacion_suscrita_df %>%
+  # Cruce 1: con LFB1
+  left_join(lfb1_final, by = c("Nit_Proveedor" = "lifnr")) %>%
+  rename(ciiu_codigo_lfb1 = ciiucode) %>%
+  
+  # Cruce 2: con listadoCIIU
+  left_join(listadoCIIU, by = c("Nit_Proveedor" = "nit")) %>%
+  rename(ciiu_codigo_listado = ciiu_ppal) %>%
+  
+  # Selección final de CIIU: prioriza LFB1, luego listadoCIIU
+  mutate(
+    ciiu_final = coalesce(ciiu_codigo_lfb1, as.numeric(ciiu_codigo_listado))
+  )
+
+# Paso 2: Imputación de CIIU faltante por moda/Pareto
+
+# Cálculo de moda CIIU por categoría/subcategoría/objeto
+moda_ciiu <- contratacion_ciiu %>%
+  filter(!is.na(ciiu_final)) %>%
+  count(Categoria_contrato, Subcategoria_contrato, Objeto_contrato, ciiu_final, sort = TRUE) %>%
+  group_by(Categoria_contrato, Subcategoria_contrato, Objeto_contrato) %>%
+  slice_max(order_by = n, n = 1, with_ties = FALSE) %>%
+  ungroup()
+
+# Imputación de valores NA
+contratacion_ciiu_imputado <- contratacion_ciiu %>%
+  left_join(moda_ciiu, by = c("Categoria_contrato", "Subcategoria_contrato", "Objeto_contrato"), suffix = c("", "_moda")) %>%
+  mutate(
+    ciiu_final = if_else(is.na(ciiu_final), ciiu_final_moda, ciiu_final)
+  ) %>%
+  select(-ciiu_codigo_lfb1, -ciiu_codigo_listado, -ciiu_final_moda)
+
+# Paso 3: Riesgo AE
+Riesgo_AE <- read_excel(file.path(ruta_riesgos, "Riesgo_actividad_economica.xlsx")) %>%
+  rename(ciiu_final = Clase) %>%
+  select(ciiu_final, `Valor Riesgo`, Categoría) %>%
+  mutate(ciiu_final = as.numeric(ciiu_final))
+
+contratacion_ciiu_riesgo <- contratacion_ciiu_imputado %>%
+  left_join(Riesgo_AE, by = "ciiu_final") %>%
+  rename(Riesgo_AE = `Valor Riesgo`, Categoria_RAE = Categoría)
+
+# Paso 4: Agregación final por proveedor
+resultado_final <- contratacion_ciiu_riesgo %>%
+  group_by(Nit_Proveedor, Tipo_Industria, Subcategoria_contrato) %>%
+  summarise(
+    Fecha_Suscripcion = max(Fecha_Suscripcion, na.rm = TRUE),
+    ciiu_final = first(na.omit(unique(ciiu_final))),
+    Riesgo_AE = max(Riesgo_AE, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+⸻
+
+✅ Otras opciones de imputación más avanzadas:
+
+Si quieres ir más allá de la moda/pareto (estadística clásica), aquí hay opciones más sofisticadas:
+	1.	Modelos de machine learning supervisados (si tienes suficientes datos ya etiquetados):
+	•	randomForest o xgboost con entrada: Categoria_contrato, Subcategoria_contrato, Objeto_contrato
+	•	Salida: ciiucode
+	2.	Modelos NLP tipo BERT sobre el campo Objeto_contrato:
+	•	Tokenizar descripciones, reducir dimensiones (TF-IDF o embeddings), y predecir la clase más probable (ciiucode).
+	3.	Clustering + imputación:
+	•	Clusterizar registros por similitud semántica en Objeto_contrato y usar la moda del cluster.
+
+¿Deseas que te implemente alguna de estas ideas avanzadas con código también?
+
+⸻
+
+Te dejo listo este flujo básico robusto, y tú me dices si quieres refinarlo aún más.
+
+
+####
+
+Perfecto. El objetivo es asignar un código CIIU a cada registro de contratacion_suscrita_df para luego evaluar el riesgo asociado a la actividad económica.
+
+A continuación te presento un flujo completo y modular, con diferentes enfoques:
+
+⸻
+
+🧭 PASO 1: Asignar CIIU directamente por NIT/LIFNR
+
+1.1 Cruce con lfb1_final (por LIFNR)
+
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  left_join(lfb1_final, by = c("Nit_Proveedor" = "lifnr")) %>%
+  rename(CIIU_LFB1 = ciiucode)
+
+1.2 Cruce con listadoCIIU (por NIT)
+
+listadoCIIU <- listadoCIIU %>%
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII"))))
+
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  left_join(listadoCIIU, by = c("Nit_Proveedor" = "nit")) %>%
+  rename(CIIU_LISTADO = ciiu_ppal)
+
+1.3 Consolidar campo CIIU_final según prioridad
+
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  mutate(
+    CIIU_final = case_when(
+      !is.na(CIIU_LFB1) & CIIU_LFB1 != 0 ~ as.character(CIIU_LFB1),
+      !is.na(CIIU_LISTADO) & CIIU_LISTADO != "0" ~ as.character(CIIU_LISTADO),
+      TRUE ~ NA_character_
+    )
+  )
+
+
+⸻
+
+🧭 PASO 2: Imputar CIIU cuando está faltante
+
+Opción 1️⃣: Moda por Subcategoría → Categoría → Objeto
+
+# Función auxiliar para calcular la moda (Pareto)
+moda <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# 1. Moda por Subcategoría
+moda_sub <- contratacion_suscrita_df %>%
+  filter(!is.na(CIIU_final)) %>%
+  group_by(Subcategoria_contrato) %>%
+  summarise(CIIU_moda_sub = moda(CIIU_final), .groups = "drop")
+
+# 2. Moda por Categoría
+moda_cat <- contratacion_suscrita_df %>%
+  filter(!is.na(CIIU_final)) %>%
+  group_by(Categoria_contrato) %>%
+  summarise(CIIU_moda_cat = moda(CIIU_final), .groups = "drop")
+
+# 3. Moda por Objeto contrato (si lo necesitas)
+moda_obj <- contratacion_suscrita_df %>%
+  filter(!is.na(CIIU_final)) %>%
+  group_by(Objeto_contrato) %>%
+  summarise(CIIU_moda_obj = moda(CIIU_final), .groups = "drop")
+
+# Join de las modas
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  left_join(moda_sub, by = "Subcategoria_contrato") %>%
+  left_join(moda_cat, by = "Categoria_contrato") %>%
+  left_join(moda_obj, by = "Objeto_contrato")
+
+# Imputar CIIU donde falta
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  mutate(
+    CIIU_imputado = case_when(
+      is.na(CIIU_final) & !is.na(CIIU_moda_sub) ~ CIIU_moda_sub,
+      is.na(CIIU_final) & !is.na(CIIU_moda_cat) ~ CIIU_moda_cat,
+      is.na(CIIU_final) & !is.na(CIIU_moda_obj) ~ CIIU_moda_obj,
+      TRUE ~ CIIU_final
+    )
+  )
+
+
+⸻
+
+🧠 Opción 2️⃣: Modelo de Clasificación (ML)
+
+Si quieres una opción más robusta, puedes entrenar un modelo supervisado (árbol de decisión, random forest, etc.) para predecir el CIIU usando como entrada:
+	•	Categoria_contrato
+	•	Subcategoria_contrato
+	•	Objeto_contrato (puede requerir vectorización de texto)
+
+Código base para Random Forest (ejemplo)
+
+library(randomForest)
+
+# Crear dataset con CIIU conocidos
+modelo_df <- contratacion_suscrita_df %>%
+  filter(!is.na(CIIU_final)) %>%
+  select(CIIU_final, Categoria_contrato, Subcategoria_contrato, Objeto_contrato) %>%
+  mutate(CIIU_final = as.factor(CIIU_final))
+
+# Convertir variables categóricas a factor
+modelo_df <- modelo_df %>%
+  mutate(across(c(Categoria_contrato, Subcategoria_contrato), as.factor))
+
+# Entrenar modelo
+modelo_rf <- randomForest(
+  CIIU_final ~ Categoria_contrato + Subcategoria_contrato + Objeto_contrato,
+  data = modelo_df,
+  ntree = 100
+)
+
+# Predecir CIIU en registros sin asignar
+sin_ciiu_df <- contratacion_suscrita_df %>%
+  filter(is.na(CIIU_final)) %>%
+  select(Categoria_contrato, Subcategoria_contrato, Objeto_contrato) %>%
+  mutate(across(c(Categoria_contrato, Subcategoria_contrato), as.factor))
+
+predicciones <- predict(modelo_rf, sin_ciiu_df)
+
+# Imputar predicciones
+contratacion_suscrita_df$CIIU_imputado[is.na(contratacion_suscrita_df$CIIU_final)] <- as.character(predicciones)
+
+
+⸻
+
+✅ PASO 3: Asignar riesgo por actividad económica
+
+# Preparar Riesgo_AE
+Riesgo_AE <- Riesgo_AE %>%
+  rename(CIIU = Clase) %>%
+  mutate(CIIU = as.character(CIIU))
+
+# Unir riesgo
+contratacion_suscrita_df <- contratacion_suscrita_df %>%
+  left_join(Riesgo_AE, by = c("CIIU_imputado" = "CIIU")) %>%
+  rename(
+    RIESGO_ACTIVIDAD_ECONOMICA = `Valor Riesgo`,
+    RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA = Categoría
+  )
+
+
+⸻
+
+✅ Resultado Final
+
+Ahora tienes un dataframe contratacion_suscrita_df con:
+	•	CIIU_final: obtenido por cruce directo
+	•	CIIU_imputado: incluyendo imputaciones por moda o ML
+	•	RIESGO_ACTIVIDAD_ECONOMICA: valor del riesgo
+	•	RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA: categoría del riesgo
+
+⸻
+
+¿Deseas que empaquete esto como una función general? ¿O que cree un script final en formato .R listo para correr?
+
+
+
+
 Necesito lo siguiente, de la base de contratación suscrita necesito "imputar" el codígo CIIU, el cual es un código de referencia de actividad económica y con esto se pretende identificar el riesgo por actividad económica, para esto se debe cruzar la base contratacion_suscrita_df con la base lfb1_final las llaves son Nit_proveedor y lifnr respectivamente y traer el campo ciiucode de la segunda base, luego de nuevo con la base de contratacion_suscrita_df se cruza con la base listadoCIIU, la llave de cruce de esta ultima base es nit y traer el campo ciiu_ppal, ahora para los registros de la base contratacion_suscrita_df sin cruce con el código ciiu es donde debo hacer alguna imputación, con los campos Objeto_contrato (Campo descriptivo del contrato), Categoria_contrato (campo que describe la categoría del contrato aprox 25 categorías), Subcategoria_contrato (campo con subcategorías derivadas de la categoria_contrato)...una idea es imputar con el Pareto (o moda) de ciiu encontrados por categoría, subcategoria y objeto del contrato.
 
 ¿Qué otras opciones o modelos podrías indicarme y mostrar el código?
