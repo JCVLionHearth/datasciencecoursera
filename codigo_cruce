@@ -1,0 +1,35 @@
+Estoy haciendo algunos cruces iterativos con diferentes bases, la base principal es la que se llama proveedores y hago este tipo de cruce con diferentes fuentes, sin embargo he notado que algunos registros que se encuentran en la base principal se pierden, no necesito que desaparezcan, ayudame a ajustar el codigo para que los registros originales permanezcan a pesar de encontrar alguna coincidencia.
+
+# Cruce con peps identificados en lexis nexis
+
+peps_Lexis<-peps_Lexis %>% 
+  mutate(
+    Identificación = as.character(Identificación)
+    )
+
+# Primer cruce con SORTL
+cruce1 <- proveedores8 %>%
+  left_join(peps_Lexis, by = c("SORTL" = "Identificación"))
+
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$Clasificación)
+proveedores_sin1 <- proveedores8[sin_coincidencia1, ]
+
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(peps_Lexis, by = c("STCD1" = "Identificación"))
+
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$Clasificación)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(peps_Lexis, by = c("LIFNR" = "Identificación"))
+
+# Unir todos los registros con coincidencias
+proveedores8 <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
