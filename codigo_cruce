@@ -1,52 +1,186 @@
-library(dplyr)
 
-# Asegurarse que Identificación sea tipo carácter
-peps_Lexis <- peps_Lexis %>% 
-  mutate(Identificación = as.character(Identificación))
+Los cruces son todos estos, ajusta para que pueda copiar y cambiar el codigo
 
-# Copia de trabajo de la base original
-proveedores_match <- proveedores8
+# cruce 6 con listados CIIU
+listadoCIIU <- listadoCIIU %>% 
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII"))))
 
-# Cruce 1: por SORTL
-cruce1 <- proveedores_match %>%
-  left_join(peps_Lexis, by = c("SORTL" = "Identificación"), suffix = c("", "_peps"))
+# Primer cruce con SORTL
+cruce1 <- proveedores5 %>%
+  left_join(listadoCIIU, by = c("SORTL" = "nit"))
 
-# Si hay coincidencia, guardar las columnas relevantes
-proveedores_match <- cruce1 %>%
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$ciiu_ppal)
+proveedores_sin1 <- proveedores5[sin_coincidencia1, ]
+
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(listadoCIIU, by = c("STCD1" = "nit"))
+
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$ciiu_ppal)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(listadoCIIU, by = c("LIFNR" = "nit"))
+
+# Unir todos los registros con coincidencias
+proveedores6 <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
+
+Riesgo_AE$clase2<-as.character(Riesgo_AE$clase)
+proveedores6<-left_join(proveedores6, Riesgo_AE, by = c("ciiu_ppal" = "clase2"))
+proveedores6<-proveedores6 %>%
+  rename(RIESGO_ACTIVIDAD_ECONOMICA2=valor_riesgo,
+         RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA2=categoria) %>%
+  distinct()
+
+
+# cruce 7 con lfb1 (Actividad economica)
+
+proveedores7 <- left_join(proveedores6, lfb1_final, by = c("LIFNR" = "lifnr"))
+proveedores7 %>% glimpse()
+summary(proveedores7)
+
+proveedores7$RIESGO_ACTIVIDAD_ECONOMICA_FINAL <- ifelse(is.na(proveedores7$RIESGO_ACTIVIDAD_ECONOMICA),
+                                                        proveedores7$RIESGO_ACTIVIDAD_ECONOMICA2,
+                                                        proveedores7$RIESGO_ACTIVIDAD_ECONOMICA)
+proveedores7$RIESGO_ACTIVIDAD_ECONOMICA_CAT_FINAL <- ifelse(is.na(proveedores7$RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA),
+                                                        proveedores7$RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA2,
+                                                        proveedores7$RIESGO_ACTIVIDAD_ECONOMICA_CATEGORIA)
+
+# cruce con el Supersociedades para el CIIU
+
+CIIU_SUPERSOCIEDADES <- CIIU_SUPERSOCIEDADES %>% 
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII"))))
+
+# Primer cruce con SORTL
+cruce1 <- proveedores7 %>%
+  left_join(CIIU_SUPERSOCIEDADES, by = c("SORTL" = "NIT"))
+
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$`Código CIIU`)
+proveedores_sin1 <- proveedores7[sin_coincidencia1, ]
+
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(CIIU_SUPERSOCIEDADES, by = c("STCD1" = "NIT"))
+
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$`Código CIIU`)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(CIIU_SUPERSOCIEDADES, by = c("LIFNR" = "NIT"))
+
+# Unir todos los registros con coincidencias
+proveedores7 <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
+
+proveedores7 <- proveedores7 %>%
   mutate(
-    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
-    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
-  ) %>%
-  select(-ends_with("_peps"))
+    CIIU_final = case_when(
+      !is.na(as.character(CIIU)) & !(as.character(CIIU) %in% c("0", "9999")) ~ as.character(CIIU), # viene de supersociedades
+      !is.na(as.character(ciiu_ppal)) & !(as.character(ciiu_ppal) %in% c("0", "9999")) ~ as.character(clase), # viene de otro listado ciiu
+      !is.na(as.character(ciiucode)) & !(as.character(ciiucode) %in% c("0", "9999")) ~ as.character(ciiucode), # viene de lfb1 SAP
+      TRUE ~ NA_character_
+    )
+  )
 
-# Cruce 2: por STCD1 (solo si no encontró coincidencia antes)
-cruce2 <- proveedores_match %>%
-  left_join(peps_Lexis, by = c("STCD1" = "Identificación"), suffix = c("", "_peps"))
 
-proveedores_match <- cruce2 %>%
+proveedores7<-left_join(proveedores7, Riesgo_AE, by = c("CIIU_final" = "clase2"))
+
+#indicadores<-proveedores7 %>% filter(indicador=="SI")
+#mean(is.na(indicadores$valor_riesgo))
+
+proveedores7<-proveedores7 %>%
+  rename(RIESGO_AE=valor_riesgo,
+         RIESGO_AE_CATEGORIA=categoria) %>%
+  distinct()
+
+######################
+##       PEPS       ##
+######################
+
+# Identificaciones a texto
+peps_final <- peps %>%
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII")))) %>%
   mutate(
-    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
-    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
-  ) %>%
-  select(-ends_with("_peps"))
+    NUMERO_DOCUMENTO = as.character(NUMERO_DOCUMENTO)
+  )
 
-# Cruce 3: por LIFNR (solo si sigue sin coincidencia)
-cruce3 <- proveedores_match %>%
-  left_join(peps_Lexis, by = c("LIFNR" = "Identificación"), suffix = c("", "_peps"))
+# quitar duplicados de peps
 
-proveedores_match <- cruce3 %>%
-  mutate(
-    Clasificación = ifelse(is.na(Clasificación), Clasificación_peps, Clasificación),
-    Fuente = ifelse(is.na(Fuente), Fuente_peps, Fuente)
-  ) %>%
-  select(-ends_with("_peps"))
+peps_final<-peps_final %>%
+  distinct(NUMERO_DOCUMENTO,.keep_all = TRUE)
 
-# Resultado final: todos los registros originales + coincidencias encontradas
-resultado_final <- proveedores_match
+# Primer cruce con SORTL
+cruce1 <- proveedores7 %>%
+  left_join(peps_final, by = c("SORTL" = "NUMERO_DOCUMENTO"))
 
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$NOMBRE_PEP)
+proveedores_sin1 <- proveedores7[sin_coincidencia1, ]
 
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(peps_final, by = c("STCD1" = "NUMERO_DOCUMENTO"))
 
-Estoy haciendo algunos cruces iterativos con diferentes bases, la base principal es la que se llama proveedores y hago este tipo de cruce con diferentes fuentes, sin embargo he notado que algunos registros que se encuentran en la base principal se pierden, no necesito que desaparezcan, ayudame a ajustar el codigo para que los registros originales permanezcan a pesar de encontrar alguna coincidencia.
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$NOMBRE_PEP)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(peps_final, by = c("LIFNR" = "NUMERO_DOCUMENTO"))
+
+# Unir todos los registros con coincidencias
+proveedores8 <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
+
+# Cruce con contratación suscrita
+
+contratacion_suscrita_tipo_oficial<-contratacion_suscrita_resumen %>%
+  filter(Tipo_Industria=="ENTIDAD OFICIAL")
+
+# Primer cruce con SORTL
+cruce1 <- proveedores8 %>%
+  left_join(contratacion_suscrita_tipo_oficial, by = c("SORTL" = "Nit_Proveedor"))
+
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$Tipo_Industria)
+proveedores_sin1 <- proveedores8[sin_coincidencia1, ]
+
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(contratacion_suscrita_tipo_oficial, by = c("STCD1" = "Nit_Proveedor"))
+
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$Tipo_Industria)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(contratacion_suscrita_tipo_oficial, by = c("LIFNR" = "Nit_Proveedor"))
+
+# Unir todos los registros con coincidencias
+proveedores8 <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
+
 
 # Cruce con peps identificados en lexis nexis
 
@@ -54,6 +188,8 @@ peps_Lexis<-peps_Lexis %>%
   mutate(
     Identificación = as.character(Identificación)
     )
+
+
 
 # Primer cruce con SORTL
 cruce1 <- proveedores8 %>%
@@ -81,3 +217,55 @@ proveedores8 <- bind_rows(
   cruce2[!sin_coincidencia2, ],
   cruce3
 )
+
+
+# columna fecha de desvinculacion a tipo Date
+
+proveedores8 <- proveedores8 %>% 
+  mutate(FECHA_DESVINCULACION = as.Date(FECHA_DESVINCULACION, format = "%m/%d/%Y"))
+
+proveedores8 <- proveedores8 %>%
+  mutate(
+    PEP = case_when(
+      is.na(NOMBRE_PEP) & is.na(Tipo_Industria) & is.na(Clasificación) ~ 1,
+      !is.na(NOMBRE_PEP) | !is.na(Tipo_Industria) | !is.na(Clasificación) ~ 3
+    )
+  )
+
+
+
+###########################
+##   FUENTES ABIERTAS    ##
+###########################
+noticias <- noticias %>%
+  group_by(IDENTIFICACION, EMPRESA) %>%
+  summarise(frecuencia = n(), .groups = "drop")
+
+# Primer cruce con SORTL
+cruce1 <- proveedores8 %>%
+  left_join(noticias, by = c("SORTL" = "IDENTIFICACION"))
+
+# Identificar registros sin coincidencia
+sin_coincidencia1 <- is.na(cruce1$EMPRESA)
+proveedores_sin1 <- proveedores8[sin_coincidencia1, ]
+
+
+# Segundo cruce con STCD1
+cruce2 <- proveedores_sin1 %>%
+  left_join(noticias, by = c("STCD1" = "IDENTIFICACION"))
+
+# Identificar registros sin coincidencia del segundo cruce
+sin_coincidencia2 <- is.na(cruce2$EMPRESA)
+proveedores_sin2 <- proveedores_sin1[sin_coincidencia2, ]
+
+# Tercer cruce con LIFNR
+cruce3 <- proveedores_sin2 %>%
+  left_join(noticias, by = c("LIFNR" = "IDENTIFICACION"))
+
+# Unir todos los registros con coincidencias
+proveedores8_final <- bind_rows(
+  cruce1[!sin_coincidencia1, ],
+  cruce2[!sin_coincidencia2, ],
+  cruce3
+)
+
