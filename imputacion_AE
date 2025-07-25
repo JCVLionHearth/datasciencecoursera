@@ -1,0 +1,47 @@
+Necesito lo siguiente, de la base de contratación suscrita necesito "imputar" el codígo CIIU, el cual es un código de referencia de actividad económica y con esto se pretende identificar el riesgo por actividad económica, para esto se debe cruzar la base contratacion_suscrita_df con la base lfb1_final las llaves son Nit_proveedor y lifnr respectivamente y traer el campo ciiucode de la segunda base, luego de nuevo con la base de contratacion_suscrita_df se cruza con la base listadoCIIU, la llave de cruce de esta ultima base es nit y traer el campo ciiu_ppal, ahora para los registros de la base contratacion_suscrita_df sin cruce con el código ciiu es donde debo hacer alguna imputación, con los campos Objeto_contrato (Campo descriptivo del contrato), Categoria_contrato (campo que describe la categoría del contrato aprox 25 categorías), Subcategoria_contrato (campo con subcategorías derivadas de la categoria_contrato)...una idea es imputar con el Pareto (o moda) de ciiu encontrados por categoría, subcategoria y objeto del contrato.
+
+¿Qué otras opciones o modelos podrías indicarme y mostrar el código?
+
+# Base 1
+
+contratacion_suscrita_df <- contratacion_suscrita %>%
+  mutate(
+    Nombre_Proveedor = str_trim(str_to_upper(`Nombre Proveedor`)),
+    Nit_Proveedor = str_trim(str_to_upper(`Nit Proveedor`)),
+    Nemonico_Proveedor = str_trim(str_to_upper(`Nemonico Proveedor Mdte 500`)),
+    Tipo_Industria = str_trim(str_to_upper(`Tipo De Industria`)),
+    Fecha_Suscripcion = ymd(`Fecha Final`),
+    Objeto_contrato=str_trim(str_to_upper(`Objeto Contrato`)),
+    Categoria_contrato = str_trim(str_to_upper(`Categoría Nombre`)),
+    Subcategoria_contrato = str_trim(str_to_upper(`Subcategoria Contrato Nombre`)),
+    Numero_contrato_central=str_trim(str_to_upper(`Contrato Central`))
+  )
+
+# Base 2
+
+LFB1 <- LFB1 %>% clean_names()
+LFB1 %>% glimpse()
+
+lfb1_final <- LFB1 %>% 
+  mutate(across(everything(), ~ toupper(stri_trans_general(str_trim(as.character(.)), "Latin-ASCII")))) %>%
+  select(lifnr,ciiucode) %>%
+  mutate(ciiucode=as.numeric(ciiucode))
+
+# Base 3
+listadoCIIU <- listadoCIIU %>% clean_names()
+listadoCIIU %>% glimpse()
+
+campos de esta base nit y ciiu_ppal
+
+# Base 4 Riesgo de Actividad económica
+> Riesgo_AE<-read_excel(file.path(ruta_riesgos, "Riesgo_actividad_economica.xlsx"))
+> Riesgo_AE %>% glimpse()
+
+el campo Clase es el código CIIU
+Rows: 495
+Columns: 4
+$ Clase          <dbl> 111, 112, 113, 114, 115, 119, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 141, 142, 143, 144, 145, 1…
+$ Descripción    <chr> "Cultivo de cereales (excepto arroz), legumbres y semillas oleaginosas", "Cultivo de arroz", "Cultivo de h…
+$ `Valor Riesgo` <dbl> 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1…
+$ Categoría      <chr> "Compañías Agroindustriales", "Compañías Agroindustriales", "Compañías Agroindustriales",
+
