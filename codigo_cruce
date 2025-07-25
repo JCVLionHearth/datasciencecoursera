@@ -1,3 +1,92 @@
+Gracias por compartir el flujo completo. Como mencionaste, el problema es que estás usando bind_rows() con solo los registros que tuvieron coincidencia, por lo tanto, se pierden los proveedores que no coincidieron en ningún cruce.
+
+✅ Objetivo:
+	•	Reescribir los cruces iterativos (SORTL, STCD1, LIFNR) para que ningún registro de proveedores desaparezca.
+	•	Mantener los valores de coincidencia solo si no fueron llenados antes (no sobrescribir).
+	•	Facilitar la copia para aplicarlo en cualquier cruce de forma modular.
+
+⸻
+
+✅ Función Generalizada para Cruces Iterativos
+
+Te propongo una función reutilizable en R que aplica el cruce por hasta tres columnas (SORTL, STCD1, LIFNR), sin perder registros:
+
+cruce_iterativo <- function(base_proveedores, base_fuente, columnas_cruce = c("SORTL", "STCD1", "LIFNR"), 
+                            columna_union_fuente, columnas_fuente_a_agregar, sufijo = "_fuente") {
+  
+  proveedores_resultado <- base_proveedores
+  
+  for (columna_cruce in columnas_cruce) {
+    proveedores_resultado <- proveedores_resultado %>%
+      left_join(base_fuente, by = setNames(columna_union_fuente, columna_cruce), suffix = c("", sufijo)) %>%
+      mutate(across(
+        all_of(columnas_fuente_a_agregar),
+        ~ ifelse(is.na(.x), get(paste0(cur_column(), sufijo)), .x),
+        .names = "{.col}"
+      )) %>%
+      select(-ends_with(sufijo))
+  }
+  
+  return(proveedores_resultado)
+}
+
+
+⸻
+
+✅ Cómo Usarlo en Tu Caso
+
+Ejemplo 1: Cruce con peps_Lexis
+
+peps_Lexis <- peps_Lexis %>%
+  mutate(Identificación = as.character(Identificación))
+
+proveedores8 <- cruce_iterativo(
+  base_proveedores = proveedores8,
+  base_fuente = peps_Lexis,
+  columnas_cruce = c("SORTL", "STCD1", "LIFNR"),
+  columna_union_fuente = "Identificación",
+  columnas_fuente_a_agregar = c("Clasificación", "Fuente")
+)
+
+Ejemplo 2: Cruce con noticias
+
+noticias <- noticias %>%
+  group_by(IDENTIFICACION, EMPRESA) %>%
+  summarise(frecuencia = n(), .groups = "drop")
+
+proveedores8_final <- cruce_iterativo(
+  base_proveedores = proveedores8,
+  base_fuente = noticias,
+  columnas_cruce = c("SORTL", "STCD1", "LIFNR"),
+  columna_union_fuente = "IDENTIFICACION",
+  columnas_fuente_a_agregar = c("EMPRESA", "frecuencia")
+)
+
+Ejemplo 3: Cruce con CIIU_SUPERSOCIEDADES
+
+proveedores7 <- cruce_iterativo(
+  base_proveedores = proveedores7,
+  base_fuente = CIIU_SUPERSOCIEDADES,
+  columnas_cruce = c("SORTL", "STCD1", "LIFNR"),
+  columna_union_fuente = "NIT",
+  columnas_fuente_a_agregar = c("Código CIIU")
+)
+
+
+⸻
+
+✅ Ventajas
+	•	Reutilizable para todos tus cruces (LexisNexis, noticias, contratación, supersociedades, etc.).
+	•	Conserva todos los registros de proveedores, aunque no coincidan.
+	•	No sobrescribe valores previos, solo llena vacíos.
+	•	Limpia automáticamente las columnas duplicadas con sufijo temporal.
+
+⸻
+
+¿Quieres que también te dé una función que registre en qué columna se encontró la coincidencia (SORTL, STCD1, LIFNR)? Eso puede ser útil para trazabilidad o auditoría.
+
+
+
 
 Los cruces son todos estos, ajusta para que pueda copiar y cambiar el codigo
 
