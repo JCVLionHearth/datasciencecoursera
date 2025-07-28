@@ -1,3 +1,78 @@
+
+Gracias por compartir tu flujo completo. Estás haciendo una imputación bastante sofisticada en dos etapas: primero semántica y luego por nombre base, lo cual es una muy buena estrategia. El problema que identificas —que ciertos valores como 4661 no se están imputando correctamente a registros con nombres similares (como el grupo “TRAFIGURA”)— tiene que ver con cómo estás extrayendo el nombre_base y cómo se calcula la moda. Aquí te dejo una explicación detallada y una versión corregida y mejorada del código:
+
+⸻
+
+🔎 Diagnóstico del problema
+	1.	Extracción del nombre base (nombre_base):
+	•	Estás usando str_extract(MCOD_clean, "^[A-Z]+"), que solo extrae la primera palabra. En el caso de TRAFIGURA MARKETING COLOM, nombre_base será "TRAFIGURA", pero si tienes espacios raros, símbolos, o prefijos como C.I., podrías estar rompiendo agrupaciones correctas.
+	2.	Cálculo de la moda:
+	•	Estás usando moda_con_mayoria con un umbral = 0.05, es decir, con solo un 5% ya se acepta como mayoría. Eso no impone una restricción fuerte, y puede seleccionar códigos poco representativos.
+	•	Además, si hay empates, which.max() puede retornar el primero que encuentra, incluso si no es el más frecuente semánticamente.
+
+⸻
+
+✅ Recomendaciones
+
+1. Normaliza el nombre base con más robustez:
+
+# Extrae la palabra clave más representativa (por ejemplo, TRAFIGURA o ECOPETROL)
+extraer_nombre_base <- function(nombre) {
+  nombre <- str_squish(str_to_upper(nombre))
+  nombre <- str_replace_all(nombre, "C\\.I\\.|S\\.A\\.|LTDA|LTD|LLC|\\.|\\,", "")  # elimina siglas comunes
+  palabras <- str_split(nombre, " ")[[1]]
+  palabras <- palabras[nchar(palabras) > 3]  # descarta palabras muy cortas o poco informativas
+  return(palabras[1])
+}
+
+2. Usa esa función en un mutate:
+
+proveedores_ciiu_imputado2 <- proveedores_ciiu_imputado %>%
+  mutate(nombre_base = sapply(MCOD_1, extraer_nombre_base)) %>%
+  group_by(nombre_base) %>%
+  mutate(
+    moda_valor = moda_con_mayoria(CIIU_final, umbral = 0.30),  # sube el umbral a 30% o más
+    CIIU_final = if_else(is.na(CIIU_final), moda_valor, CIIU_final)
+  ) %>%
+  ungroup() %>%
+  select(-nombre_base, -moda_valor)
+
+
+⸻
+
+🧪 Alternativa más precisa: ponderación con conteo
+
+Si quieres una imputación más estricta, puedes cambiar el criterio de moda por número absoluto de ocurrencias (no proporción):
+
+moda_por_frecuencia <- function(x, min_veces = 2) {
+  x <- na.omit(x)
+  if (length(x) == 0) return(NA)
+  tab <- sort(table(x), decreasing = TRUE)
+  if (tab[1] >= min_veces) return(names(tab)[1]) else return(NA)
+}
+
+
+⸻
+
+📊 Validación final
+
+Puedes ver qué registros siguen sin imputar y revisar si hay patrones:
+
+filtro_no_imputados <- proveedores_ciiu_imputado2 %>%
+  filter(is.na(CIIU_final))
+
+table(filtro_no_imputados$Tipo_Industria)
+
+
+⸻
+
+✅ Conclusión
+	•	Estás haciendo muy bien el enfoque de imputación por etapas: semántica (TF-IDF) + nombre (cluster).
+	•	El problema puntual parece estar en la forma de extraer y agrupar por nombre.
+	•	Con una limpieza más robusta y un umbral de mayoría más exigente, deberías lograr que registros como TRAFIGURA ENVIRONMENTAL S se imputen correctamente con 4661, al igual que los demás del grupo.
+
+¿Quieres que prepare una versión integrada del script completo con estas mejoras?
+
 Antes de aplicar la imputación por nombre, estoy realizando una imputación semántica por objeto y categoría del contrato con el fin de ir completando los códigos CIIU (CIIU_final) que es un código que me permitirá identificar el riesgo par actividad económica, es 3 si son actividades que puedan estar relacionadas con LAFT, actualmente hago esto:
 
 # imputación por similitud semántica
