@@ -1,21 +1,75 @@
-Gracias por el ejemplo, el problema está en cómo estás creando el grupo nombre_base con word(MCOD_1, 1, 3). Esa función simplemente toma las tres primeras palabras de la cadena sin limpiar caracteres especiales, por lo que nombres como:
-	•	"TRAFIGURA ENVIRONMENTAL S"
-	•	"TRAFIGURA MARKETING COLOM"
+Antes de aplicar la imputación por nombre, estoy realizando una imputación semántica por objeto y categoría del contrato con el fin de ir completando los códigos CIIU (CIIU_final) que es un código que me permitirá identificar el riesgo par actividad económica, es 3 si son actividades que puedan estar relacionadas con LAFT, actualmente hago esto:
 
-no quedan agrupados como "TRAFIGURA".
+# imputación por similitud semántica
 
-⸻
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(text2vec)
 
-✅ Solución: Normaliza los nombres para agrupar por raíz común
+# Paso 1: Crear campo combinado y filtrar registros válidos
+base_referencia <- proveedores_ciiu_imputado %>%
+  filter(!is.na(Objeto_contrato), !is.na(Categoria_contrato), !is.na(CIIU_final)) %>%
+  mutate(texto_combinado = paste(Objeto_contrato, Categoria_contrato, sep = " ")) %>%
+  select(texto_combinado, CIIU_final)
 
-Podemos hacer lo siguiente:
-	1.	Limpiar espacios y tildes.
-	2.	Extraer un identificador base del nombre (como “TRAFIGURA”).
-	3.	Agrupar por ese identificador y aplicar la moda condicionada.
+# Paso 2: Vectorizar con TF-IDF
+tokens <- word_tokenizer(base_referencia$texto_combinado)
+it <- itoken(tokens, progressbar = FALSE)
+vocab <- create_vocabulary(it)
+vectorizer <- vocab_vectorizer(vocab)
+dtm <- create_dtm(it, vectorizer)
+tfidf <- TfIdf$new()
+dtm_tfidf <- tfidf$fit_transform(dtm)
 
-⸻
+# Paso 3: Función para imputar por similitud semántica
+imputar_por_similitud <- function(objeto, categoria) {
+  if (is.na(objeto) | is.na(categoria)) return(NA)
+  
+  texto <- paste(objeto, categoria, sep = " ")
+  texto_tokens <- word_tokenizer(texto)
+  it_query <- itoken(texto_tokens, progressbar = FALSE)
+  dtm_query <- create_dtm(it_query, vectorizer)
+  dtm_query_tfidf <- tfidf$transform(dtm_query)
+  
+  similitudes <- sim2(dtm_query_tfidf, dtm_tfidf, method = "cosine")
+  top_idx <- order(similitudes[1, ], decreasing = TRUE)[1:5]
+  moda <- base_referencia$CIIU_final[top_idx] %>% na.omit() %>% table() %>% which.max()
+  
+  return(names(moda))
+}
 
-✅ Código corregido:
+# Paso 4: Aplicar imputación
+proveedores_ciiu_imputado <- proveedores_ciiu_imputado %>%
+  mutate(
+    CIIU_final = if_else(
+      is.na(CIIU_final) & !is.na(Objeto_contrato) & !is.na(Categoria_contrato),
+      mapply(imputar_por_similitud, Objeto_contrato, Categoria_contrato),
+      CIIU_final
+    )
+  )
+
+
+mean(is.na(proveedores_ciiu_imputado$CIIU_final))
+
+pero quiero evitar ambigüedades o falsos positivos.
+
+Algunos ejemplos son:
+
+
+MCOD_1	CIIU_final (antes)	Tipo_Industria	Objeto_contrato	Categoria_contrato	CIIU_final (despues)
+TRAFIGURA MARKETING COLOM	4661	OTRAS FIRMAS JURIDICAS	CONTRATO IMPALA 2020- TRANSPORTE DE OLEF	PROCESOS EXCEPTUADOS - VCM	4661
+TRAFIGURA ENERGY COLOMBIA	4661	OTRAS FIRMAS JURIDICAS	DILUYENTE PARA CRUDO	QUÍMICOS Y CATALIZADORES	4661
+C.I. TRAFIGURA PETROLEUM	4661	NA	NA	NA	4661
+TRAFIGURA PTE LTD	NA	EMPRESA EXTRANJERA	DEMORAS	DEMORAS	4290
+TRAFIGURA MARITIME LOGIST	NA	EMPRESA EXTRANJERA	FLETE PROPANO SEP 13-15/2015	OTRAS CATEGORÍAS	6412
+TRAFIGURA SECURITISATION	NA	NA	NA	NA	NA
+TRAFIGURA TRADING LLC	NA	EMPRESA EXTRANJERA	XILENO IMPORTADO	QUÍMICOS Y CATALIZADORES	4669
+TRAFIGURA ENVIRONMENTAL S	NA	NA	NA	NA	NA
+
+después de esto hago la imputación por nombre
+
+## imputacion por nombre
 
 library(dplyr)
 library(stringr)
@@ -45,73 +99,4 @@ proveedores_ciiu_imputado2 <- proveedores_ciiu_imputado %>%
   select(-MCOD_clean, -nombre_base, -moda_valor)
 
 
-⸻
-
-🔍 Qué hace este código:
-	•	str_squish() elimina espacios dobles.
-	•	str_to_upper() estandariza mayúsculas.
-	•	str_extract(..., "^[A-Z]+") captura la primera palabra (marca principal).
-	•	Agrupa por esa base común (por ejemplo "TRAFIGURA").
-	•	Imputa el código CIIU más frecuente si al menos el 5% lo usa (umbral = 0.05).
-
-⸻
-
-🧪 Resultado esperado con tus datos de ejemplo:
-
-MCOD_1	ANTES	CIIU_final
-TRAFIGURA ENVIRONMENTAL S	NA	4661
-TRAFIGURA TRADING LLC	4669	4669
-TRAFIGURA SECURITISATION	NA	4661
-TRAFIGURA MARITIME LOGIST	6412	6412
-TRAFIGURA PTE LTD	4290	4290
-C.I. TRAFIGURA PETROLEUM	4661	4661
-TRAFIGURA ENERGY COLOMBIA	4661	4661
-TRAFIGURA MARKETING COLOM	4661	4661
-
-
-⸻
-
-¿Quieres que además le dé prioridad a los códigos CIIU de longitud 4 dígitos o que solo tome esos para la moda? También es posible.
-
-
-
-Estoy intentando imputar por similitud de nombre el código CIIU por medio del siguiente código en R
-
-## imputacion por nombre
-
-library(dplyr)
-
-# Función para obtener la moda solo si representa mayoría
-moda_con_mayoria <- function(x, umbral = 0.05) {
-  x <- na.omit(x)
-  if (length(x) == 0) return(NA)
-  tab <- table(x)
-  moda <- names(tab)[which.max(tab)]
-  prop <- max(tab) / sum(tab)
-  if (prop >= umbral) return(moda) else return(NA)
-}
-
-# Aplicar imputación con control de mayoría
-proveedores_ciiu_imputado2 <- proveedores_ciiu_imputado %>%
-  mutate(nombre_base = word(MCOD_1, 1, 3)) %>%
-  group_by(nombre_base) %>%
-  mutate(
-    moda_valor = moda_con_mayoria(CIIU_final, umbral = 0.05),
-    CIIU_final = if_else(is.na(CIIU_final), moda_valor, CIIU_final)
-  ) %>%
-  ungroup() %>%
-  select(-nombre_base, -moda_valor)
-
-Pero veo que no lo hace como yo quiera, pues en este ejemplo debería imputarse el 4661 que es el que mas se repite de los nombres similares del grupo TRAFIGURA, pero esta poniendo un 10 y un NA
-
-MCOD_1	ANTES	CIIU_final
-TRAFIGURA ENVIRONMENTAL S	NA	NA
-TRAFIGURA TRADING LLC	4669	4669
-TRAFIGURA SECURITISATION	NA	10
-TRAFIGURA MARITIME LOGIST	6412	6412
-TRAFIGURA PTE LTD	4290	4290
-C.I. TRAFIGURA PETROLEUM	4661	4661
-TRAFIGURA ENERGY COLOMBIA	4661	4661
-TRAFIGURA MARKETING COLOM	4661	4661
-
-como lo resuelvo
+mean(is.na(proveedores_ciiu_imputado2$CIIU_final))
