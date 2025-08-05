@@ -6,3 +6,228 @@ Necesito me ayudes a crear un proyecto e visual studio code para que haga lo sig
 3. otro script tipo cotizador en el que se pueda ingresar datos para cotizar la prima de riesgo, de acuerdo con la suma asegurada del cliente
 
 El ejercicio debe ser lo más parecido con la realidad, es decir el objetivo es que yo como actuario mediante la modelación pueda estimar la probabilidad y la severidad mediante los valores estimados del modelo glm
+
+Perfecto, Juan. Vamos a estructurar este proyecto actuarial de pricing en Python con enfoque realista, utilizando modelos lineales generalizados (GLM), dividido en tres scripts:
+
+⸻
+
+🗂 Estructura del Proyecto en Visual Studio Code
+
+auto_insurance_pricing/
+│
+├── data/
+│   └── siniestros_ficticios.csv         # Datos sintéticos generados
+│
+├── scripts/
+│   ├── 1_generar_datos.py               # Generador de datos ficticios
+│   ├── 2_modelos_glm.py                 # Modelos GLM de severidad y frecuencia
+│   └── 3_cotizador_prima.py            # Cotizador de prima de riesgo
+│
+├── requirements.txt                     # Paquetes necesarios
+└── README.md                            # Descripción del proyecto
+
+
+⸻
+
+📌 1. 1_generar_datos.py: Generador de datos ficticios
+
+Generaremos una base realista de siniestros. Incluirá características del vehículo, conductor, tipo de daño, suma asegurada y valor del siniestro.
+
+🧩 Variables clave
+	•	tipo_danio: perdida parcial, total, robo
+	•	valor_siniestro: severidad
+	•	frecuencia: se infiere luego por modelado de eventos
+	•	auto: marca, modelo, peso, cilindraje, color, puestos, valor comercial
+	•	conductor: edad, género, estado civil, experiencia, historial
+	•	suma_asegurada: por tipo de daño
+
+✅ Código
+
+import pandas as pd
+import numpy as np
+import random
+from faker import Faker
+
+fake = Faker()
+np.random.seed(42)
+
+def generar_datos(n=5000):
+    tipo_danio = ['perdida parcial', 'robo', 'perdida total']
+    colores = ['rojo', 'azul', 'blanco', 'negro', 'gris', 'plateado']
+    marcas = ['Toyota', 'Mazda', 'Chevrolet', 'Renault', 'Ford']
+    modelos = list(range(2005, 2024))
+
+    datos = []
+    for _ in range(n):
+        marca = random.choice(marcas)
+        modelo = random.choice(modelos)
+        valor_comercial = np.random.randint(20_000_000, 100_000_000)
+        peso = np.random.randint(900, 2500)
+        cilindraje = np.random.randint(1000, 3500)
+        puestos = random.choice([2, 4, 5, 7])
+        color = random.choice(colores)
+
+        edad = np.random.randint(18, 80)
+        genero = random.choice(['M', 'F'])
+        estado_civil = random.choice(['soltero', 'casado', 'divorciado'])
+        experiencia = np.random.randint(0, max(edad - 16, 1))
+        historial = np.random.poisson(0.3)
+
+        tipo = random.choice(tipo_danio)
+        suma_asegurada = valor_comercial * random.uniform(0.7, 1.1)
+        prob_siniestro = 0.1 + 0.01 * historial + 0.005 * (80 - edad)  # mayor riesgo jóvenes y con historial
+        hubo_siniestro = np.random.binomial(1, min(prob_siniestro, 1))
+
+        valor_siniestro = 0
+        if hubo_siniestro:
+            if tipo == 'perdida parcial':
+                valor_siniestro = np.random.uniform(0.1, 0.5) * suma_asegurada
+            elif tipo == 'robo':
+                valor_siniestro = np.random.uniform(0.5, 1.0) * suma_asegurada
+            else:
+                valor_siniestro = suma_asegurada
+
+        datos.append({
+            'marca': marca,
+            'modelo': modelo,
+            'valor_comercial': valor_comercial,
+            'peso': peso,
+            'cilindraje': cilindraje,
+            'puestos': puestos,
+            'color': color,
+            'edad': edad,
+            'genero': genero,
+            'estado_civil': estado_civil,
+            'experiencia': experiencia,
+            'historial': historial,
+            'tipo_danio': tipo if hubo_siniestro else 'sin_siniestro',
+            'suma_asegurada': suma_asegurada,
+            'valor_siniestro': valor_siniestro,
+            'hubo_siniestro': hubo_siniestro
+        })
+
+    return pd.DataFrame(datos)
+
+if __name__ == "__main__":
+    df = generar_datos()
+    df.to_csv("../data/siniestros_ficticios.csv", index=False)
+    print("✅ Datos ficticios guardados.")
+
+
+⸻
+
+📌 2. 2_modelos_glm.py: Modelos GLM
+
+Utilizaremos statsmodels para modelar:
+	•	Frecuencia (probabilidad de siniestro): GLM binomial
+	•	Severidad (monto del siniestro): GLM Gamma (con link log)
+
+✅ Código
+
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("../data/siniestros_ficticios.csv")
+
+# Preprocesamiento
+df['genero'] = df['genero'].astype('category')
+df['estado_civil'] = df['estado_civil'].astype('category')
+df['color'] = df['color'].astype('category')
+df['marca'] = df['marca'].astype('category')
+
+# ----------------------------
+# MODELO DE FRECUENCIA
+# ----------------------------
+formula_frecuencia = "hubo_siniestro ~ edad + C(genero) + experiencia + historial + valor_comercial + cilindraje + peso"
+modelo_frec = smf.glm(formula=formula_frecuencia, data=df, family=sm.families.Binomial()).fit()
+print("\n--- Modelo Frecuencia (GLM Binomial) ---\n")
+print(modelo_frec.summary())
+
+# ----------------------------
+# MODELO DE SEVERIDAD
+# ----------------------------
+df_severos = df[df["hubo_siniestro"] == 1].copy()
+formula_severidad = "valor_siniestro ~ edad + C(genero) + experiencia + valor_comercial + cilindraje + peso + historial"
+modelo_sev = smf.glm(formula=formula_severidad, data=df_severos,
+                     family=sm.families.Gamma(link=sm.genmod.families.links.log())).fit()
+
+print("\n--- Modelo Severidad (GLM Gamma) ---\n")
+print(modelo_sev.summary())
+
+# ----------------------------
+# GRAFICOS
+# ----------------------------
+def graficar_residuos(modelo, titulo):
+    plt.figure()
+    plt.scatter(modelo.fittedvalues, modelo.resid_response)
+    plt.axhline(0, color='red', linestyle='--')
+    plt.xlabel("Valores ajustados")
+    plt.ylabel("Residuos")
+    plt.title(titulo)
+    plt.show()
+
+graficar_residuos(modelo_frec, "Residuos Frecuencia")
+graficar_residuos(modelo_sev, "Residuos Severidad")
+
+# Guardar modelos si se desea usar en el cotizador
+modelo_frec.save("../scripts/modelo_frecuencia.pickle")
+modelo_sev.save("../scripts/modelo_severidad.pickle")
+
+
+⸻
+
+📌 3. 3_cotizador_prima.py: Cotizador
+
+✅ Código
+
+import pandas as pd
+import statsmodels.api as sm
+import numpy as np
+
+# Cargar modelos entrenados
+modelo_frec = sm.load("modelo_frecuencia.pickle")
+modelo_sev = sm.load("modelo_severidad.pickle")
+
+# Datos de entrada
+nuevo = pd.DataFrame([{
+    'edad': 30,
+    'genero': 'M',
+    'experiencia': 10,
+    'historial': 1,
+    'valor_comercial': 60000000,
+    'cilindraje': 1600,
+    'peso': 1200
+}])
+
+# Deben coincidir las dummies con el modelo
+nuevo['genero'] = nuevo['genero'].astype('category')
+
+# Estimaciones
+prob = modelo_frec.predict(nuevo)[0]
+severidad = modelo_sev.predict(nuevo)[0]
+
+prima_riesgo = prob * severidad
+
+print(f"🧮 Probabilidad estimada de siniestro: {prob:.3f}")
+print(f"💥 Severidad estimada: ${severidad:,.0f}")
+print(f"💰 Prima de riesgo sugerida: ${prima_riesgo:,.0f}")
+
+
+⸻
+
+📦 requirements.txt
+
+pandas
+numpy
+faker
+matplotlib
+seaborn
+statsmodels
+
+
+⸻
+
+¿Quieres que te empaquete esto como ZIP listo para descargar? ¿O deseas agregar validaciones adicionales como scoring de riesgo o segmentaciones por clústeres?
