@@ -231,3 +231,381 @@ statsmodels
 ⸻
 
 ¿Quieres que te empaquete esto como ZIP listo para descargar? ¿O deseas agregar validaciones adicionales como scoring de riesgo o segmentaciones por clústeres?
+
+
+A continuación, te presento una propuesta de proyecto en Visual Studio Code para implementar un modelo de pricing actuarial para seguros de automóviles utilizando Modelos Lineales Generalizados (GLM). El proyecto se divide en tres scripts de Python, tal como lo solicitaste.
+Estructura del Proyecto
+Se sugiere la siguiente estructura de carpetas y archivos dentro de tu proyecto en Visual Studio Code:
+/pricing_automoviles
+├── /data
+│   └── (aquí se guardará la base de datos ficticia)
+├── /src
+│   ├── 1_generar_datos_ficticios.py
+│   ├── 2_modelacion_glm.py
+│   └── 3_cotizador.py
+├── requirements.txt
+└── README.md
+
+1. Script para generar una base de siniestros ficticia (1_generar_datos_ficticios.py)
+Este script utiliza la librería pandas para la manipulación de datos y numpy para la generación de valores aleatorios. Se generarán datos que simulen el comportamiento de una cartera de seguros de automóviles.
+# 1_generar_datos_ficticios.py
+
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+
+def generar_datos_ficticios(num_registros=10000):
+    """
+    Genera una base de datos ficticia de siniestros de automóviles para pricing.
+
+    Args:
+        num_registros (int): Número de registros a generar.
+
+    Returns:
+        pd.DataFrame: DataFrame con los datos generados.
+    """
+
+    # --- Variables de las pólizas ---
+    ids_poliza = [f'POL-{i+1:05d}' for i in range(num_registros)]
+    fechas_emision = pd.to_datetime('2023-01-01') + pd.to_timedelta(np.random.randint(0, 365, num_registros), unit='D')
+    dias_cobertura = np.random.randint(1, 365, num_registros)
+    fechas_vencimiento = fechas_emision + pd.to_timedelta(dias_cobertura, unit='D')
+    exposicion = dias_cobertura / 365.0
+
+    # --- Características del Conductor ---
+    genero = np.random.choice(['Hombre', 'Mujer', 'Otro'], num_registros, p=[0.55, 0.44, 0.01])
+    edad = np.random.randint(18, 75, num_registros)
+    estado_civil = np.random.choice(['Soltero', 'Casado', 'Divorciado', 'Viudo'], num_registros, p=[0.45, 0.45, 0.05, 0.05])
+    
+    # Simulación: jóvenes solteros tienen más riesgo
+    riesgo_edad_genero_civil = np.ones(num_registros)
+    riesgo_edad_genero_civil[(edad < 25) & (genero == 'Hombre') & (estado_civil == 'Soltero')] = 1.5
+    riesgo_edad_genero_civil[(edad < 25) & (genero == 'Mujer') & (estado_civil == 'Soltero')] = 1.3
+    
+    # --- Características del Vehículo ---
+    marca = np.random.choice(['Toyota', 'Nissan', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz'], num_registros)
+    modelo_anio = np.random.randint(2005, 2024, num_registros)
+    cilindraje = np.random.choice([1.0, 1.2, 1.6, 2.0, 2.5, 3.0], num_registros, p=[0.1, 0.2, 0.3, 0.2, 0.1, 0.1])
+    peso_kg = np.random.uniform(900, 2500, num_registros)
+    puestos = np.random.choice([2, 4, 5, 7], num_registros, p=[0.05, 0.15, 0.7, 0.1])
+    color = np.random.choice(['Blanco', 'Negro', 'Gris', 'Rojo', 'Azul'], num_registros)
+    suma_asegurada = np.random.uniform(15000000, 250000000, num_registros)
+    
+    # Simulación: modelos más nuevos y de alta gama tienen mayor suma asegurada
+    suma_asegurada[modelo_anio > 2020] *= 1.2
+    suma_asegurada[marca.isin(['BMW', 'Mercedes-Benz'])] *= 1.5
+
+    # --- Generación de Siniestros (probabilidad) ---
+    # La probabilidad de siniestro depende de las características
+    prob_base_siniestro = 0.05  # Probabilidad anual base
+    prob_siniestro = prob_base_siniestro * exposicion * riesgo_edad_genero_civil
+    
+    # Ajuste de probabilidad por otras variables
+    prob_siniestro[cilindraje > 2.0] *= 1.2
+    prob_siniestro[puestos == 2] *= 1.1
+    
+    # Evento de siniestro
+    siniestro = np.random.binomial(n=1, p=prob_siniestro, size=num_registros)
+    
+    # --- Generación de la Severidad (monto del siniestro) ---
+    tipo_dano = np.random.choice(['Perdida Parcial', 'Perdida Total', 'Robo'], num_registros, p=[0.75, 0.15, 0.10])
+    
+    monto_siniestro = np.zeros(num_registros)
+    monto_siniestro[siniestro == 1] = np.random.lognormal(mean=np.log(2000000), sigma=1.0, size=np.sum(siniestro))
+    
+    # Ajuste de severidad por tipo de daño y suma asegurada
+    idx_parcial = np.where((siniestro == 1) & (tipo_dano == 'Perdida Parcial'))
+    monto_siniestro[idx_parcial] = np.random.uniform(500000, 0.5 * suma_asegurada[idx_parcial], len(idx_parcial[0]))
+    
+    idx_total = np.where((siniestro == 1) & (tipo_dano == 'Perdida Total'))
+    monto_siniestro[idx_total] = np.random.uniform(0.7 * suma_asegurada[idx_total], 0.9 * suma_asegurada[idx_total], len(idx_total[0]))
+    
+    idx_robo = np.where((siniestro == 1) & (tipo_dano == 'Robo'))
+    monto_siniestro[idx_robo] = np.random.uniform(0.9 * suma_asegurada[idx_robo], 1.0 * suma_asegurada[idx_robo], len(idx_robo[0]))
+    
+    # --- Creación del DataFrame ---
+    df = pd.DataFrame({
+        'id_poliza': ids_poliza,
+        'fecha_emision': fechas_emision,
+        'fecha_vencimiento': fechas_vencimiento,
+        'exposicion': exposicion,
+        'genero': genero,
+        'edad': edad,
+        'estado_civil': estado_civil,
+        'marca': marca,
+        'modelo_anio': modelo_anio,
+        'cilindraje': cilindraje,
+        'peso_kg': peso_kg,
+        'puestos': puestos,
+        'color': color,
+        'suma_asegurada': suma_asegurada,
+        'siniestro': siniestro,
+        'tipo_dano_siniestro': np.where(siniestro == 1, tipo_dano, 'Sin Siniestro'),
+        'monto_siniestro': monto_siniestro,
+        'costo_anual_promedio': monto_siniestro / exposicion  # Severidad anualizada
+    })
+    
+    return df
+
+if __name__ == '__main__':
+    # Genera la base de datos y la guarda en un archivo CSV
+    df_siniestros = generar_datos_ficticios(num_registros=50000)
+    df_siniestros.to_csv('data/siniestros_ficticios.csv', index=False)
+    print("Base de datos ficticia generada y guardada en 'data/siniestros_ficticios.csv'")
+    print(df_siniestros.head())
+    print("\nInformación del DataFrame:")
+    print(df_siniestros.info())
+
+
+2. Script para la modelación GLM (2_modelacion_glm.py)
+Este script utiliza la librería statsmodels para los GLM, pandas para la manipulación de datos y matplotlib y seaborn para la visualización. Se seguirán los pasos típicos de un análisis actuarial:
+ * Carga y preprocesamiento de datos.
+ * Modelación de la Frecuencia (probabilidad): Se utilizará un GLM con una distribución Poisson y la función link logarítmica.
+ * Modelación de la Severidad: Se utilizará un GLM con una distribución Gamma y la función link logarítmica.
+ * Cálculo de la Prima de Riesgo Pura: Se multiplica la frecuencia esperada por la severidad esperada.
+ * Análisis de resultados y gráficos.
+<!-- end list -->
+# 2_modelacion_glm.py
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import seaborn as sns
+from patsy import dmatrices
+
+# Cargar la base de datos ficticia
+try:
+    df = pd.read_csv('data/siniestros_ficticios.csv')
+    print("Base de datos cargada exitosamente.")
+except FileNotFoundError:
+    print("Error: El archivo 'siniestros_ficticios.csv' no fue encontrado. Ejecute '1_generar_datos_ficticios.py' primero.")
+    exit()
+
+# --- 1. Preprocesamiento de datos para la modelación ---
+# Convertir variables categóricas a tipo 'category'
+categorical_cols = ['genero', 'estado_civil', 'marca', 'color', 'puestos']
+for col in categorical_cols:
+    df[col] = df[col].astype('category')
+
+# --- 2. Modelación de la Frecuencia (Probabilidad de Siniestro) ---
+print("\n--- Modelando la Frecuencia (GLM con Poisson) ---")
+# La variable dependiente es el número de siniestros. La variable 'exposicion' se utiliza como offset.
+formula_frecuencia = 'siniestro ~ C(genero) + C(estado_civil) + edad + np.log(modelo_anio) + np.log(cilindraje) + np.log(peso_kg) + C(marca)'
+
+# Dummies y matrices para el GLM
+y_freq, X_freq = dmatrices(formula_frecuencia, data=df, return_type='dataframe')
+
+# Modelo GLM de Frecuencia
+# Familia: Poisson, Link: log
+# El offset es el logaritmo natural de la exposición para modelar la tasa de siniestros
+model_frecuencia = sm.GLM(y_freq, X_freq,
+                          family=sm.families.Poisson(),
+                          exposure=df['exposicion'])
+result_frecuencia = model_frecuencia.fit()
+
+print(result_frecuencia.summary())
+
+# Gráfico de diagnóstico: Predicción vs. Real para la frecuencia
+df['frecuencia_predicha'] = result_frecuencia.predict(X_freq)
+plt.figure(figsize=(12, 6))
+sns.histplot(df[df['siniestro'] == 1]['frecuencia_predicha'], label='Siniestros reales', color='red', kde=True)
+sns.histplot(df['frecuencia_predicha'], label='Todas las pólizas', color='blue', alpha=0.5, kde=True)
+plt.title('Distribución de Frecuencia Predicha vs Real')
+plt.xlabel('Frecuencia Anual Esperada (lambda)')
+plt.legend()
+plt.show()
+
+# --- 3. Modelación de la Severidad (Monto Promedio de Siniestro) ---
+# Se modela solo con los registros que tuvieron siniestro
+df_siniestrados = df[df['siniestro'] == 1].copy()
+print(f"\n--- Modelando la Severidad (GLM con Gamma) - {len(df_siniestrados)} registros con siniestro ---")
+
+# La variable dependiente es el 'costo_anual_promedio' (severidad)
+formula_severidad = 'costo_anual_promedio ~ C(genero) + edad + np.log(modelo_anio) + np.log(cilindraje) + C(marca) + np.log(suma_asegurada)'
+
+# Dummies y matrices para el GLM
+y_sev, X_sev = dmatrices(formula_severidad, data=df_siniestrados, return_type='dataframe')
+
+# Modelo GLM de Severidad
+# Familia: Gamma, Link: log
+model_severidad = sm.GLM(y_sev, X_sev, family=sm.families.Gamma(link=sm.families.links.log()))
+result_severidad = model_severidad.fit()
+
+print(result_severidad.summary())
+
+# Gráfico de diagnóstico: Predicción vs. Real para la severidad
+df_siniestrados['severidad_predicha'] = result_severidad.predict(X_sev)
+plt.figure(figsize=(12, 6))
+sns.scatterplot(x=df_siniestrados['costo_anual_promedio'], y=df_siniestrados['severidad_predicha'], alpha=0.5)
+plt.plot([0, df_siniestrados['costo_anual_promedio'].max()], [0, df_siniestrados['costo_anual_promedio'].max()], 'r--')
+plt.title('Severidad Predicha vs. Severidad Real')
+plt.xlabel('Severidad Real Anual')
+plt.ylabel('Severidad Predicha Anual')
+plt.show()
+
+# --- 4. Cálculo de la Prima de Riesgo Pura (Frecuencia * Severidad) ---
+# Se aplica a toda la base de datos
+df['severidad_predicha_total'] = result_severidad.predict(dmatrices(formula_severidad, data=df, return_type='dataframe')[1])
+
+# Prima de Riesgo Pura = Frecuencia Esperada * Severidad Esperada
+df['prima_riesgo_pura'] = df['frecuencia_predicha'] * df['severidad_predicha_total']
+
+print("\n--- Resultados de la Prima de Riesgo Pura ---")
+print(df[['frecuencia_predicha', 'severidad_predicha_total', 'prima_riesgo_pura']].describe())
+
+# Ejemplo de la prima para un registro
+print("\nEjemplo de la prima de riesgo pura para las primeras 5 pólizas:")
+print(df[['id_poliza', 'exposicion', 'frecuencia_predicha', 'severidad_predicha_total', 'prima_riesgo_pura']].head())
+
+
+3. Script tipo cotizador (3_cotizador.py)
+Este script implementa una función que toma las características de un cliente y su vehículo, utiliza los modelos GLM previamente entrenados para calcular la frecuencia y la severidad, y finalmente devuelve la prima de riesgo pura.
+# 3_cotizador.py
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from patsy import dmatrices
+import pickle
+import os
+
+def cargar_modelos(path_frecuencia='models/model_frecuencia.pkl', path_severidad='models/model_severidad.pkl'):
+    """
+    Carga los modelos entrenados desde archivos .pkl.
+    """
+    if not os.path.exists(path_frecuencia) or not os.path.exists(path_severidad):
+        print("Error: Los modelos entrenados no se encontraron.")
+        print("Asegúrate de que '2_modelacion_glm.py' haya sido ejecutado y guardado los modelos.")
+        return None, None
+    
+    with open(path_frecuencia, 'rb') as f:
+        model_frecuencia = pickle.load(f)
+    with open(path_severidad, 'rb') as f:
+        model_severidad = pickle.load(f)
+    
+    return model_frecuencia, model_severidad
+
+def guardar_modelos(model_frecuencia, model_severidad, path='models'):
+    """
+    Guarda los modelos entrenados en la carpeta 'models'.
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(f'{path}/model_frecuencia.pkl', 'wb') as f:
+        pickle.dump(model_frecuencia, f)
+    with open(f'{path}/model_severidad.pkl', 'wb') as f:
+        pickle.dump(model_severidad, f)
+    print(f"Modelos guardados en '{path}'.")
+
+
+def cotizar_prima_riesgo(datos_cliente, model_frecuencia, model_severidad):
+    """
+    Calcula la prima de riesgo pura para un cliente dado sus datos.
+
+    Args:
+        datos_cliente (dict): Diccionario con las características del cliente y vehículo.
+        model_frecuencia (sm.GLM.fit): Modelo GLM para la frecuencia.
+        model_severidad (sm.GLM.fit): Modelo GLM para la severidad.
+
+    Returns:
+        float: Prima de riesgo pura calculada.
+    """
+
+    # Crear un DataFrame con un solo registro para la cotización
+    df_cotizar = pd.DataFrame([datos_cliente])
+    df_cotizar['exposicion'] = 1.0  # Se asume una exposición de 1 año para la cotización
+
+    # --- 1. Predecir Frecuencia ---
+    formula_frecuencia = 'siniestro ~ C(genero) + C(estado_civil) + edad + np.log(modelo_anio) + np.log(cilindraje) + np.log(peso_kg) + C(marca)'
+    # Creamos las matrices de diseño usando los mismos nombres de variables del modelo
+    # Esto es crucial para que la predicción funcione correctamente
+    df_cotizar['siniestro'] = 0 # Variable dummy necesaria para dmatrices
+    _, X_freq_cotizar = dmatrices(formula_frecuencia, data=df_cotizar, return_type='dataframe')
+    frecuencia_predicha = model_frecuencia.predict(X_freq_cotizar)[0]
+
+    # --- 2. Predecir Severidad ---
+    formula_severidad = 'costo_anual_promedio ~ C(genero) + edad + np.log(modelo_anio) + np.log(cilindraje) + C(marca) + np.log(suma_asegurada)'
+    # Creamos las matrices de diseño para la severidad
+    df_cotizar['costo_anual_promedio'] = 1 # Variable dummy necesaria para dmatrices
+    _, X_sev_cotizar = dmatrices(formula_severidad, data=df_cotizar, return_type='dataframe')
+    severidad_predicha = model_severidad.predict(X_sev_cotizar)[0]
+    
+    # --- 3. Calcular Prima de Riesgo Pura ---
+    prima_riesgo_pura = frecuencia_predicha * severidad_predicha
+
+    return prima_riesgo_pura, frecuencia_predicha, severidad_predicha
+
+if __name__ == '__main__':
+    # Antes de ejecutar este script, es necesario ejecutar '2_modelacion_glm.py'
+    # para entrenar y guardar los modelos.
+    
+    # Cargar los modelos entrenados
+    model_frecuencia, model_severidad = cargar_modelos()
+    
+    if model_frecuencia and model_severidad:
+        print("\n--- Cotizador de Prima de Riesgo Pura ---")
+        
+        # Ejemplo de cotización con datos de un cliente
+        datos_nuevo_cliente = {
+            'genero': 'Mujer',
+            'estado_civil': 'Casado',
+            'edad': 45,
+            'marca': 'Toyota',
+            'modelo_anio': 2022,
+            'cilindraje': 1.6,
+            'peso_kg': 1400.0,
+            'color': 'Blanco',
+            'puestos': 5,
+            'suma_asegurada': 60000000.0,
+        }
+        
+        prima, frec, sev = cotizar_prima_riesgo(datos_nuevo_cliente, model_frecuencia, model_severidad)
+        
+        print("\n--- Datos del Cliente a Cotizar ---")
+        for key, value in datos_nuevo_cliente.items():
+            print(f"{key}: {value}")
+            
+        print("\n--- Resultados de la Cotización ---")
+        print(f"Frecuencia Anual Esperada: {frec:.4f}")
+        print(f"Severidad Esperada del Siniestro: ${sev:,.2f}")
+        print(f"PRIMA DE RIESGO PURA Anual Estimada: ${prima:,.2f}")
+
+        # Ejemplo de otro cliente más riesgoso
+        print("\n--- Ejemplo de un cliente más riesgoso (joven, soltero) ---")
+        datos_cliente_riesgoso = {
+            'genero': 'Hombre',
+            'estado_civil': 'Soltero',
+            'edad': 22,
+            'marca': 'Ford',
+            'modelo_anio': 2018,
+            'cilindraje': 2.0,
+            'peso_kg': 1600.0,
+            'color': 'Rojo',
+            'puestos': 5,
+            'suma_asegurada': 45000000.0,
+        }
+        
+        prima_riesgo, frec_riesgo, sev_riesgo = cotizar_prima_riesgo(datos_cliente_riesgoso, model_frecuencia, model_severidad)
+        
+        print("\n--- Datos del Cliente a Cotizar ---")
+        for key, value in datos_cliente_riesgoso.items():
+            print(f"{key}: {value}")
+
+        print("\n--- Resultados de la Cotización ---")
+        print(f"Frecuencia Anual Esperada: {frec_riesgo:.4f}")
+        print(f"Severidad Esperada del Siniestro: ${sev_riesgo:,.2f}")
+        print(f"PRIMA DE RIESGO PURA Anual Estimada: ${prima_riesgo:,.2f}")
+
+
+Instrucciones para la Ejecución del Proyecto en Visual Studio Code
+ * Crea la estructura de carpetas mencionada anteriormente (/pricing_automoviles, /data, /src, /models).
+ * Instala las librerías necesarias: Abre la terminal en Visual Studio Code y ejecuta:
+   pip install pandas numpy statsmodels patsy matplotlib seaborn scikit-learn
+
+   (Se incluye scikit-learn en caso de que quieras explorar otros modelos, aunque los GLM se manejan con statsmodels).
+ * Ejecuta el primer script: Abre 1_generar_datos_ficticios.py en el editor y presiona Ctrl + F5 o haz clic en el botón de "Run" en la esquina superior derecha. Esto creará el archivo siniestros_ficticios.csv en la carpeta /data.
+ * Ejecuta el segundo script: Abre 2_modelacion_glm.py y ejecútalo. Este script cargará la base de datos, entrenará los modelos de frecuencia y severidad, mostrará los resúmenes estadísticos de los modelos y los gráficos de diagnóstico. Importante: Este script también guarda los modelos entrenados en la carpeta /models para que puedan ser usados por el cotizador.
+ * Ejecuta el tercer script: Abre 3_cotizador.py y ejecútalo. Este script cargará los modelos guardados y te mostrará la cotización de ejemplo para los clientes predefinidos. Puedes modificar el diccionario datos_nuevo_cliente para probar diferentes perfiles.
+Este proyecto te proporciona una base sólida para entender y aplicar los conceptos actuariales de pricing con GLM en un entorno práctico y reproducible.
+
